@@ -1,0 +1,117 @@
+# Configuration D' (session 8): permanent agent LINKML_METRICS.RAW.LINKML_DP, created as LINKML_METRICS_ROLE and
+# called as LINKML_SVC. Written by snowflake/phase4_others/d/build_specs.py (charter version 5): instructions
+# DEFINITION.md sections 1, 2, 3, 7 and 8 verbatim less Provenance lines, skill linkml-coverage on stage SKILLS_DP, the B2 semantic view tool.
+models:
+  orchestration: claude-sonnet-5-5
+orchestration:
+  budget:
+    seconds: 120
+    tokens: 160000
+  tool_not_accessible: reject
+instructions:
+  orchestration: "1. Business definition\n\n**Stock coverage** answers one question: *if nothing is replenished, how many\
+    \ months will the stock on hand last against the demand forecast?*\n\n- **Stock**: closing stock in the analysis month\
+    \ *t*.\n- **Forecast**: monthly demand forecast for months *t+1* to *t+H*. Coverage looks **forward** and starts the\
+    \ month **after** the analysis month.\n- **Horizon** *H* = **24 months**.\n- **Result**: always **months**, fractional,\
+    \ whatever the basis. The month in which the stock runs out is interpolated\n  linearly. A coverage is never given in\
+    \ kg, L, EUR or packs.\n- **Basis**: stock and forecast are measured on one basis before the ratio. The basis is not\
+    \ the unit of the result: it\n  decides which quantities can be added.\n  - **The item's own unit** (cases, packs, as\
+    \ the item is counted): for one item, with no total across items. The\n    months are the same as on any other consistent\
+    \ basis.\n  - **Quantity equivalent** in the base unit of the items' dimension: **kg** for items counted by weight,\
+    \ **L** for\n    items counted by volume. Valid while every row and every total holds items of one dimension. It is\
+    \ the default.\n  - **Value**: stock at standard cost against forecast at cost of goods sold. Valid for any group of\
+    \ items, and the\n    only basis when items counted in kg and items counted in L are combined in one row or one total.\n\
+    \  - kg and L are never added, and the packs of different items are never added. A figure that would need either is\n\
+    \    given on an allowed basis, saying which and why, or not given.\n- **Stockout month**: the analysis month plus the\
+    \ coverage rounded up to a whole month, since coverage counts from the\n  month after the analysis month: a coverage\
+    \ of 0.5 or of 1.0 from June runs out in July. There is none when the stock\n  outlasts the horizon or when there is\
+    \ no demand.\n\n**Questions on stock-outs and dormant stock.**\n\n- *\"Which products will stock out within the next\
+    \ N months?\"* keeps the products whose coverage is above 0 and at\n  most *N*: they run out from the month after the\
+    \ analysis month up to month *N* included.\n- *\"Which products will stock out first?\"* gives the 10 lowest coverages,\
+    \ lowest first, ties broken by the product\n  codes.\n- Products already out (coverage 0: no stock at the analysis month)\
+    \ and products with no demand are never in these\n  lists: they are counted and named apart.\n- *\"Which products have\
+    \ more than N months of coverage?\"* keeps the products whose coverage is above *N*. The stock\n  they tie up is the\
+    \ sum of their stock on the basis asked; coverage itself is never summed or averaged.\n- The grain follows the question.\
+    \ A question that asks for a list of products or items takes items as grain: with a country named, sku_code filtered\
+    \ on that country; worldwide or with no country, sku_code; for item and country pairs, sku_code and country_code. A\
+    \ question that asks for one figure for a scope (a country, a family, a region) takes that scope's grain and its filters,\
+    \ with no item rows and no grand total unless the question asks for them.\n- The analysis month is the one the question\
+    \ gives, as for any coverage.\n\n2. Algorithm\n\nLet *S* be the stock at *t*, *f(i)* the forecast for month *t+i*, and\
+    \ *C(n) = f(1) + … + f(n)*, with *C(0) = 0*.\n\n| Case | Coverage |\n|---|---|\n| *S* is null or 0 | **0** |\n| First\
+    \ *n* ≤ *H* such that *S ≤ C(n)* | **(n − 1) + (S − C(n−1)) / f(n)** |\n| *S > C(H)* (stock outlasts the horizon) |\
+    \ **S / average monthly forecast**, where the average is taken over the months of the horizon *t+1 … t+H* with non-zero\
+    \ forecast |\n| No forecast at all | **null** (no demand, so coverage is undefined) |\n\nProperties:\n- The formula\
+    \ is the same on every basis and its result is in months. Scaling *S* and every *f(i)* by the same factor\n  leaves\
+    \ it unchanged, which is why one item gives the same months in its own unit and in kg or L equivalent.\n- A zero-forecast\
+    \ month **before** depletion counts as a fully covered month.\n- *f(n) > 0* is guaranteed in the selected branch, so\
+    \ there is no division by zero.\n- **Aggregate first, then compute.** *S* and *f* are summed to the requested grain\
+    \ *before* the algorithm runs. The coverage of a product family is **never** the sum, the average or the weighted average\
+    \ of the coverage of its SKUs.\n\n### Worked example (synthetic)\n\n*S* = 1,000. Forecasts from *t+1*: 120, 90, 150,\
+    \ 110, 130, 100, 140, 80, 160, …\n\nThe first 8 months accumulate to *C(8)* = 920 ≤ 1,000, and *C(9)* = 1,080 > 1,000.\
+    \ Coverage = 8 + (1,000 − 920) / 160 = **8.5 months**.\n\n3. Attribute applicability (the semantic core)\n\nEvery attribute\
+    \ a user can slice or filter by has a declared **applicability** to the forecast measure. This declaration drives the\
+    \ SQL, and getting it wrong silently changes the answer.\n\n| Class | Examples | Effect on stock | Effect on forecast\
+    \ |\n|---|---|---|---|\n| **Analysis time** | month | Selects the snapshot *t* | The filter is **not** applied: the\
+    \ forecast window is *t+1 … t+H* |\n| **Conformed** | SKU, product family, brand, country, region | Grouped and filtered\
+    \ | Grouped and filtered the same way |\n| **Stock-only** | batch status, best-before range, warehouse, business unit,\
+    \ ownership | Grouped and filtered | **Ignored**: the forecast stays at the parent conformed grain |\n| **Stock-only\
+    \ by decision** | item type, when bulk items carry stock but no forecast | Grouped and filtered | Ignored |\n\nConsequence:\
+    \ *\"coverage of released batches in France\"* means released stock in France divided by **total** French forecast.\
+    \ That is the intended business meaning, and no generic aggregation rule would produce it.\n\nA new or derived attribute\
+    \ **must** declare its class before it can be used with coverage. In the legacy implementation, forgetting that declaration\
+    \ was the most frequent source of wrong numbers.\n\n7. Closing stock over a period\n\nStock on hand is a level. Over\
+    \ a period (a quarter, a year, a range of months) it is read as **closing stock**:\n\n- The closing stock of a period\
+    \ is the snapshot of the period's **last month**.\n- A member (a SKU x country, a family x country...) that has a snapshot\
+    \ in some month of the period and **none in its\n  last month closes at 0**, and keeps its row. It is not carried at\
+    \ its last known value.\n- Closing stock is **never** the sum of the months of the period, their average, or the last\
+    \ non-empty month carried\n  forward.\n- Across members (SKUs, countries, batches, warehouses) closing stock adds up:\
+    \ a family's closing stock is the sum of\n  its members' snapshots of the last month only.\n- It counts every item type:\
+    \ the default scope (STANDARD items only) belongs to coverage, not to closing stock.\n\nSynthetic example: a SKU holds\
+    \ 400 in April, 350 in May and nothing in June. Its closing stock for the second quarter\nis **0**, not 750 (sum), 250\
+    \ (average) or 350 (May carried into June).\n\n8. Default scope and analysis month\n\nThree rules apply to every coverage\
+    \ question.\n\n**BULK stock is excluded by default.** BULK items (repacked in store) carry stock but are never forecast.\
+    \ Counting\ntheir stock against the forecast of the STANDARD items of the same family inflates its coverage. Coverage\
+    \ therefore\ncounts STANDARD stock only, unless the question filters the item type explicitly (for example \"including\
+    \ bulk\"), in\nwhich case the filter applies as asked. The answer says how much BULK stock was left out. Grouping by\
+    \ item type\nwithout such a filter keeps the default. This applies to coverage only: closing stock counts every item\
+    \ type\n(section 7).\n\n**Coverage is measured at one analysis month.** It is a point-in-time measure: the stock of\
+    \ one month against the\nforecast that follows it. A question that gives no month, or gives a period (a year, a quarter,\
+    \ a range of months),\nhas no single analysis month: ask which month is meant, and say which months are available, rather\
+    \ than picking\none. Several months may be asked together, as a series with one value per month and no total across\
+    \ months.\nCoverage is never summed or averaged over several months.\n\n**Basis.** Coverage is always in months. Stock\
+    \ and forecast are measured on one basis before the ratio: the item's own\nunit for a single item; kg or L equivalent\
+    \ for items of the same dimension, unless the question asks for value (EUR);\nvalue only when items of different dimensions\
+    \ are combined. Closing stock and forecast follow the same basis rule.\n\nSynthetic example: a family holds 300 of STANDARD\
+    \ stock and 200 of BULK stock, against a STANDARD forecast of 100 a\nmonth. Its coverage is 3.0 months, with 200 of\
+    \ BULK stock reported as excluded; filtered explicitly on both item\ntypes it would read 5.0. Asked \"what is its coverage\
+    \ over 2026?\", the answer is a question: which month of 2026?"
+  response: 'Answer in two to five sentences. Say which month or period, which basis and which filters the figures refer
+    to. Give only figures that a tool returned. If a tool returns a warning, a flag or a refusal, relay it with its number
+    and explain it in business words. When you give a figure, end with one line: ''Data freshness: <the latest month with
+    stock data>'', taken from what a tool returned.'
+skills:
+- name: linkml-coverage
+  source:
+    type: STAGE
+    path: '@LINKML_METRICS.RAW.SKILLS_DP/skills/linkml-coverage'
+tools:
+- tool_spec:
+    type: cortex_analyst_text_to_sql
+    name: b2_semantic_view
+    description: 'Semantic view LINKML_METRICS.RAW.LINKML_B2_SV of the grocery dataset: stock on hand and closing stock
+      by item, family, range, country, region, lot status, expiry bucket and warehouse; monthly demand forecast by item
+      and country. Analysis months 2023-07-01 to 2026-06-01; the latest stock snapshot is June 2026. Use it for stock, closing
+      stock and demand forecast questions; coverage is computed by the linkml-coverage skill, never here.'
+- tool_spec:
+    type: code_toolset_all
+    name: code_toolset_all
+tool_resources:
+  b2_semantic_view:
+    semantic_view: LINKML_METRICS.RAW.LINKML_B2_SV
+    execution_environment:
+      type: warehouse
+      warehouse: LINKML_METRICS_WH
+      query_timeout: 120
+  code_toolset_all:
+    permission_policy:
+      type: always_ask

@@ -1,0 +1,3230 @@
+[
+ {
+  "config": "C",
+  "question_id": "H_LOWEST_COUNTRY",
+  "verdict": "wrong",
+  "verdict_figure_only": "correct",
+  "request_id": "000000b3-0000-4000-8000-0000000000b3",
+  "criteria": {
+   "lowest_member": {
+    "result": "pass",
+    "why": "expected 2.1618732501908884 given"
+   },
+   "basis_wording": {
+    "result": "fail",
+    "why": "coverage given in a unit: 'It has about 2.16 months of coverage, from 82,070 kg of stock.'"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_H_LOWEST_COUNTRY_campaign-s2_r1",
+  "answer": "Poland has the lowest stock coverage of breakfast cereals as of June 2026. It has about 2.16 months of coverage, from 82,070 kg of stock. On that coverage it would run out around September 2026. These figures use the kg-equivalent basis and cover standard stock only, so bulk stock is excluded by default.\n\nWarning FORECAST_GAPS_FILLED (14 member-months): 14 member-months in the 24-month forecast horizon had no forecast row and were counted as zero demand. Coverage may therefore be slightly overstated.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "N1",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000b4-0000-4000-8000-0000000000b4",
+  "criteria": {
+   "closing_stock": {
+    "result": "pass",
+    "why": "expected 0.0 given"
+   },
+   "coverage": {
+    "result": "pass",
+    "why": "expected 0.0 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure and semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_N1_campaign-s2_r1",
+  "answer": "SKU-H11 in Switzerland had a closing stock of 0 at the end of Q2 2026. That is the June 2026 snapshot, since a quarter closes on its last month. Its stock coverage as of June 2026 is 0 months. The tool flagged it NO_STOCK, which means there is forecast demand but no stock on hand, so it is effectively already out of stock. The forecast demand over the next 24 months is 2,400 packs, so this item needs replenishment.\n\nBoth figures are in the item's own unit (PACK_1000, native basis) and filtered to SKU-H11 in Switzerland (CH). The closing stock also checks out at 0 in kg/L-equivalent terms.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "H_LOCAL_STOCKOUT",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000b5-0000-4000-8000-0000000000b5",
+  "criteria": {
+   "item_set": {
+    "result": "pass",
+    "why": "exact set of 14 products"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_H_LOCAL_STOCKOUT_campaign-s2_r1",
+  "answer": "Fourteen items stock out in at least one country within 3 months of June 2026 while the all-country stock covers more than 6 months. I matched the item list to the country list myself. Every coverage figure comes from Stock Coverage. The basis is kg or L equivalent, in the standard scope, which excludes bulk stock.\n\n| Item | Coverage, all countries (months) | Country that stocks out within 3 months (coverage in months) |\n|---|---|---|\n| SKU-0010 | 6.4 | FR (2.2) |\n| SKU-0011 | 6.1 | GB (2.5) |\n| SKU-0021 | 6.2 | DE (2.4), CH (3.0) |\n| SKU-0014 | 6.7 | NL (1.5) |\n| SKU-0013 | 6.9 | PL (2.2) |\n| SKU-0042 | 6.6 | CH (2.8), IT (3.0) |\n| SKU-0008 | 7.3 | BE (2.6) |\n| SKU-0031 | 7.5 | BE (1.5), FR (1.8) |\n| SKU-0038 | 7.6 | PL (2.7) |\n| SKU-0024 | 8.4 | ES (2.9) |\n| SKU-0037 | 8.5 | CH (1.5) |\n| SKU-0001 | 8.6 | ES (1.9) |\n| SKU-0003 | 8.7 | BE (1.6) |\n| SKU-0018 | 9.8 | BE (2.4) |\n\n- **Imbalanced stock:** Each of these items has enough stock overall but is short in one or more countries, so moving stock between countries could fix it.\n- **Forecast gaps:** The forecast had 169 member-months with no forecast row, and these were counted as zero demand.\n- **Bulk stock:** 568,195.5 kg of bulk stock was left out because it has no forecast.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "H_STOCKOUT_2027",
+  "verdict": "wrong",
+  "verdict_figure_only": "wrong",
+  "request_id": "000000b6-0000-4000-8000-0000000000b6",
+  "criteria": {
+   "item_set": {
+    "result": "fail",
+    "why": "missing ['SKU-0001', 'SKU-0003', 'SKU-0006', 'SKU-0007', 'SKU-0008', 'SKU-0010', 'SKU-0011', 'SKU-0013', 'SKU-0014', 'SKU-0016', 'SKU-0018', 'SKU-0019', 'SKU-0020', 'SKU-0021', 'SKU-0022', 'SKU-0023', 'SKU-0024', 'SKU-0027', 'SKU-0029', 'SKU-0030', 'SKU-0031', 'SKU-0032', 'SKU-0034', 'SKU-0037', 'SKU-0038', 'SKU-0040', 'SKU-0042', 'SKU-0044', 'SKU-0045', 'SKU-0047', 'SKU-0048', 'SKU-H01', 'SKU-H03', 'SKU-H04', 'SKU-H05']"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_H_STOCKOUT_2027_campaign-s2_r1",
+  "answer": "As of June 2026, on a kg/L-equivalent basis with BULK stock excluded by default, 35 items are projected to stock out during 2027. All 35 run out between January and June 2027, and no item runs out later in 2027. The stock-out month is the analysis month plus coverage rounded up. The table lists each item with its coverage in months, its stock, its stock unit and its stock-out month.\n\n\n\nWarnings and items set apart:\n- **Bulk stock excluded (DEFAULT_SCOPE_EXCLUDED):** 568,195.5 kg of BULK stock is left out because it has no forecast.\n- **Forecast gaps filled (FORECAST_GAPS_FILLED):** 169 member-months in the horizon had no forecast row and were counted as zero demand. This could make some coverage figures look longer than they are.\n- **Duplicate master data (MASTER_DATA_DUPLICATES):** 1 item has several rows in the item master. They agree on the attributes used here, so the answer isn't affected.\n- **Already out of stock (NO_STOCK):** SKU-H08 and SKU-H11 have a forecast but no stock, so they are not in the list.\n- **No forecast demand (NO_DEMAND):** SKU-H09 has none, so it has no stock-out date and is not in the list.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "H_STOCKOUT_ES",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000b7-0000-4000-8000-0000000000b7",
+  "criteria": {
+   "item_set": {
+    "result": "pass",
+    "why": "exact set of 3 products"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_H_STOCKOUT_ES_campaign-s2_r1",
+  "answer": "Three products in Spain are forecast to stock out within 3 months of June 2026. The figures use the kg/L-equivalent basis and cover STANDARD items only.\n\n| Product | Coverage (months) | Stock | Stockout month |\n|---|---|---|---|\n| SKU-0001 | 1.93 | 1,063 kg | August 2026 |\n| SKU-0028 | 2.73 | 4,205 L | September 2026 |\n| SKU-0024 | 2.92 | 21,310 L | September 2026 |\n\nNo Spanish products were already out of stock or without forecast demand.\n\nTwo warnings came back:\n- **FORECAST_GAPS_FILLED (17):** 17 member-months in the forecast horizon had no forecast row and were counted as zero demand. This could make coverage look slightly longer than it is.\n- **DEFAULT_SCOPE_EXCLUDED:** 48,993.5 kg of BULK stock was left out. BULK stock has no forecast, so it is excluded unless you filter on it explicitly.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "N3",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000b8-0000-4000-8000-0000000000b8",
+  "criteria": {
+   "item_set": {
+    "result": "pass",
+    "why": "exact set of 10 products"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_N3_campaign-s2_r1",
+  "answer": "In France at June 2026, on a kg/L-equivalent basis (standard items only), these 10 products run out first. They are ranked by months of coverage, lowest first:\n\n| Rank | Product | Coverage (months) | Stockout month |\n|---|---|---|---|\n| 1 | SKU-H02 | 0.50 | July 2026 |\n| 2 | SKU-0039 | 1.01 | August 2026 |\n| 3 | SKU-0031 | 1.84 | August 2026 |\n| 4 | SKU-0010 | 2.21 | September 2026 |\n| 5 | SKU-0008 | 3.13 | October 2026 |\n| 6 | SKU-0033 | 3.36 | October 2026 |\n| 7 | SKU-0027 | 4.43 | November 2026 |\n| 8 | SKU-0016 | 4.46 | November 2026 |\n| 9 | SKU-0024 | 5.96 | December 2026 |\n| 10 | SKU-0021 | 6.22 | January 2027 |\n\nSKU-H02 is the most urgent: it has 200 kg on hand, about half a month of demand. No French product was already out of stock or without forecast demand.\n\nTwo warnings came back:\n- **FORECAST_GAPS_FILLED:** 20 member-months in the forecast horizon had no forecast row and were counted as zero demand. This could make some coverage figures look slightly longer than they are.\n- **DEFAULT_SCOPE_EXCLUDED:** 365,840 kg of BULK stock was left out by default. BULK stock has no forecast.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "N2",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000b9-0000-4000-8000-0000000000b9",
+  "criteria": {
+   "closing_stock": {
+    "result": "pass",
+    "why": "3 months match"
+   },
+   "coverage": {
+    "result": "pass",
+    "why": "expected 2.25 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure and semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_N2_campaign-s2_r1",
+  "answer": "For SNACK_BARS in Switzerland, closing stock in kg equivalent was 900 kg at the end of April 2026, 350 kg at the end of May and 450 kg at the end of June (Q2 2026). The June 2026 stock gives 2.25 months of coverage, measured against the next 24 months of forecast, also in kg equivalent. At that rate the stock runs out in September 2026. The tools returned no warnings or flags. These figures cover all lot statuses and warehouses. The coverage figure uses the default scope, which excludes BULK stock.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "T2",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000ba-0000-4000-8000-0000000000ba",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 7.0 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "yes",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "2026-06-01"
+   }
+  },
+  "label": "C_T2_campaign-s2_r2",
+  "answer": "As of June 2026, SKU-H03 (salted almonds 1 kg) in Germany has 7.0 months of stock coverage. This is measured in the item's own unit (PACK_1000), with filters on SKU-H03 and country DE. Stock is 500 packs against a 24-month forecast of 2,200 packs. At this rate the stock runs out in January 2027.\n\nWarning FORECAST_GAPS_FILLED (2): two months in the 24-month forecast window have no forecast row, and the tool counted them as zero demand. This could make the coverage look slightly longer than it would with a full forecast.\n\nData freshness: 2026-06-01",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "T1",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000bb-0000-4000-8000-0000000000bb",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 2.8 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_T1_campaign-s2_r2",
+  "answer": "As of June 2026, flour and baking stock in France has 2.8 months of coverage. This is on a kg-equivalent basis, covering standard stock only (bulk stock is excluded by default). It compares 1,400 kg on hand against 12,000 kg of forecast demand over the 24-month horizon. If nothing is replenished, the stock runs out in September 2026. The tool returned no warnings or flags.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "BULK_SCOPE",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000bc-0000-4000-8000-0000000000bc",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 8.67354124748491 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "yes",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "2026-06-01"
+   }
+  },
+  "label": "C_BULK_SCOPE_campaign-s2_r2",
+  "answer": "Ground coffee (family HOT_GROUND) had about 8.7 months of stock coverage as of June 2026. This is on a kg-equivalent basis. Stock was about 55,238 kg against a 24-month forecast of about 147,906 kg. At that rate the stock runs out in March 2027.\n\nThe tool returned two warnings:\n- **FORECAST_GAPS_FILLED (2):** two member-months in the forecast horizon had no forecast row, so they were counted as zero demand.\n- **DEFAULT_SCOPE_EXCLUDED:** 51,475.5 kg of BULK stock was left out by default because it has no forecast. This excluded stock is not part of the 8.7 months.\n\nData freshness: 2026-06-01",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "BULK_SCOPE_DRILL",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000bd-0000-4000-8000-0000000000bd",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "6 rows match"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "yes",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "2026-06-01"
+   }
+  },
+  "label": "C_BULK_SCOPE_DRILL_campaign-s2_r2",
+  "answer": "Ground coffee coverage by country as of June 2026, on a kg-equivalent basis, runs from about 1.9 months in Spain to 11.4 months in Belgium. Germany (4.1 months) and Spain (1.9 months) are the tightest. Spain would run out in August 2026 and Germany in November 2026.\n\n| Country | Coverage (months) | Stock (kg) | Stockout month |\n|---|---|---|---|\n| Belgium | 11.4 | 32,732 | 2027-06 |\n| Sweden | 10.7 | 6,688 | 2027-05 |\n| Italy | 8.7 | 6,633 | 2027-03 |\n| France | 7.5 | 7,540 | 2027-02 |\n| Germany | 4.1 | 582 | 2026-11 |\n| Spain | 1.9 | 1,063 | 2026-08 |\n\nThe tool returned the same two warnings as before:\n- **FORECAST_GAPS_FILLED (2):** two member-months of the forecast horizon had no forecast row and were counted as zero demand.\n- **DEFAULT_SCOPE_EXCLUDED:** 51,475.5 kg of BULK stock was left out by default because it has no forecast.\n\nData freshness: 2026-06-01",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "G2",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000be-0000-4000-8000-0000000000be",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "10 rows match"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_G2_campaign-s2_r2",
+  "answer": "June 2026 closing stock value in EUR by country is in the table below. It covers all item types, including bulk, and has no other filters. Spain is highest and Sweden is lowest.\n\n\n\nData freshness: June 2026",
+  "tables": [
+   {
+    "title": "Closing stock value (EUR) by country, June 2026",
+    "columns": [
+     "COUNTRY_CODE",
+     "CLOSING_STOCK_VALUE"
+    ],
+    "rows": [
+     [
+      "ES",
+      "48525033.1342"
+     ],
+     [
+      "FR",
+      "43879032.9288"
+     ],
+     [
+      "CH",
+      "28912589.5002"
+     ],
+     [
+      "DE",
+      "24697602.4328"
+     ],
+     [
+      "GB",
+      "24672306.0572"
+     ],
+     [
+      "NL",
+      "20232037.4658"
+     ],
+     [
+      "PL",
+      "15096357.3398"
+     ],
+     [
+      "IT",
+      "14978427.8516"
+     ],
+     [
+      "BE",
+      "14764495.4040"
+     ],
+     [
+      "SE",
+      "14476855.4803"
+     ]
+    ],
+    "query_id": "000000bf-0000-4000-8000-0000000000bf"
+   }
+  ]
+ },
+ {
+  "config": "C",
+  "question_id": "N2",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000c0-0000-4000-8000-0000000000c0",
+  "criteria": {
+   "closing_stock": {
+    "result": "pass",
+    "why": "3 months match"
+   },
+   "coverage": {
+    "result": "pass",
+    "why": "expected 2.25 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure and semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_N2_campaign-s2_r2",
+  "answer": "SNACK_BARS stock in Switzerland, in kg equivalent, closed at 900 kg in April 2026, 350 kg in May and 450 kg in June.\n\n\n\nThe June 2026 stock of 450 kg gives 2.25 months of coverage, on a kg-equivalent basis and for standard items only (bulk stock is excluded by default). Against the next 24 months of forecast, the stock runs out in September 2026. The tool returned no warnings or flags.\n\nData freshness: June 2026",
+  "tables": [
+   {
+    "title": "SNACK_BARS closing stock in Switzerland, Q2 2026 (kg equivalent)",
+    "columns": [
+     "SNAPSHOT_MONTH",
+     "FAMILY_CODE",
+     "COUNTRY_CODE",
+     "CLOSING_STOCK_QTY_EQ"
+    ],
+    "rows": [
+     [
+      "2026-04-01",
+      "SNACK_BARS",
+      "CH",
+      "900.0000"
+     ],
+     [
+      "2026-05-01",
+      "SNACK_BARS",
+      "CH",
+      "350.0000"
+     ],
+     [
+      "2026-06-01",
+      "SNACK_BARS",
+      "CH",
+      "450.0000"
+     ]
+    ],
+    "query_id": "000000c1-0000-4000-8000-0000000000c1"
+   }
+  ]
+ },
+ {
+  "config": "C",
+  "question_id": "CS_MIDDLE_MONTH_GAP",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000c2-0000-4000-8000-0000000000c2",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 450.0 given"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_CS_MIDDLE_MONTH_GAP_campaign-s2_r2",
+  "answer": "The closing stock of Nut cereal bar 1 kg (SKU-H12) in Switzerland for Q2 2026 was 450 kg equivalent, worth 3,150 EUR. Closing stock for a quarter is the snapshot of its last month, June 2026, so these figures are the 30 June 2026 level. They are not a sum across the three months. The figures cover all lots and warehouses in Switzerland with no other filters.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "BEYOND_H",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000c3-0000-4000-8000-0000000000c3",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 50.0 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "yes",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_BEYOND_H_campaign-s2_r2",
+  "answer": "As of June 2026, SKU-H10 (arabica beans 1 kg) in Poland has 50 months of coverage. This is on a kg-equivalent basis, filtered to SKU-H10 and Poland, and covers standard stock only (bulk stock is excluded by default). The 5,000 kg on hand is set against 2,200 kg of forecast demand over the next 24 months.\n\n- **Flag BEYOND_HORIZON:** The stock lasts longer than the 24-month forecast window. The 50 months is therefore an extrapolation (stock divided by the mean non-zero monthly forecast), and no stockout month is given.\n- **Warning FORECAST_GAPS_FILLED (2):** Two months in the horizon had no forecast row and were counted as zero demand.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "DIM_MIX",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000c4-0000-4000-8000-0000000000c4",
+  "criteria": {
+   "basis_switch": {
+    "result": "pass",
+    "why": "value coverage, basis change explained"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis VALUE named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "2026-06-01"
+   }
+  },
+  "label": "C_DIM_MIX_campaign-s2_r2",
+  "answer": "France's stock coverage in June 2026 is about 8.7 months. On that coverage, the stock runs out around March 2027 if nothing is replenished.\n\n- **Basis:** I used value (EUR). My first attempt in kg/L equivalent was refused with BASIS_NOT_COMPARABLE, because French items include both kg and L items and those can't be added together. The tool allowed only the value basis.\n- **Figures:** Stock is about 28.4M EUR against a forecast of about 77.1M EUR over the next 24 months.\n- **Warning FORECAST_GAPS_FILLED (20):** 20 item-months in the forecast horizon had no forecast row and were counted as zero demand.\n- **Warning DEFAULT_SCOPE_EXCLUDED:** About 15.45M EUR of bulk stock was left out by default, because bulk items have no forecast.\n\nData freshness: 2026-06-01",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "G1",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000c5-0000-4000-8000-0000000000c5",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 6416.0 given"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026. This is the latest stock snapshot month, taken from the semantic model description. The forecast query itself didn't return a freshness month."
+   }
+  },
+  "label": "C_G1_campaign-s2_r2",
+  "answer": "The demand forecast for fruit juice in France for September 2026 is 6,416 L equivalent. Fruit juice is a volume item, so the figure is in litres. It covers all fruit juice items in France, with no other filters.\n\nData freshness: June 2026. This is the latest stock snapshot month, taken from the semantic model description. The forecast query itself didn't return a freshness month.",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "CS_FAMILY",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000c6-0000-4000-8000-0000000000c6",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 450.0 given"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "2026-06-01"
+   }
+  },
+  "label": "C_CS_FAMILY_campaign-s2_r2",
+  "answer": "Closing stock = snapshot at 2026-06-01.The closing stock of cereal bars (family SNACK_BARS) in Switzerland for Q2 2026 was 450 kg equivalent. Closing stock for a quarter is the snapshot of its last month, June 2026. It is a level, so it isn't summed across the quarter's months. The figure uses the kg-equivalent basis and counts all item types and lot statuses, with no other filters.\n\nData freshness: 2026-06-01",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "NO_DEMAND",
+  "verdict": "wrong",
+  "verdict_figure_only": "correct",
+  "request_id": "000000c7-0000-4000-8000-0000000000c7",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "no number, reason given"
+   },
+   "basis_wording": {
+    "result": "fail",
+    "why": "coverage given in a unit: 'Stock coverage for SKU-H09 (iced tea summer edition 1 L) in Belgium as of June 2026 is undefined.'"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "2026-06-01"
+   }
+  },
+  "label": "C_NO_DEMAND_campaign-s2_r2",
+  "answer": "Stock coverage for SKU-H09 (iced tea summer edition 1 L) in Belgium as of June 2026 is undefined. The tool returned the flag NO_DEMAND, which means the demand forecast for the next 24 months (July 2026 to June 2028) is zero. Coverage can't be calculated without demand, so the tool gives no figure and no stockout month. The item is discontinued, which fits a zero forecast. Stock on hand is 500 PACK_1000 units, measured in the item's own unit (NATIVE basis), with no other filters and no warnings.\n\nData freshness: 2026-06-01",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "T8",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000c8-0000-4000-8000-0000000000c8",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 0.0 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_T8_campaign-s2_r2",
+  "answer": "Cashew nuts 1 kg (SKU-H08) in the Netherlands had a stock coverage of 0 months as of June 2026. I measured it in the item's own unit (PACK_1000), with filters on that SKU and country NL. The tool flagged it NO_STOCK (flag, no warning number): there was demand in the forecast but no stock on hand at that month. The forecast over the next 24 months is 2,400 packs, and the stock ran out in June 2026.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "N3",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000c9-0000-4000-8000-0000000000c9",
+  "criteria": {
+   "item_set": {
+    "result": "pass",
+    "why": "exact set of 10 products"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "2026-06-01"
+   }
+  },
+  "label": "C_N3_campaign-s2_r2",
+  "answer": "In France as of June 2026 (kg/L-equivalent basis), these 10 products run out first, with the months of stock they have left:\n\n| Product | Months of coverage | Stockout month |\n|---|---|---|\n| SKU-H02 | 0.5 | July 2026 |\n| SKU-0039 | 1.0 | August 2026 |\n| SKU-0031 | 1.8 | August 2026 |\n| SKU-0010 | 2.2 | September 2026 |\n| SKU-0008 | 3.1 | October 2026 |\n| SKU-0033 | 3.4 | October 2026 |\n| SKU-0027 | 4.4 | November 2026 |\n| SKU-0016 | 4.5 | November 2026 |\n| SKU-0024 | 6.0 | December 2026 |\n| SKU-0021 | 6.2 | January 2027 |\n\nSKU-H02 is the most urgent. It has only 200 kg on hand, which covers about half a month of forecast demand.\n\nThe tool returned two warnings:\n- **FORECAST_GAPS_FILLED (20):** 20 member-months in the forecast horizon had no forecast row and were counted as zero demand. This may make coverage look slightly longer than it is.\n- **DEFAULT_SCOPE_EXCLUDED:** 365,840 kg of bulk stock was left out. It has no forecast, and I didn't include it because I didn't filter on item type.\n\nData freshness: 2026-06-01",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "T7_R1",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000ca-0000-4000-8000-0000000000ca",
+  "criteria": {
+   "refusal": {
+    "result": "pass",
+    "why": "no number, fan-out reason given"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "2026-06-01 (latest month available in the tool). No stock figure was returned for this request."
+   }
+  },
+  "label": "C_T7_R1_campaign-s2_r2",
+  "answer": "I can't give you coverage for cooking oils in Sweden by lifecycle status as of June 2026. The stock coverage tool refused the request with the code MASTER_DATA_FANOUT.\n\nThe reason is a data problem. At least one item has more than one record in the item master, and those records disagree on lifecycle status (one says ACTIVE, the other PHASE_OUT). Any split by lifecycle status would count that item's stock and demand in both groups, so the figures would be wrong.\n\nThe item master needs fixing so each item has a single lifecycle status. Meanwhile, I can run cooking oils in Sweden as one figure with no lifecycle split, or by item.\n\nData freshness: 2026-06-01 (latest month available in the tool). No stock figure was returned for this request.",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "S_STOCKOUT_COUNTRY",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000cb-0000-4000-8000-0000000000cb",
+  "criteria": {
+   "selection_rows": {
+    "result": "pass",
+    "why": "4 rows, 0 set apart"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_S_STOCKOUT_COUNTRY_campaign-s2_r2",
+  "answer": "Four products in France are projected to stock out within 3 months of June 2026. The figures use stock and forecast in kg or L equivalent, with standard (non-bulk) stock only.\n\n| Product | Coverage (months) | Projected stock-out month | Stock |\n|---|---|---|---|\n| SKU-H02 | 0.5 | July 2026 | 200 kg |\n| SKU-0039 | 1.0 | August 2026 | 316 kg |\n| SKU-0031 | 1.8 | August 2026 | 11,030 L |\n| SKU-0010 | 2.2 | September 2026 | 514 kg |\n\nTwo warnings came back:\n- **FORECAST_GAPS_FILLED (20):** 20 member-months in the forecast horizon had no forecast row. They were counted as zero demand, so coverage could be slightly overstated.\n- **DEFAULT_SCOPE_EXCLUDED:** 365,840 kg of bulk stock was left out because it has no forecast. It doesn't affect these four products.\n\nNo French products were already out of stock or lacked demand.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "S_FIRST_WORLD",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000cc-0000-4000-8000-0000000000cc",
+  "criteria": {
+   "selection_rows": {
+    "result": "pass",
+    "why": "10 rows, 3 set apart"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "2026-06-01"
+   }
+  },
+  "label": "C_S_FIRST_WORLD_campaign-s2_r2",
+  "answer": "As of June 2026, worldwide, on a kg/L-equivalent basis and excluding BULK stock, these 10 products will stock out first. The tool lists them with the lowest coverage first:\n\n| Rank | Product | Coverage (months) | Stockout month |\n|---|---|---|---|\n| 1 | SKU-H02 | 0.5 | July 2026 |\n| 2 | SKU-H07 | 1.0 | July 2026 |\n| 3 | SKU-0046 | 3.06 | October 2026 |\n| 4 | SKU-0043 | 3.75 | October 2026 |\n| 5 | SKU-0036 | 4.48 | November 2026 |\n| 6 | SKU-H12 | 4.5 | November 2026 |\n| 7 | SKU-0025 | 5.26 | December 2026 |\n| 8 | SKU-0009 | 5.40 | December 2026 |\n| 9 | SKU-0041 | 5.41 | December 2026 |\n| 10 | SKU-0017 | 5.68 | December 2026 |\n\nThree products are set apart and not ranked:\n- **Already out of stock:** SKU-H08 and SKU-H11 have a forecast but no stock.\n- **No demand:** SKU-H09 has no forecast in the next 24 months, so its coverage is undefined.\n\nThe tool returned three warnings:\n- **DEFAULT_SCOPE_EXCLUDED:** 568,195.5 kg of BULK stock was excluded. BULK items have no forecast.\n- **FORECAST_GAPS_FILLED (169):** 169 member-months in the horizon had no forecast row and were counted as 0.\n- **MASTER_DATA_DUPLICATES (1):** One item has several rows in the item master. The rows agree on the attributes used, so the answer is not affected.\n\nData freshness: 2026-06-01",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "N1",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000cd-0000-4000-8000-0000000000cd",
+  "criteria": {
+   "closing_stock": {
+    "result": "pass",
+    "why": "expected 0.0 given"
+   },
+   "coverage": {
+    "result": "pass",
+    "why": "expected 0.0 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure and semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "2026-06-01"
+   }
+  },
+  "label": "C_N1_campaign-s2_r2",
+  "answer": "SKU-H11 in Switzerland had no stock at the end of Q2 2026. Its closing stock was 0 kg or L equivalent, taken from the June 2026 snapshot, which is the last month of the quarter. Coverage as of June 2026 is 0 months, measured in the item's own unit (PACK_1000) with no other filters. The tool flagged NO_STOCK: there is forecast demand (2,400 packs over the next 24 months) but nothing on hand, so the item is already out of stock.\n\nData freshness: 2026-06-01",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "CS_LAST_MONTH_GAP",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000ce-0000-4000-8000-0000000000ce",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 0.0 given"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_CS_LAST_MONTH_GAP_campaign-s2_r2",
+  "answer": "Oat cereal bar 1 kg (SKU-H11) had a closing stock of 0 kg in Switzerland for Q2 2026. The value is also 0 EUR. Closing stock for a quarter is the snapshot of its last month, June 2026. The 0 is also what the data shows for a lot or warehouse with no snapshot in that month. So the item either had no stock or had no snapshot in June. I did not check the other months of the quarter.\n\nThe figure is in kg equivalent. It covers all lot statuses, warehouses and item types.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "S_DORMANT_VALUE",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000cf-0000-4000-8000-0000000000cf",
+  "criteria": {
+   "summary": {
+    "result": "pass",
+    "why": "28 pairs, 70987982.9948 EUR"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis VALUE named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "2026-06-01"
+   }
+  },
+  "label": "C_S_DORMANT_VALUE_campaign-s2_r2",
+  "answer": "In June 2026, 28 item and country pairs have more than 12 months of coverage. Together they tie up about \u20ac70.99M of stock. This is on a value basis (stock at standard cost against forecast at cost of goods sold), with no filters, and BULK stock is excluded by default.\n\n- **Longest coverage:** SKU-H10 in Poland is flagged BEYOND_HORIZON. Its stock outlasts the 24-month forecast horizon, so its 50 months is an extrapolation. The longest pair within the horizon is SKU-0043 in Belgium at about 23.0 months.\n- **Largest stock:**\n  - SKU-0034 in Spain: about \u20ac21.1M, 13.8 months.\n  - SKU-0021 in Spain: about \u20ac16.5M, 17.4 months.\n  - SKU-0034 in France: about \u20ac12.0M, 13.3 months.\n- **Set apart:**\n  - No stock: SKU-H08 in the Netherlands and SKU-H11 in Switzerland.\n  - No demand: SKU-H09 in Belgium. Without a forecast, its coverage can't be calculated.\n- **Warnings:**\n  - DEFAULT_SCOPE_EXCLUDED (1): about \u20ac21.6M of BULK stock has no forecast and is left out. Filter on item type to include it.\n  - FORECAST_GAPS_FILLED (169): 169 item-months with no forecast row were counted as zero demand.\n  - MASTER_DATA_DUPLICATES (1): one item has several master-data rows, but they agree on what this query uses, so the result is unaffected.\n\nI can list all 28 pairs with their stock and coverage if you want them.\n\nData freshness: 2026-06-01",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "T7",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000d0-0000-4000-8000-0000000000d0",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 2.25 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "yes",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "2026-06-01"
+   }
+  },
+  "label": "C_T7_campaign-s2_r2",
+  "answer": "As of June 2026, cooking oils in Sweden have 2.25 months of stock coverage. This is measured in litre equivalents (QTY_EQ basis), filtered to the cooking oils family in Sweden, and BULK stock is excluded by default. Stock on hand is 900 L against a 24-month forecast of 9,600 L. If nothing is replenished, the stock runs out in September 2026.\n\nThe tool returned one warning, MASTER_DATA_DUPLICATES (1 item). One item has several rows in the item master data, but those rows agree on every attribute used here, so the answer isn't affected.\n\nData freshness: 2026-06-01",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "T9",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000d1-0000-4000-8000-0000000000d1",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 0.0 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "procedure"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "C_T9_campaign-s2_r2",
+  "answer": "SKU-H11 in Switzerland has 0 months of stock coverage as of June 2026. The figure is on a kg-equivalent basis, with filters SKU-H11 and country CH. The tool flagged it NO_STOCK: there is no stock on hand (0 kg), but demand is forecast. The forecast over the next 24 months is 2,400 kg, so the item is already out of stock.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "C",
+  "question_id": "T6",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000d2-0000-4000-8000-0000000000d2",
+  "criteria": {
+   "refusal": {
+    "result": "pass",
+    "why": "no number; asks for the month or refuses with a reason"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "no tool call"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": false,
+    "latest": false,
+    "value": null
+   }
+  },
+  "label": "C_T6_campaign-s2_r2",
+  "answer": "Coverage is measured at one analysis month, so I can't give a single figure for the whole of 2026. Which month do you want for flour and baking in France?\n\nThe latest available month is June 2026. Valid months run from July 2023 to June 2026. If you'd like a series, name the months, for example January to June 2026. I'll then return one coverage figure for each month. I won't total or average them, because coverage can't be added across months.",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "H_LOWEST_COUNTRY",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000d3-0000-4000-8000-0000000000d3",
+  "criteria": {
+   "lowest_member": {
+    "result": "pass",
+    "why": "expected 2.1618732501908884 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_H_LOWEST_COUNTRY_campaign-s2_r1",
+  "answer": "Poland (PL) has the lowest stock coverage of breakfast cereals as of the June 2026 analysis month. Its stock lasts about 2.2 months against the forecast demand for the following 24 months. Switzerland is next at about 2.8 months, then Spain at about 3.3. The basis is kg-equivalent. The figures cover STANDARD items in the breakfast cereals family, and BULK stock is excluded.\n\nThe semantic view's built-in coverage metric would not run as a query. I rebuilt the same calculation by hand from the June 2026 stock and the 24-month forecast. The country figures therefore come from that rebuild, not from the metric itself.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "H_LOCAL_STOCKOUT",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000d4-0000-4000-8000-0000000000d4",
+  "criteria": {
+   "item_set": {
+    "result": "pass",
+    "why": "exact set of 14 products"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_H_LOCAL_STOCKOUT_campaign-s2_r1",
+  "answer": "As of June 2026, 14 standard items (BULK excluded) are on course to stock out in at least one country within 3 months. Their stock across all countries still covers more than 6 months. For each item, I compared June 2026 stock with the demand forecast: a country counts if its stock is at or below its next-3-month forecast, and the item counts if worldwide stock exceeds the worldwide next-6-month forecast. Quantities are in kg or L equivalent per item.\n\n| Item | Countries short within 3 months | Worldwide stock | Worldwide forecast, next 6 months |\n|---|---|---|---|\n| SKU-0001 | ES | 35,375 | 23,587 |\n| SKU-0003 | BE | 19,863 | 13,860 |\n| SKU-0008 | BE | 21,291 | 17,061 |\n| SKU-0010 | FR | 5,828 | 5,482 |\n| SKU-0011 | GB | 84,090 | 82,660 |\n| SKU-0013 | PL | 30,156 | 25,785 |\n| SKU-0014 | NL | 23,258 | 20,829 |\n| SKU-0018 | BE | 56,485 | 34,295 |\n| SKU-0021 | DE, CH | 253,200 | 245,830 |\n| SKU-0024 | ES | 333,360 | 222,060 |\n| SKU-0031 | BE, FR | 276,850 | 225,760 |\n| SKU-0037 | CH | 530,000 | 386,370 |\n| SKU-0038 | PL | 262,620 | 213,900 |\n| SKU-0042 | CH, IT | 4,678 | 4,217.5 |\n\n- **Method:** I computed the cover check from the stock and forecast figures directly, because the coverage metric could not be queried on its own at this grain. The result is therefore my own calculation, not the model's coverage metric. A 6-month forecast total is equivalent to \"more than 6 months of cover\".\n- **Closest margins:** SKU-0010, SKU-0011, SKU-0021 and SKU-0042 clear the 6-month bar only narrowly.\n- **Stock-out calls:** The 3-month check uses the same stock-versus-forecast comparison.\n- **Left out:** Items with 6+ months worldwide cover but no country under 3 months are not listed.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "N1",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000d5-0000-4000-8000-0000000000d5",
+  "criteria": {
+   "closing_stock": {
+    "result": "pass",
+    "why": "expected 0.0 given"
+   },
+   "coverage": {
+    "result": "pass",
+    "why": "expected 0.0 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_N1_campaign-s2_r1",
+  "answer": "SKU-H11 in Switzerland had a closing stock of 0 at the end of Q2 2026. That is the June 2026 snapshot, and it is 0 kg/L equivalent, or \u20ac0 in value. Its stock coverage as of June 2026 is therefore 0 months. The item has no stock on hand, though demand is forecast (2,400 kg/L equivalent over July 2026 to June 2028), so it is out of stock rather than lacking demand. I derived the coverage from the zero stock rather than running the coverage metric directly. I did not filter on item type, because closing stock counts every item type.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "H_STOCKOUT_2027",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000d6-0000-4000-8000-0000000000d6",
+  "criteria": {
+   "item_set": {
+    "result": "pass",
+    "why": "exact set of 35 products"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_H_STOCKOUT_2027_campaign-s2_r1",
+  "answer": "As of June 2026, 35 STANDARD items would run out of stock during 2027 if nothing is replenished. I used each item's stock in kg or L equivalent, summed across all countries and warehouses, and compared it with the demand forecast from July 2026 to December 2027. An item counts when its stock outlasts the forecast to December 2026 but not the forecast to December 2027. I did not use the model's coverage-in-months metric, because I couldn't run it for this question. I rebuilt the same comparison from stock and forecast directly, so treat the cut-off months as approximate.\n\n- **Coffee and tea:** SKU-0001, 0003, 0006, 0007, 0008, 0010, 0011, 0013, plus H04 (green tea loose-leaf).\n- **Pantry:** SKU-0014, 0016, 0018 (pasta), 0019 to 0022 (rice and grains), plus H01 (plain wheat flour).\n- **Beverages:** SKU-0023, 0024 (iced tea), 0027, 0029, 0030, 0031 (fruit juice).\n- **Snacks and breakfast:** SKU-0032, 0034 (nuts and dried fruit), 0037, 0038, 0040 (crisps), 0042, 0044 (breakfast cereals), 0045, 0047, 0048 (jams and spreads), plus H03 (salted almonds) and H05 (strawberry jam).\n\n\n\nThe table shows each item's stock and its cumulative forecast to the end of 2026 and to the end of 2027. The tool flagged that my stock and forecast subqueries don't follow a declared join in the semantic model. They share only the item code, so I'd treat the results as indicative.\n\nData freshness: June 2026",
+  "tables": [
+   {
+    "title": "Items whose stock at June 2026 runs out during 2027 (stock vs. forecast to Dec 2026 and Dec 2027)",
+    "columns": [
+     "SKU_CODE",
+     "SKU_NAME",
+     "STOCK_QTY",
+     "F_TO_2026",
+     "F_TO_2027"
+    ],
+    "rows": [
+     [
+      "SKU-0001",
+      "Ground coffee 1",
+      "35375.0000",
+      "23587.0000",
+      "68695.0000"
+     ],
+     [
+      "SKU-0003",
+      "Ground coffee 3",
+      "19863.0000",
+      "13860.0000",
+      "41498.0000"
+     ],
+     [
+      "SKU-0006",
+      "Whole bean coffee 1",
+      "264260.0000",
+      "157950.0000",
+      "491670.0000"
+     ],
+     [
+      "SKU-0007",
+      "Whole bean coffee 2",
+      "128160.0000",
+      "114880.0000",
+      "380990.0000"
+     ],
+     [
+      "SKU-0008",
+      "Whole bean coffee 3",
+      "21291.0000",
+      "17061.0000",
+      "52010.0000"
+     ],
+     [
+      "SKU-0010",
+      "Loose-leaf tea 1",
+      "5828.0000",
+      "5482.0000",
+      "16681.0000"
+     ],
+     [
+      "SKU-0011",
+      "Loose-leaf tea 2",
+      "84090.0000",
+      "82660.0000",
+      "257570.0000"
+     ],
+     [
+      "SKU-0013",
+      "Loose-leaf tea 4",
+      "30156.0000",
+      "25785.0000",
+      "77401.0000"
+     ],
+     [
+      "SKU-0014",
+      "Dry pasta 1",
+      "23258.0000",
+      "20829.0000",
+      "62776.0000"
+     ],
+     [
+      "SKU-0016",
+      "Dry pasta 3",
+      "7906.0000",
+      "6830.0000",
+      "19251.0000"
+     ],
+     [
+      "SKU-0018",
+      "Dry pasta 5",
+      "56485.0000",
+      "34295.0000",
+      "101788.0000"
+     ],
+     [
+      "SKU-0019",
+      "Rice and grains 1",
+      "223830.0000",
+      "158570.0000",
+      "473870.0000"
+     ],
+     [
+      "SKU-0020",
+      "Rice and grains 2",
+      "8482.0000",
+      "5688.0000",
+      "17628.0000"
+     ],
+     [
+      "SKU-0021",
+      "Rice and grains 3",
+      "253200.0000",
+      "245830.0000",
+      "787160.0000"
+     ],
+     [
+      "SKU-0022",
+      "Rice and grains 4",
+      "157010.0000",
+      "116730.0000",
+      "372160.0000"
+     ],
+     [
+      "SKU-0023",
+      "Iced tea 1",
+      "19024.0000",
+      "9859.0000",
+      "34303.0000"
+     ],
+     [
+      "SKU-0024",
+      "Iced tea 2",
+      "333360.0000",
+      "222060.0000",
+      "681770.0000"
+     ],
+     [
+      "SKU-0027",
+      "Fruit juice 1",
+      "10445.0000",
+      "8810.0000",
+      "27250.0000"
+     ],
+     [
+      "SKU-0029",
+      "Fruit juice 3",
+      "87840.0000",
+      "63840.0000",
+      "197830.0000"
+     ],
+     [
+      "SKU-0030",
+      "Fruit juice 4",
+      "3870.0000",
+      "2049.5000",
+      "6845.5000"
+     ],
+     [
+      "SKU-0031",
+      "Fruit juice 5",
+      "276850.0000",
+      "225760.0000",
+      "781200.0000"
+     ],
+     [
+      "SKU-0032",
+      "Nuts and dried fruit 1",
+      "21508.0000",
+      "21426.0000",
+      "68455.0000"
+     ],
+     [
+      "SKU-0034",
+      "Nuts and dried fruit 3",
+      "481180.0000",
+      "275510.0000",
+      "916300.0000"
+     ],
+     [
+      "SKU-0037",
+      "Crisps 1",
+      "530000.0000",
+      "386370.0000",
+      "1173340.0000"
+     ],
+     [
+      "SKU-0038",
+      "Crisps 2",
+      "262620.0000",
+      "213900.0000",
+      "610470.0000"
+     ],
+     [
+      "SKU-0040",
+      "Crisps 4",
+      "32862.5000",
+      "18564.0000",
+      "56074.5000"
+     ],
+     [
+      "SKU-0042",
+      "Breakfast cereals 2",
+      "4678.0000",
+      "4217.5000",
+      "13144.5000"
+     ],
+     [
+      "SKU-0044",
+      "Breakfast cereals 4",
+      "135420.0000",
+      "81000.0000",
+      "247880.0000"
+     ],
+     [
+      "SKU-0045",
+      "Jams and spreads 1",
+      "24108.5000",
+      "17112.5000",
+      "46187.0000"
+     ],
+     [
+      "SKU-0047",
+      "Jams and spreads 3",
+      "198110.0000",
+      "139880.0000",
+      "416300.0000"
+     ],
+     [
+      "SKU-0048",
+      "Jams and spreads 4",
+      "263200.0000",
+      "192050.0000",
+      "547920.0000"
+     ],
+     [
+      "SKU-H01",
+      "Plain wheat flour 1 kg",
+      "1200.0000",
+      "600.0000",
+      "1800.0000"
+     ],
+     [
+      "SKU-H03",
+      "Salted almonds 1 kg",
+      "500.0000",
+      "400.0000",
+      "1600.0000"
+     ],
+     [
+      "SKU-H04",
+      "Green tea loose-leaf 1 kg",
+      "1000.0000",
+      "600.0000",
+      "1800.0000"
+     ],
+     [
+      "SKU-H05",
+      "Strawberry jam 1 kg",
+      "1000.0000",
+      "700.0000",
+      "1980.0000"
+     ]
+    ],
+    "query_id": "000000d7-0000-4000-8000-0000000000d7"
+   }
+  ]
+ },
+ {
+  "config": "B2",
+  "question_id": "N2",
+  "verdict": "wrong",
+  "verdict_figure_only": "correct",
+  "request_id": "000000d8-0000-4000-8000-0000000000d8",
+  "criteria": {
+   "closing_stock": {
+    "result": "pass",
+    "why": "3 months match"
+   },
+   "coverage": {
+    "result": "pass",
+    "why": "expected 2.25 given"
+   },
+   "basis_wording": {
+    "result": "fail",
+    "why": "coverage given in a unit: 'Closing stock for SNACK_BARS in Switzerland (CH) at the end of each month of Q2 2026, in kg:'"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_N2_campaign-s2_r1",
+  "answer": "Closing stock for SNACK_BARS in Switzerland (CH) at the end of each month of Q2 2026, in kg:\n- April 2026: 900 kg\n- May 2026: 350 kg\n- June 2026: 450 kg\n\nThese are all item types, in kg because the family is a mass item. I used the month-end snapshots and did not add the months together.\n\nAt the June 2026 analysis month, the 450 kg of standard-item stock covers about 2.25 months. The forecast is 200 kg a month from July 2026 on, so the stock lasts two full months plus a quarter of the third. I worked this out by hand from the stock and forecast figures. The semantic view's coverage metric would not run in my queries, so this is not its output. The 450 kg is all standard-item stock, so including or excluding bulk items makes no difference here.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "N3",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000d9-0000-4000-8000-0000000000d9",
+  "criteria": {
+   "item_set": {
+    "result": "pass",
+    "why": "exact set of 10 products"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_N3_campaign-s2_r1",
+  "answer": "In France as of June 2026, the products that run out first, if nothing is replenished, are the ones below. They are measured as months of cover: stock on hand at June 2026 against the demand forecast for the next 24 months. The basis is each item's own unit (kg or L), and I limited it to STANDARD items. The list shows the 10 lowest.\n\n| Rank | Product | Months of cover |\n|---|---|---|\n| 1 | SKU-H02, Bread flour 1 kg | about 0.5 |\n| 2 | SKU-0039, Crisps 3 | about 1.0 |\n| 3 | SKU-0031, Fruit juice 5 | about 1.8 |\n| 4 | SKU-0010, Loose-leaf tea 1 | about 2.2 |\n| 5 | SKU-0008, Whole bean coffee 3 | about 3.1 |\n| 6 | SKU-0033, Nuts and dried fruit 2 | about 3.4 |\n| 7 | SKU-0027, Fruit juice 1 | about 4.4 |\n| 8 | SKU-0016, Dry pasta 3 | about 4.5 |\n| 9 | SKU-0024, Iced tea 2 | about 6.0 |\n| 10 | SKU-0021, Rice and grains 3 | about 6.2 |\n\nThe semantic view's built-in coverage metric would not run at product level, so I rebuilt the same month-by-month depletion calculation by hand. Treat the figures as close approximations rather than the official metric output. Items with no forecast demand have undefined cover and are left out of this ranking.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "H_STOCKOUT_ES",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000da-0000-4000-8000-0000000000da",
+  "criteria": {
+   "item_set": {
+    "result": "pass",
+    "why": "exact set of 3 products"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_H_STOCKOUT_ES_campaign-s2_r1",
+  "answer": "Three products in Spain are forecast to run out within 3 months. This is measured from the June 2026 stock snapshot, for STANDARD items only (BULK is excluded). It assumes no replenishment and uses the demand forecast for the following months. Coverage is in months, each item in its own kg or L equivalent.\n\n| Product | Coverage (months) |\n|---|---|\n| Ground coffee 1 (SKU-0001) | about 1.9 |\n| Iced tea 2 (SKU-0024) | about 2.9 |\n| Fruit juice 2 (SKU-0028) | about 2.7 |\n\nI couldn't use the model's built-in coverage metric directly. I recomputed the same forward-depletion logic by hand for the first three forecast months.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "BEYOND_H",
+  "verdict": "wrong",
+  "verdict_figure_only": "correct",
+  "request_id": "000000db-0000-4000-8000-0000000000db",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 50.0 given"
+   },
+   "basis_wording": {
+    "result": "fail",
+    "why": "coverage given in a unit: 'Use aliases with the __ prefix.The stock coverage of Arabica beans 1 kg (SKU-H10) in Poland is about 50 months as of the'"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "no",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_BEYOND_H_campaign-s2_r2",
+  "answer": "Use aliases with the __ prefix.The stock coverage of Arabica beans 1 kg (SKU-H10) in Poland is about 50 months as of the June 2026 analysis month. I calculated this by hand because the coverage metric would not run directly. It uses the kg basis and the STANDARD item scope.\n\nStock on hand in June 2026 is 5,000 kg. The demand forecast for the next 24 months (July 2026 to June 2028) totals 2,200 kg, at 100 kg in each of the 22 months that have demand. November and December 2026 have no forecast.\n\nThe stock outlasts the 24-month horizon, so the coverage is extrapolated: 5,000 kg divided by the average non-zero monthly forecast of 100 kg gives 50 months. If nothing is replenished, the stock would last well beyond the forecast window.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "S_FIRST_WORLD",
+  "verdict": "wrong",
+  "verdict_figure_only": "wrong",
+  "request_id": "000000dc-0000-4000-8000-0000000000dc",
+  "criteria": {
+   "selection_rows": {
+    "result": "fail",
+    "why": "members set apart not named: ['SKU-H08', 'SKU-H09', 'SKU-H11']"
+   },
+   "basis_wording": {
+    "result": "fail",
+    "why": "coverage given in a unit: 'Coverage here is in kg or L equivalent, and each product keeps its own unit.'"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_S_FIRST_WORLD_campaign-s2_r2",
+  "answer": "Worldwide, at the June 2026 analysis month, these 10 STANDARD-type products have the shortest stock coverage. Coverage is how many months the stock on hand lasts against the next 24 months of forecast demand, assuming no replenishment. Items with zero stock are excluded, and BULK items are excluded by default.\n\n\n\nThe top two, Bread flour 1 kg (SKU-H02) and Rapeseed oil 1 L (SKU-H07), hold only 200 and 300 units of stock. They would run out in about 0.5 and 1 month. Coverage here is in kg or L equivalent, and each product keeps its own unit.\n\nI couldn't use the model's built-in coverage metric directly for a per-product list. I rebuilt the same forward-depletion calculation by hand from stock and forecast at product level. The figures come from that calculation, not from the built-in metric.\n\nData freshness: June 2026",
+  "tables": [
+   {
+    "title": "10 products with the shortest stock coverage, June 2026, worldwide",
+    "columns": [
+     "SKU_CODE",
+     "SKU_NAME",
+     "STOCK",
+     "COVERAGE_MONTHS"
+    ],
+    "rows": [
+     [
+      "SKU-H02",
+      "Bread flour 1 kg",
+      "200.0000",
+      "0.5"
+     ],
+     [
+      "SKU-H07",
+      "Rapeseed oil 1 L",
+      "300.0000",
+      "1"
+     ],
+     [
+      "SKU-0046",
+      "Jams and spreads 2",
+      "239730.0000",
+      "3.0626363353069492"
+     ],
+     [
+      "SKU-0043",
+      "Breakfast cereals 3",
+      "195220.0000",
+      "3.7488202488202487"
+     ],
+     [
+      "SKU-0036",
+      "Nuts and dried fruit 5",
+      "12727.0000",
+      "4.4836974789915969"
+     ],
+     [
+      "SKU-H12",
+      "Nut cereal bar 1 kg",
+      "450.0000",
+      "4.5"
+     ],
+     [
+      "SKU-0025",
+      "Iced tea 3",
+      "94730.0000",
+      "5.2560167422392743"
+     ],
+     [
+      "SKU-0009",
+      "Whole bean coffee 4",
+      "97500.0000",
+      "5.3992914979757085"
+     ],
+     [
+      "SKU-0041",
+      "Breakfast cereals 1",
+      "86730.0000",
+      "5.4050785973397826"
+     ],
+     [
+      "SKU-0017",
+      "Dry pasta 4",
+      "197110.0000",
+      "5.6840082766775053"
+     ]
+    ],
+    "query_id": "000000dd-0000-4000-8000-0000000000dd"
+   }
+  ]
+ },
+ {
+  "config": "B2",
+  "question_id": "S_STOCKOUT_COUNTRY",
+  "verdict": "wrong",
+  "verdict_figure_only": "wrong",
+  "request_id": "000000de-0000-4000-8000-0000000000de",
+  "criteria": {
+   "selection_rows": {
+    "result": "fail",
+    "why": "SKU-0039: 1.0124223602484472 not found; SKU-0031: 1.8432835820895521 not found; SKU-0010: 2.2094972067039107 not found"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_S_STOCKOUT_COUNTRY_campaign-s2_r2",
+  "answer": "Try without the cross joins, with the metric as a model-level metric.In France, as of June 2026, four standard items have less stock than the demand forecast for the next three months (July to September 2026). Without replenishment they would run out within that window.\n\n\n\n- **Basis:** the analysis month is June 2026, with stock and forecast in each item's own kg or L equivalent. It covers STANDARD items only, and bulk stock is excluded.\n- **Method:** I compared June stock with the cumulative forecast for months 1 to 3 rather than using the coverage metric directly. An item is flagged when its stock is at or below that three-month demand.\n- **Gap:** items with no stock at all in June (coverage of 0) have no stock row, so they may be missing from this list.\n\nData freshness: June 2026",
+  "tables": [
+   {
+    "title": "France: items whose June 2026 stock is below the next 3 months of forecast demand (kg or L equivalent)",
+    "columns": [
+     "SKU_CODE",
+     "SKU_NAME",
+     "STOCK_QTY",
+     "FORECAST_3M"
+    ],
+    "rows": [
+     [
+      "SKU-0010",
+      "Loose-leaf tea 1",
+      "514.0000",
+      "797.0000000000"
+     ],
+     [
+      "SKU-0031",
+      "Fruit juice 5",
+      "11030.0000",
+      "17590.0000000000"
+     ],
+     [
+      "SKU-0039",
+      "Crisps 3",
+      "316.0000",
+      "934.0000000000"
+     ],
+     [
+      "SKU-H02",
+      "Bread flour 1 kg",
+      "200.0000",
+      "1200.0000000000"
+     ]
+    ],
+    "query_id": "000000df-0000-4000-8000-0000000000df"
+   }
+  ]
+ },
+ {
+  "config": "B2",
+  "question_id": "BULK_SCOPE",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000e0-0000-4000-8000-0000000000e0",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 8.67354124748491 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "no",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_BULK_SCOPE_campaign-s2_r2",
+  "answer": "Ground coffee (family HOT_GROUND) has about 8.7 months of stock cover as of June 2026. That assumes nothing is replenished and demand follows the forecast for the next 24 months. The figure covers all countries and STANDARD items only, so BULK stock is excluded. Stock and forecast are both in kg equivalent.\n\nThe metric wouldn't run directly in the tool, so I worked the figure out by hand. I took the 55,238 kg of stock on hand in June 2026 and ran it against the cumulative monthly forecast. That demand reaches 51,221 kg after 8 months and 57,185 kg after 9 months, which puts cover at about 8.67 months.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "BULK_SCOPE_DRILL",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000e1-0000-4000-8000-0000000000e1",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "6 rows match"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "no",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_BULK_SCOPE_DRILL_campaign-s2_r2",
+  "answer": "Ground coffee stock cover as of June 2026 runs from about 1.9 months in Spain to about 11.4 months in Belgium. The figures are in months, in kg equivalent, for STANDARD items only. I recomputed each country from its own stock and its own 24-month forecast, as the metric wouldn't run directly in the tool.\n\n| Country | Stock (kg) | Coverage (months) |\n|---|---|---|\n| Belgium (BE) | 32,732 | 11.4 |\n| Sweden (SE) | 6,688 | 10.7 |\n| Italy (IT) | 6,633 | 8.7 |\n| France (FR) | 7,540 | 7.5 |\n| Germany (DE) | 582 | 4.1 |\n| Spain (ES) | 1,063 | 1.9 |\n\n- **Spain and Germany:** These are the thinnest. Spain is the lowest, and its stock would run out in under 2 months.\n- **Belgium:** It holds most of the stock, about 32,700 of the 55,238 kg. Its forecast also shows no demand in month 10, which stretches its cover a little.\n- **No other countries:** No other country shows ground coffee stock or forecast for this month.\n- **Worldwide figure:** The 8.7 months worldwide is not an average of these rows. It is recomputed from the combined stock and forecast, so the countries can't be added or averaged to reach it.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "CS_MIDDLE_MONTH_GAP",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000e2-0000-4000-8000-0000000000e2",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 450.0 given"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_CS_MIDDLE_MONTH_GAP_campaign-s2_r2",
+  "answer": "The closing stock of Nut cereal bar 1 kg (SKU-H12) in Switzerland for Q2 2026 was 450 kg. That is the snapshot of the quarter's last month, June 2026, counted in the item's own unit (kg) across all lots and warehouses in Switzerland. In value terms it was EUR 3,150.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "T7",
+  "verdict": "wrong",
+  "verdict_figure_only": "wrong",
+  "request_id": "000000e3-0000-4000-8000-0000000000e3",
+  "criteria": {
+   "numeric": {
+    "result": "fail",
+    "why": "wrong value given: ['naive_join_on_duplicated_item']"
+   },
+   "basis_wording": {
+    "result": "fail",
+    "why": "coverage given in a unit: 'This is for STANDARD items only, in litres.'"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "no",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_T7_campaign-s2_r2",
+  "answer": "Stock is 1,500 and the forecast is 500 a month, so the stock lasts exactly 3.0 months (cumulative demand reaches 1,500 in month 3).\n\nCooking oils in Sweden (SE) had a stock coverage of 3.0 months as of the June 2026 analysis month. This is for STANDARD items only, in litres. It compares the June 2026 stock on hand of 1,500 L with a forecast of about 500 L a month over the following months. I worked this out from the stock and forecast figures the tool returned, because the coverage metric could not be queried directly.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "CS_FAMILY",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000e4-0000-4000-8000-0000000000e4",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 450.0 given"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_CS_FAMILY_campaign-s2_r2",
+  "answer": "The closing stock of cereal bars (family SNACK_BARS) in Switzerland for Q2 2026 was 450 kg. That is the June 2026 snapshot, the last month of the quarter. It is measured in kg equivalent, covers all item types and lots, and is worth about EUR 3,150.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "N3",
+  "verdict": "wrong",
+  "verdict_figure_only": "wrong",
+  "request_id": "000000e5-0000-4000-8000-0000000000e5",
+  "criteria": {
+   "item_set": {
+    "result": "fail",
+    "why": "missing ['SKU-0016', 'SKU-0021', 'SKU-0024', 'SKU-0033']"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_N3_campaign-s2_r2",
+  "answer": "Model-level metric; try it without table join.In France, as of the June 2026 analysis month, these five products have the least stock cover. The scope is STANDARD items, on each item's own kg or L basis, with no replenishment against the next 24 months of forecast demand:\n\n1. Bread flour 1 kg (SKU-H02): about 0.5 months\n2. Crisps 3 (SKU-0039): about 1.0 months\n3. Fruit juice 5 (SKU-0031): about 1.8 months\n4. Loose-leaf tea 1 (SKU-0010): about 2.2 months\n5. Whole bean coffee 3 (SKU-0008): about 3.1 months\n\nFruit juice 1 (SKU-0027) is next at about 4.4 months.\n\nI calculated these cover figures myself from the stock and forecast data, because the built-in coverage metric would not run for a per-product list. I ranked only products that have June 2026 stock in France. A product with demand forecast but zero stock would have 0 months of cover and would rank first. This list does not show any such product.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "G1",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000e6-0000-4000-8000-0000000000e6",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 6416.0 given"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_G1_campaign-s2_r2",
+  "answer": "The demand forecast for fruit juice (family BEV_JUICE) in France for September 2026 is 6,416 L. Fruit juice is a volume item, so litre equivalent is the basis. The figure covers all items in the family in France, summed for that one month.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "CS_LAST_MONTH_GAP",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000e7-0000-4000-8000-0000000000e7",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 0.0 given"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_CS_LAST_MONTH_GAP_campaign-s2_r2",
+  "answer": "Closing stock of Oat cereal bar 1 kg (SKU-H11) in Switzerland for Q2 2026 was 0 kg. This is the June 2026 snapshot, the last month of the quarter, and it counts all item types and warehouses. A zero here means no stock was on hand at the end of the quarter. The model fills gaps with zero, so a lot with no June snapshot also shows as 0.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "NO_DEMAND",
+  "verdict": "wrong",
+  "verdict_figure_only": "correct",
+  "request_id": "000000e8-0000-4000-8000-0000000000e8",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "no number, reason given"
+   },
+   "basis_wording": {
+    "result": "fail",
+    "why": "coverage given in a unit: 'Stock coverage for iced tea summer edition 1 L (SKU-H09) in Belgium cannot be calculated for June 2026.'"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_NO_DEMAND_campaign-s2_r2",
+  "answer": "Stock is 500 L, and the item has no forecast in the next 24 months, so coverage is undefined.\n\nStock coverage for iced tea summer edition 1 L (SKU-H09) in Belgium cannot be calculated for June 2026. The stock stands at 500 L (STANDARD items, litre equivalent). The demand forecast for July 2026 to June 2028 has no rows for this item in Belgium. Coverage is stock divided by forecast demand, so with no demand it has no value. It is not zero and it is not unlimited.\n\nThe SKU is named \"discontinued\", but the item master lists its lifecycle status as ACTIVE. That conflict may explain the missing forecast, so it is worth checking.\n\nI worked this out from the stock and forecast figures directly, because the coverage metric would not run as a query on its own.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "T6",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000e9-0000-4000-8000-0000000000e9",
+  "criteria": {
+   "refusal": {
+    "result": "pass",
+    "why": "no number; asks for the month or refuses with a reason"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "no tool call"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_T6_campaign-s2_r2",
+  "answer": "Stock coverage is measured at one analysis month, so I can't give a single figure for the whole of 2026. A year isn't a valid basis for it, and I shouldn't pick a month for you.\n\nWhich month do you want? Valid analysis months run from July 2023 to June 2026, and the latest available is June 2026. I can also give a month-by-month series for 2026 (January to June) for Flour and Baking in France (FR). Coverage can't be summed or averaged across months.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "G2",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000ea-0000-4000-8000-0000000000ea",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "10 rows match"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_G2_campaign-s2_r2",
+  "answer": "Closing stock value in EUR at the June 2026 snapshot is shown below for all 10 countries. It counts every item type and every batch status. Spain is highest at about 48.5M EUR and France is next at about 43.9M EUR. Sweden is lowest at about 14.5M EUR.\n\n\n\nData freshness: June 2026",
+  "tables": [
+   {
+    "title": "Closing stock value (EUR) by country, June 2026",
+    "columns": [
+     "COUNTRY_CODE",
+     "CLOSING_STOCK_VALUE"
+    ],
+    "rows": [
+     [
+      "ES",
+      "48525033.1342"
+     ],
+     [
+      "FR",
+      "43879032.9288"
+     ],
+     [
+      "CH",
+      "28912589.5002"
+     ],
+     [
+      "DE",
+      "24697602.4328"
+     ],
+     [
+      "GB",
+      "24672306.0572"
+     ],
+     [
+      "NL",
+      "20232037.4658"
+     ],
+     [
+      "PL",
+      "15096357.3398"
+     ],
+     [
+      "IT",
+      "14978427.8516"
+     ],
+     [
+      "BE",
+      "14764495.4040"
+     ],
+     [
+      "SE",
+      "14476855.4803"
+     ]
+    ],
+    "query_id": "000000eb-0000-4000-8000-0000000000eb"
+   }
+  ]
+ },
+ {
+  "config": "B2",
+  "question_id": "S_DORMANT_VALUE",
+  "verdict": "wrong",
+  "verdict_figure_only": "correct",
+  "request_id": "000000ec-0000-4000-8000-0000000000ec",
+  "criteria": {
+   "summary": {
+    "result": "pass",
+    "why": "28 pairs, 70987982.9948 EUR"
+   },
+   "basis_wording": {
+    "result": "fail",
+    "why": "coverage given in a unit: 'Item\u2013country pairs with >12 months coverage, June 2026 (stock value in EUR)'"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_S_DORMANT_VALUE_campaign-s2_r2",
+  "answer": "In June 2026, 28 item and country pairs have more than 12 months of coverage. Their stock on hand comes to about EUR 71.0M. That total is my own sum of the 28 pair-level stock values. The tool did not return it as one figure.\n\nThis is on a EUR value basis, because the pairs mix kg and L items. It covers STANDARD items only, across all countries. I tested \"more than 12 months\" as stock above the next 12 months of forecast demand, because the model's coverage metric returned an error. The result is the same as filtering on the metric.\n\nThe largest pairs are SKU-0034 in Spain (EUR 21.1M), SKU-0021 in Spain (EUR 16.5M) and SKU-0034 in France (EUR 12.0M). Together these three hold about EUR 49.6M, around 70% of the total.\n\n\n\nIn that table, SV is the stock value in EUR. C12 and C24 are the forecast demand value over the next 12 and 24 months. Ignore the C12 and C24 columns for coverage purposes.\n\nData freshness: June 2026",
+  "tables": [
+   {
+    "title": "Item\u2013country pairs with >12 months coverage, June 2026 (stock value in EUR)",
+    "columns": [
+     "SKU_CODE",
+     "COUNTRY_CODE",
+     "SV",
+     "C12",
+     "C24"
+    ],
+    "rows": [
+     [
+      "SKU-0034",
+      "ES",
+      "21096242.1766",
+      "18728504.0824000000",
+      "37720360.9580000000"
+     ],
+     [
+      "SKU-0021",
+      "ES",
+      "16506723.0217",
+      "11253864.2868000000",
+      "21731955.4944000000"
+     ],
+     [
+      "SKU-0034",
+      "FR",
+      "11951450.6534",
+      "10693556.6164000000",
+      "20036310.4704000000"
+     ],
+     [
+      "SKU-0018",
+      "SE",
+      "4881660.3786",
+      "4350673.5578000000",
+      "8379845.5360000000"
+     ],
+     [
+      "SKU-0037",
+      "PL",
+      "2719178.3176",
+      "1977926.0840000000",
+      "3839075.6093000000"
+     ],
+     [
+      "SKU-0024",
+      "PL",
+      "2695074.1430",
+      "2575275.1584000000",
+      "5017651.9428000000"
+     ],
+     [
+      "SKU-0047",
+      "FR",
+      "2285798.9434",
+      "1959118.2300000000",
+      "3857927.4380000000"
+     ],
+     [
+      "SKU-0044",
+      "BE",
+      "2035064.4210",
+      "2006385.6432000000",
+      "4186175.7720000000"
+     ],
+     [
+      "SKU-0024",
+      "DE",
+      "1475173.0806",
+      "812648.9462000000",
+      "1586412.8126000000"
+     ],
+     [
+      "SKU-0043",
+      "BE",
+      "789283.3858",
+      "415107.7767000000",
+      "821159.4223000000"
+     ],
+     [
+      "SKU-0014",
+      "BE",
+      "652759.6806",
+      "585811.2876000000",
+      "1117037.8296000000"
+     ],
+     [
+      "SKU-0043",
+      "GB",
+      "649101.7806",
+      "596230.3987000000",
+      "1263224.9846000000"
+     ],
+     [
+      "SKU-0017",
+      "FR",
+      "596246.1828",
+      "363447.9540000000",
+      "625565.5308000000"
+     ],
+     [
+      "SKU-0019",
+      "FR",
+      "544745.0998",
+      "351952.8640000000",
+      "666256.7680000000"
+     ],
+     [
+      "SKU-0018",
+      "GB",
+      "446061.4014",
+      "421290.4446000000",
+      "967044.8190000000"
+     ],
+     [
+      "SKU-0003",
+      "IT",
+      "440511.4052",
+      "310375.3956000000",
+      "587461.9236000000"
+     ],
+     [
+      "SKU-0038",
+      "IT",
+      "324628.6164",
+      "244055.7595000000",
+      "423405.7905000000"
+     ],
+     [
+      "SKU-0038",
+      "FR",
+      "232379.9298",
+      "171776.2445000000",
+      "347806.2595000000"
+     ],
+     [
+      "SKU-0046",
+      "SE",
+      "220199.5158",
+      "208181.6260000000",
+      "438767.0210000000"
+     ],
+     [
+      "SKU-0013",
+      "CH",
+      "120291.6581",
+      "80503.0266000000",
+      "146988.8754000000"
+     ],
+     [
+      "SKU-0006",
+      "BE",
+      "75541.7584",
+      "71886.2788000000",
+      "139338.5812000000"
+     ],
+     [
+      "SKU-0019",
+      "NL",
+      "67171.3746",
+      "55824.3200000000",
+      "103210.0800000000"
+     ],
+     [
+      "SKU-0040",
+      "PL",
+      "56391.3528",
+      "43130.1175000000",
+      "84272.5405000000"
+     ],
+     [
+      "SKU-0020",
+      "CH",
+      "48492.7650",
+      "42578.7808000000",
+      "94226.4560000000"
+     ],
+     [
+      "SKU-0016",
+      "GB",
+      "31360.7421",
+      "27521.0141000000",
+      "51058.6639000000"
+     ],
+     [
+      "SKU-0027",
+      "PL",
+      "20993.4728",
+      "20752.9686000000",
+      "44481.2732000000"
+     ],
+     [
+      "SKU-H10",
+      "PL",
+      "20000.0000",
+      "4000.0000000000",
+      "8800.0000000000"
+     ],
+     [
+      "SKU-0030",
+      "IT",
+      "5457.7369",
+      "4455.0285000000",
+      "8835.6140000000"
+     ]
+    ],
+    "query_id": "000000ed-0000-4000-8000-0000000000ed"
+   }
+  ]
+ },
+ {
+  "config": "B2",
+  "question_id": "T2",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000ee-0000-4000-8000-0000000000ee",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 7.0 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "no",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_T2_campaign-s2_r2",
+  "answer": "Salted almonds 1 kg (SKU-H03) in Germany has 7.0 months of stock coverage as of the June 2026 analysis month. This uses STANDARD stock on a kg-equivalent basis.\n\nI worked this out from the returned figures because the coverage metric would not run directly. Stock on hand was 500 kg-equivalent in June 2026. The next 24 months of forecast demand are 100 in July 2026, then 0 in August and September, then 100 a month from October. That demand uses up the 500 in month 7.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "T8",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000ef-0000-4000-8000-0000000000ef",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 0.0 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_T8_campaign-s2_r2",
+  "answer": "Nothing matches \"cashew\". Check the SKU code and nuts items.Cashew nuts 1 kg (SKU-H08, STANDARD) in the Netherlands has 0 months of stock coverage as of the June 2026 analysis month. I worked this out by hand, because the coverage metric itself wouldn't run as a query. There is no stock on record for this item in any month or country, so nothing is on hand to cover demand. The demand forecast for the next 24 months (July 2026 to June 2028) is 2,400 kg, so the zero is a stock-out, not a missing forecast. The basis is kg equivalent, with no replenishment assumed.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "N2",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000f0-0000-4000-8000-0000000000f0",
+  "criteria": {
+   "closing_stock": {
+    "result": "pass",
+    "why": "3 months match"
+   },
+   "coverage": {
+    "result": "pass",
+    "why": "expected 2.25 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_N2_campaign-s2_r2",
+  "answer": "The SNACK_BARS stock in Switzerland closed at 900 kg in April 2026, 350 kg in May and 450 kg in June (kg equivalent, every item type). The June stock covers about 2.25 months of forecast demand.\n\n- **Coverage basis:** I used kg equivalent, analysis month June 2026, STANDARD items only. The stock is 450 kg, and the forecast is 200 kg a month for July, August and September 2026. Two full months use 400 kg, and the remaining 50 kg is a quarter of the third month.\n- **Calculation note:** I worked the coverage out by hand from those stock and forecast figures, because the coverage metric would not run in this query. It follows the model's own coverage method.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "T1",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000f1-0000-4000-8000-0000000000f1",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 2.8 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_T1_campaign-s2_r2",
+  "answer": "Flour and baking in France had about 2.8 months of stock cover as of June 2026. This is on a kg-equivalent basis, for standard items only (bulk stock excluded), against the demand forecast for July 2026 to June 2028.\n\nThe stock on hand was 1,400 kg-equivalent. Forecast demand is a steady 500 kg-equivalent a month, so the stock would run out about a month before the end of the third month if nothing is replenished.\n\nThe coverage metric didn't run directly in the query tool. I calculated the figure from the stock and forecast numbers the tool returned, using the same method as the metric's definition.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "T7_R1",
+  "verdict": "wrong",
+  "verdict_figure_only": "wrong",
+  "request_id": "000000f2-0000-4000-8000-0000000000f2",
+  "criteria": {
+   "refusal": {
+    "result": "fail",
+    "why": "numbers given at a fanned-out grain: ['2.25', '6.0']"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_T7_R1_campaign-s2_r2",
+  "answer": "As of June 2026, stock coverage of cooking oils in Sweden is about 2.25 months for ACTIVE items and 6.0 months for PHASE_OUT items. The basis is STANDARD items only, with stock in litre equivalent, no replenishment, and the next 24 months of demand forecast. Coverage is worked out separately at each lifecycle status, so don't add or average the two figures.\n\nI calculated these by hand from the stock and forecast figures. The model's built-in coverage measure would not run on this query. ACTIVE stock is 900 L and PHASE_OUT stock is 600 L, and both run out well inside the 24-month horizon.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "T9",
+  "verdict": "wrong",
+  "verdict_figure_only": "correct",
+  "request_id": "000000f3-0000-4000-8000-0000000000f3",
+  "criteria": {
+   "numeric": {
+    "result": "pass",
+    "why": "expected 0.0 given"
+   },
+   "basis_wording": {
+    "result": "fail",
+    "why": "coverage given in a unit: 'Stock coverage for Oat cereal bar 1 kg (SKU-H11) in Switzerland at the June 2026 analysis month is 0 months.'"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_T9_campaign-s2_r2",
+  "answer": "Stock coverage for Oat cereal bar 1 kg (SKU-H11) in Switzerland at the June 2026 analysis month is 0 months. That is a NO_STOCK outcome: the item has no stock on hand in Switzerland at the June 2026 snapshot (0 kg). It still has demand forecast of 100 kg per month for each of the next 24 months, July 2026 to June 2028.\n\nThe basis is kg equivalent for this single item, STANDARD item type, with no batch-status filter. I worked the coverage out by hand from the stock and forecast figures the tool returned, using the same rule as the coverage metric. The coverage metric itself returned an error when I queried it directly.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "DIM_MIX",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000f4-0000-4000-8000-0000000000f4",
+  "criteria": {
+   "basis_switch": {
+    "result": "pass",
+    "why": "value coverage, basis change explained"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis VALUE named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "only the asked figures"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_DIM_MIX_campaign-s2_r2",
+  "answer": "That was a malformed draft; writing it properly.France's stock coverage in June 2026 is about 8.7 months. That means the stock on hand at the end of June 2026 would last about 8.7 months against the 24-month demand forecast if nothing were replenished.\n\nI measured it on a EUR value basis, for STANDARD items only and all lot statuses. I used value because France's items include both kg and L products, which can't be added together. The stock was about EUR 28.4M. Forecast demand over the first 8 months comes to about EUR 26.1M, and the ninth month adds about EUR 3.3M.\n\nI couldn't get the model's ready-made coverage metric to run for this scope. I rebuilt it by hand from the stock and forecast figures, following the same method, so treat the 8.7 as my own calculation.\n\nData freshness: June 2026",
+  "tables": []
+ },
+ {
+  "config": "B2",
+  "question_id": "N1",
+  "verdict": "correct",
+  "verdict_figure_only": "correct",
+  "request_id": "000000f5-0000-4000-8000-0000000000f5",
+  "criteria": {
+   "closing_stock": {
+    "result": "pass",
+    "why": "expected 0.0 given"
+   },
+   "coverage": {
+    "result": "pass",
+    "why": "expected 0.0 given"
+   },
+   "basis_wording": {
+    "result": "pass",
+    "why": "months, basis QTY_EQ named"
+   },
+   "analysis_month_named": {
+    "result": "pass",
+    "why": "named"
+   },
+   "no_aggregated_coverage": {
+    "result": "pass",
+    "why": "no added or averaged coverage"
+   },
+   "routing": {
+    "result": "pass",
+    "why": "semantic_view"
+   }
+  },
+  "warnings_relayed": "n/a",
+  "governance": {
+   "ROWS_COMMENTED": {
+    "flag": false,
+    "why": "n/a"
+   },
+   "FRESHNESS_STATED": {
+    "present": true,
+    "latest": true,
+    "value": "June 2026"
+   }
+  },
+  "label": "B2_N1_campaign-s2_r2",
+  "answer": "SKU-H11 in Switzerland (CH) closed Q2 2026 at 0 stock. That is the June 2026 snapshot, the last month of the quarter, and it reads 0 kg or L equivalent and EUR 0.\n\nIts coverage as of June 2026 is 0 months. The item has no stock, but a demand forecast of 2,400 kg or L equivalent for July 2026 to June 2028. With nothing on hand, it has no stock to cover that demand. I worked this out from the stock and forecast figures. The coverage metric itself would not run for this query, so no tool returned the 0 directly.\n\nData freshness: June 2026",
+  "tables": []
+ }
+]

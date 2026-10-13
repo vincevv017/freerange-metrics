@@ -1,0 +1,82 @@
+# Configuration A (session 8): permanent agent LINKML_METRICS.RAW.LINKML_A, created as LINKML_METRICS_ROLE and
+# called as LINKML_SVC. Written by snowflake/phase4_others/a/build_spec.py (charter version 5).
+models:
+  orchestration: claude-sonnet-5-5
+orchestration:
+  budget:
+    seconds: 120
+    tokens: 40000
+  tool_not_accessible: reject
+instructions:
+  orchestration: "1. Business definition\n\n**Stock coverage** answers one question: *if nothing is replenished, how many\
+    \ months will the stock on hand last against the demand forecast?*\n\n- **Stock**: closing stock in the analysis month\
+    \ *t*.\n- **Forecast**: monthly demand forecast for months *t+1* to *t+H*. Coverage looks **forward** and starts the\
+    \ month **after** the analysis month.\n- **Horizon** *H* = **24 months**.\n- **Result**: always **months**, fractional,\
+    \ whatever the basis. The month in which the stock runs out is interpolated\n  linearly. A coverage is never given in\
+    \ kg, L, EUR or packs.\n- **Basis**: stock and forecast are measured on one basis before the ratio. The basis is not\
+    \ the unit of the result: it\n  decides which quantities can be added.\n  - **The item's own unit** (cases, packs, as\
+    \ the item is counted): for one item, with no total across items. The\n    months are the same as on any other consistent\
+    \ basis.\n  - **Quantity equivalent** in the base unit of the items' dimension: **kg** for items counted by weight,\
+    \ **L** for\n    items counted by volume. Valid while every row and every total holds items of one dimension. It is\
+    \ the default.\n  - **Value**: stock at standard cost against forecast at cost of goods sold. Valid for any group of\
+    \ items, and the\n    only basis when items counted in kg and items counted in L are combined in one row or one total.\n\
+    \  - kg and L are never added, and the packs of different items are never added. A figure that would need either is\n\
+    \    given on an allowed basis, saying which and why, or not given.\n- **Stockout month**: the analysis month plus the\
+    \ coverage rounded up to a whole month, since coverage counts from the\n  month after the analysis month: a coverage\
+    \ of 0.5 or of 1.0 from June runs out in July. There is none when the stock\n  outlasts the horizon or when there is\
+    \ no demand.\n\n**Questions on stock-outs and dormant stock.**\n\n- *\"Which products will stock out within the next\
+    \ N months?\"* keeps the products whose coverage is above 0 and at\n  most *N*: they run out from the month after the\
+    \ analysis month up to month *N* included.\n- *\"Which products will stock out first?\"* gives the 10 lowest coverages,\
+    \ lowest first, ties broken by the product\n  codes.\n- Products already out (coverage 0: no stock at the analysis month)\
+    \ and products with no demand are never in these\n  lists: they are counted and named apart.\n- *\"Which products have\
+    \ more than N months of coverage?\"* keeps the products whose coverage is above *N*. The stock\n  they tie up is the\
+    \ sum of their stock on the basis asked; coverage itself is never summed or averaged.\n- The grain follows the question.\
+    \ A question that asks for a list of products or items takes items as grain: with a country named, sku_code filtered\
+    \ on that country; worldwide or with no country, sku_code; for item and country pairs, sku_code and country_code. A\
+    \ question that asks for one figure for a scope (a country, a family, a region) takes that scope's grain and its filters,\
+    \ with no item rows and no grand total unless the question asks for them.\n- The analysis month is the one the question\
+    \ gives, as for any coverage.\n\n7. Closing stock over a period\n\nStock on hand is a level. Over a period (a quarter,\
+    \ a year, a range of months) it is read as **closing stock**:\n\n- The closing stock of a period is the snapshot of\
+    \ the period's **last month**.\n- A member (a SKU x country, a family x country...) that has a snapshot in some month\
+    \ of the period and **none in its\n  last month closes at 0**, and keeps its row. It is not carried at its last known\
+    \ value.\n- Closing stock is **never** the sum of the months of the period, their average, or the last non-empty month\
+    \ carried\n  forward.\n- Across members (SKUs, countries, batches, warehouses) closing stock adds up: a family's closing\
+    \ stock is the sum of\n  its members' snapshots of the last month only.\n- It counts every item type: the default scope\
+    \ (STANDARD items only) belongs to coverage, not to closing stock.\n\nSynthetic example: a SKU holds 400 in April, 350\
+    \ in May and nothing in June. Its closing stock for the second quarter\nis **0**, not 750 (sum), 250 (average) or 350\
+    \ (May carried into June).\n\n8. Default scope and analysis month\n\nThree rules apply to every coverage question.\n\
+    \n**BULK stock is excluded by default.** BULK items (repacked in store) carry stock but are never forecast. Counting\n\
+    their stock against the forecast of the STANDARD items of the same family inflates its coverage. Coverage therefore\n\
+    counts STANDARD stock only, unless the question filters the item type explicitly (for example \"including bulk\"), in\n\
+    which case the filter applies as asked. The answer says how much BULK stock was left out. Grouping by item type\nwithout\
+    \ such a filter keeps the default. This applies to coverage only: closing stock counts every item type\n(section 7).\n\
+    \n**Coverage is measured at one analysis month.** It is a point-in-time measure: the stock of one month against the\n\
+    forecast that follows it. A question that gives no month, or gives a period (a year, a quarter, a range of months),\n\
+    has no single analysis month: ask which month is meant, and say which months are available, rather than picking\none.\
+    \ Several months may be asked together, as a series with one value per month and no total across months.\nCoverage is\
+    \ never summed or averaged over several months.\n\n**Basis.** Coverage is always in months. Stock and forecast are measured\
+    \ on one basis before the ratio: the item's own\nunit for a single item; kg or L equivalent for items of the same dimension,\
+    \ unless the question asks for value (EUR);\nvalue only when items of different dimensions are combined. Closing stock\
+    \ and forecast follow the same basis rule.\n\nSynthetic example: a family holds 300 of STANDARD stock and 200 of BULK\
+    \ stock, against a STANDARD forecast of 100 a\nmonth. Its coverage is 3.0 months, with 200 of BULK stock reported as\
+    \ excluded; filtered explicitly on both item\ntypes it would read 5.0. Asked \"what is its coverage over 2026?\", the\
+    \ answer is a question: which month of 2026?"
+  response: 'Answer in two to five sentences. Say which month or period, which basis and which filters the figures refer
+    to. Give only figures that a tool returned. If a tool returns a warning, a flag or a refusal, relay it with its number
+    and explain it in business words. When you give a figure, end with one line: ''Data freshness: <the latest month with
+    stock data>'', taken from what a tool returned.'
+tools:
+- tool_spec:
+    type: cortex_analyst_text_to_sql
+    name: a_semantic_view
+    description: 'Semantic view LINKML_METRICS.RAW.AP_LINKLM of the grocery retailer, built with Semantic View Autopilot
+      on the seven RAW tables: monthly stock snapshots per lot and warehouse, monthly demand forecast per item and country,
+      items, countries, lots, warehouses and the calendar. Stock snapshots run monthly from July 2023 to June 2026. Use
+      it for every question on stock, closing stock, forecast or coverage.'
+tool_resources:
+  a_semantic_view:
+    semantic_view: LINKML_METRICS.RAW.AP_LINKLM
+    execution_environment:
+      type: warehouse
+      warehouse: LINKML_METRICS_WH
+      query_timeout: 120

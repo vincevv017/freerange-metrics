@@ -1,0 +1,180 @@
+# Grading rubric of the session 8 campaign (decision 2). Written before any agent call of session 8 and applied by
+# eval/grade.py to each turn: the answer text, the tool calls, and the SQL or parameters each call carried.
+# Expected values: generated/reference_questions.yaml (every value recomputed in pandas, tests/test_reference_oracle.py).
+# A change to this file after the first graded turn is a new rubric version, recorded in docs/configurations.md.
+# Anything the script cannot classify is graded "manual" and listed for the project owner; no configuration is tuned
+# to make an answer gradable.
+version: "3.3"
+date: "2026-10-07"
+changes:
+  - {version: 1, date: "2026-10-04", summary: "First version, before any graded turn."}
+  - {version: 2, date: "2026-10-04", summary: "Owner: a skill-type tool call (loading instructions, no data) does not count as a tool in the routing criterion. Applied after the D′ smoke; regrades D′ T6, leaves B2 and B1 unchanged."}
+  - {version: 3, date: "2026-10-05", summary: "Session 8c-0, contract 0.5.0: a coverage answer is correct only if it gives months and names the basis stock and forecast were measured on (basis_wording); coverage given in a unit ('coverage in kg', 'the figures are in QTY_EQ', 'months of cases') is wrong. T5 accepts the BASIS_NOT_COMPARABLE refusal. New criteria for the questions of session 8c-0: basis_switch (DIM_MIX), selection_rows ((c), (d)), summary ((e)). Applied before any graded turn of session 8c-0; on the recorded 8b answers of C it fails T1, T2, T9 and BEYOND_H, and on the session 7 fixture T1, T3, T4 and T7 (tests/test_grade.py)."}
+  - {version: "3.1", date: "2026-10-05", summary: "Owner (session 8c-0, step 8): the wrong-wording rule of basis_wording fires only when kg, L, EUR or QTY_EQ is given as the unit of the coverage itself ('coverage of 2.8 kg', 'coverage in QTY_EQ', 'the figures are in QTY_EQ' about coverage); naming the basis of stock and forecast ('This uses stock in kg or L equivalent') is correct. Regrades S_STOCKOUT_COUNTRY of step 7e to correct; the session 7 (T1, T3, T4, T7) and 8b (T1, T2, T9, BEYOND_H) answers that failed v3 still fail; no other fixture changes."}
+
+  - {version: "3.2", date: "2026-10-05", summary: "Owner (session 8c, decisions 3 and 5), before any graded turn of the campaign. (a) The tables of an answer (response.table) are graded with its text: a value in a table counts as given; a number in a column whose name says coverage or months is read as months. (b) numeric.decision: when the answer also writes the expected value at a precision that tells it from every declared wrong value (a table at full precision beside a rounded sentence), the number decides and the indistinguishable-precision guard does not apply. (a) and (b) move one recorded verdict of sessions 7, 8, 8b and 8c-0: G2 of 8b, manual to correct (tests/test_rubric_32.py, 59 turns). (c) Criteria item_set and lowest_member for the four held-out questions; basis_wording, analysis_month_named and no_aggregated_coverage apply to them."}
+  - {version: "3.3", date: "2026-10-07", summary: "Owner (session 9c), after the campaign. (a) The unit half of basis_wording reads a product name of DIM_ITEM without its pack size ('Oat cereal bar 1 kg' as 'Oat cereal bar'), so a pack size next to the word coverage is no unit of the coverage; a coverage given in kg or L still fails, and every failing example of 3.1 and 3.2 still fails. (b) Finding 100: a count of elapsed forecast months ('after 8 months') is no coverage candidate. (c) Nothing else: the unit of the stock or of the stock value beside the coverage still fails. Grading under 3.2 stays available (eval/grade.py grade_turn(..., rubric='3.2')); eval/manual_decisions.yaml applies unchanged. Stages 1 and 2 regraded under both (tests/test_rubric_33.py)."}
+governance:   # recorded per turn and reported per configuration; never part of the verdict (session 8c-0, step 7b)
+  ROWS_COMMENTED: >-
+    The answer cites or derives coverage figures of members the question did not ask for: the coverage of a member
+    named outside the question's filters (a list question asks for its members), or a figure derived across members
+    (range, lowest, highest, average, rank). An average of the forecast does not count. Fires on the step 6 DIM_MIX
+    and T5 answers of C, on no session 7 or 8b fixture answer (tests/test_grade.py).
+  FRESHNESS_STATED: >-
+    Charter version 10: the answer ends with one line "Data freshness: <the latest month with stock data>". Recorded as
+    present (the line is there) and latest (it names June 2026, the dataset's LATEST). A measure, never a grade.
+
+verdicts:
+  correct: every criterion that applies to the question holds
+  wrong: at least one criterion that applies fails
+  manual: the script cannot decide one applicable criterion (listed with the reason, decided by the project owner)
+
+criteria:
+  numeric:
+    tables: >-
+      Rubric 3.2: the tables of the answer are part of it; each row is read as a line (its cells separated by '|'), a
+      number in a column whose name says coverage or months as a coverage in months.
+    rule: >-
+      A numeric answer is correct if it is within 0.05 of the expected value, or if it equals the expected value
+      rounded half-up to the precision the answer writes it at (its decimals, and its scale word: thousand, million).
+      Coverage in months rounded to one decimal (2.25 written 2.3, 8.6735 written 8.7) is therefore correct, an amount
+      written as 43.9 million is compared with the expected value rounded to 0.1 million, and an amount written in full
+      is compared in full.
+    candidates: >-
+      Coverage: the numbers written as months ("2.8 months", "0 months"), not a month count of the horizon ("24-month")
+      nor a date. Rubric 3.3: nor a count of elapsed forecast months, a whole number after "after" ("920 kg after 8
+      months"); "in month 9" is never a candidate. Closing stock, forecast and stock value: every number of the answer except years, days and quarter
+      numbers of a date. G2: the numbers on the line that names the country (code or name).
+    decision: >-
+      Correct if the expected value is among the candidates and no declared wrong value is (a wrong value that equals
+      the expected value at the answer's precision does not count). Wrong if a declared wrong value is a candidate
+      and the expected value is not, or if no candidate matches. Manual if both the expected value and a declared
+      wrong value are candidates, or if there is no candidate at all while the answer gives no refusal.
+    indistinguishable_precision: >-
+      Guard, for every trap: when the precision the answer writes a number at makes a declared wrong value
+      indistinguishable from the expected value (the number matches both), the criterion is decided on the SQL or the
+      tool parameters of the turn, not on the number. Each wrong value with a method signature is checked on them:
+      a join to DIM_ITEM with no deduplication of the item (item_join_fanout, naive_join_*), raw-unit columns
+      (raw_units_summed), the coverage default scope applied (default_scope_applied). Signature present: wrong.
+      Signature absent from readable SQL or parameters: correct. No readable SQL or parameters on the turn, or a
+      wrong value with no signature: manual. Example: G2 at 0.1 million, where the DIM_ITEM join adds 4,800 EUR to SE.
+      Rubric 3.2: the guard does not apply when the answer also writes the expected value at a precision that tells it
+      from every declared wrong value (a table at full precision beside a rounded sentence).
+    null_value: >-
+      Expected null (NO_DEMAND): correct if the answer gives no coverage number and says why (no demand, no forecast,
+      undefined); a coverage number is wrong.
+    zero_value: Expected 0 also accepts "zero", "no stock", "out of stock" or "nothing in stock" with no other candidate.
+  basis_wording:
+    applies_to: every coverage answer that gives a coverage figure, and the selection questions (c), (d), (e)
+    rule: >-
+      Coverage is always in months. The answer names the basis stock and forecast were measured on (kg or L
+      equivalent, value in EUR, or the item's own unit for one item) and never states a coverage in a unit: a
+      sentence about the coverage or its figures that says it is "in QTY_EQ", "in kg", "in EUR", "in packs", or
+      "N months of kg" is wrong, unless it says what is measured ("stock and forecast measured in kg") or negates it
+      ("not in packs"). No basis named is wrong. Version 3.1: naming the basis of the stock or the forecast ("stock in kg
+      or L equivalent") is correct; a number of the coverage given in a unit ("a coverage of 2.8 kg") is wrong. Version
+      3.3: a product name of DIM_ITEM is read without its pack size ("iced tea summer edition 1 L", "Arabica beans 1
+      kg"), so the size is not a unit of the coverage; the unit of the stock or the stock value beside the coverage
+      ("2.16 months of coverage, from 82,070 kg of stock") still fails. The basis expected is the question's, or the one offered instead (T5:
+      QTY_EQ; DIM_MIX: VALUE).
+  basis_switch:
+    applies_to: DIM_MIX (question (b))
+    rule: >-
+      QTY_EQ adds kg and L in the France row and is refused (BASIS_NOT_COMPARABLE, VALUE allowed). Correct: the
+      coverage on VALUE (8.7009 months) with the value basis named and the reason for the change (kg and L, different
+      dimensions, not comparable), or the refusal relayed with value offered. Wrong: the kg-and-L figure (10.21), or
+      the value figure with no reason for the change.
+  selection_rows:
+    applies_to: questions (c) and (d)
+    rule: >-
+      Every kept product appears with its coverage on its line; no other product is given as at risk; the members set
+      apart (already out: NO_STOCK; no demand: NO_DEMAND) are named. The order and the stockout months are recorded,
+      not graded.
+  summary:
+    applies_to: question (e)
+    rule: >-
+      The count of kept item and country pairs (28) and the stock value they tie up (70,987,982.99 EUR; 71.0 million
+      EUR rounded is right, by the numeric rounding rule). The listing of the 28 pairs is not graded.
+  item_set:
+    applies_to: held-out questions H_LOCAL_STOCKOUT (Q1), H_STOCKOUT_2027 (Q3), H_STOCKOUT_ES (Q4) (rubric 3.2)
+    rule: >-
+      The answer gives exactly the expected set of products, in its text or its tables: Q1 the 14 items, Q3 the 35
+      items (SKU-H06, at exactly 6.0 months, stocks out in December 2026 and is not in the set; SKU-H03, at exactly 7.0,
+      in January 2027, is), Q4 the 3 products. A product missing or added is wrong. The members set apart (no stock, no
+      demand) may be named. Q1: an intersection of the codes two calls returned is allowed, since it is not a
+      computation on coverages; two lists given without their intersection name products outside the set and are
+      wrong.
+  lowest_member:
+    applies_to: held-out question H_LOWEST_COUNTRY (Q2) (rubric 3.2)
+    rule: >-
+      The answer gives PL with 2.16 months (numeric rule) on its line. Another country given as the lowest (CH, which the
+      mean-ratio shortcut puts lowest) is wrong.
+  analysis_month_named:
+    applies_to: every coverage question whose expected answer carries names_as_of
+    rule: The answer names the analysis month (June 2026, 2026-06 or 2026-06-01). Not named is wrong.
+  no_aggregated_coverage:
+    applies_to: every coverage question
+    rule: >-
+      No coverage is added or averaged across rows: an answer whose coverage candidates include a declared sum, mean
+      or stock-weighted mean of child coverages (T1), or a drill answer that gives a total equal to the sum or the mean
+      of its rows, is wrong; so is SQL that applies SUM or AVG to a computed coverage column across rows.
+  refusal:
+    applies_to: questions whose expected answer is a refusal (T5, T6, T7_R1)
+    rule: >-
+      A refusal is no coverage number plus a reason. T6 also accepts a clarifying question asking for the month, with
+      no number. A month the agent picks by itself for T6 is wrong.
+    t7_r1_reason: the reason says that an item carries two lifecycle statuses (duplicate or conflicting master data)
+  t5_outcome:
+    applies_to: T5
+    classes:
+      procedure_refusal: a tool returned BASIS_NOT_COMPARABLE (UNIT_RAW_NOT_ADDITIVE before contract 0.5.0) and the answer gives no number in packs (correct)
+      model_refusal_without_number: no tool refusal, no coverage number, a reason about pack sizes (correct)
+      model_refusal_with_qty_eq_answer: >-
+        no number in packs, and a coverage in quantity-equivalent (the offer_instead value) announced as such
+        (correct, recorded as a deviation: the user got an answer to a question they did not ask)
+      raw_pack_number: the raw-units-summed wrong value is given (wrong)
+    otherwise: manual
+  out_of_scope:
+    rule: >-
+      An answer that explains the question is outside what the configuration can answer, with no number, is correct
+      only where docs/configurations.md lists that question as out of scope for that configuration; elsewhere it is
+      wrong. Session 8 lists no such question for any configuration.
+  routing:
+    applies_to: every turn
+    rule: >-
+      The tool family used is compared with the expected one, by expected_route of the question and by configuration.
+      A turn with several tool calls is correct if it uses the expected family and no family the table marks as
+      forbidden for that route.
+    families:
+      semantic_view: a cortex_analyst_text_to_sql tool, or system_execute_sql / SQL spans bound to the semantic view
+      procedure: the generic tool stock_coverage (agent C)
+      skill: the linkml-coverage skill's script run (bash or code execution)
+      none: no tool call
+    not_a_tool: >-
+      Version 2: a skill-type tool call (server_skill or skill: loading the skill's instructions, which reads no data)
+      does not count as a tool in this criterion. A clarify turn that only loads the skill uses no tool; a coverage
+      turn of D or D′ uses the skill family only when the script runs.
+    expected:
+      coverage:       {A: semantic_view, B1: semantic_view, B2: semantic_view, C: procedure, D: skill, DP: skill}
+      semantic_view:  {A: semantic_view, B1: semantic_view, B2: semantic_view, C: semantic_view, D: semantic_view, DP: semantic_view}
+      clarify:        {A: none, B1: none, B2: none, C: none, D: none, DP: none}
+    allowed_with:
+      # D extracts the inputs through the semantic view and computes with the skill: both families on a coverage turn.
+      coverage: {D: [semantic_view]}
+      # Agent C asked with no month: a tool call refused with AS_OF_MISSING is also correct.
+      clarify: {C: [procedure]}
+    forbidden:
+      semantic_view: [procedure, skill]
+  warnings:
+    applies_to: questions whose expected answer carries warnings
+    rule: >-
+      Recorded, not part of the verdict: each expected warning code is relayed with its number (yes, no, partial).
+      A configuration without a warning mechanism is expected to miss them (docs/configurations.md, hypotheses).
+
+traps_noted:
+  G2_item_join: >-
+    G2 sums stock_value_eur by the snapshot's own country_id. A join to DIM_ITEM without one row per item counts
+    SKU-H06 twice (T7): SE gains 4,800 EUR (14,481,655.48 against 14,476,855.48). At a precision of millions the two
+    are indistinguishable, so the indistinguishable-precision guard decides SE on the SQL: a DIM_ITEM join with no
+    deduplication is wrong, readable SQL without it is correct, no readable SQL is manual.
+  T7_fanout: the same duplicate gives 3.0 instead of 2.25 for T7 and two rows (ACTIVE 2.25, PHASE_OUT 6.0) for T7_R1.

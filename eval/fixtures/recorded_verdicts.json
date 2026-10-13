@@ -1,0 +1,356 @@
+{
+ "s8|a_cs_last_month_gap": {
+  "config": "A",
+  "question_id": "CS_LAST_MONTH_GAP",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|a_t1": {
+  "config": "A",
+  "question_id": "T1",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|a_t6": {
+  "config": "A",
+  "question_id": "T6",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|a_t9": {
+  "config": "A",
+  "question_id": "T9",
+  "rubric_3_1": "wrong",
+  "rubric_3_2": "wrong"
+ },
+ "s8|b1_cs_last_month_gap": {
+  "config": "B1",
+  "question_id": "CS_LAST_MONTH_GAP",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|b1_t1": {
+  "config": "B1",
+  "question_id": "T1",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|b1_t6": {
+  "config": "B1",
+  "question_id": "T6",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|b1_t9": {
+  "config": "B1",
+  "question_id": "T9",
+  "rubric_3_1": "wrong",
+  "rubric_3_2": "wrong"
+ },
+ "s8|b2_cs_last_month_gap": {
+  "config": "B2",
+  "question_id": "CS_LAST_MONTH_GAP",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|b2_t1": {
+  "config": "B2",
+  "question_id": "T1",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|b2_t6": {
+  "config": "B2",
+  "question_id": "T6",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|b2_t9": {
+  "config": "B2",
+  "question_id": "T9",
+  "rubric_3_1": "wrong",
+  "rubric_3_2": "wrong"
+ },
+ "s8|d_cs_last_month_gap": {
+  "config": "D",
+  "question_id": "CS_LAST_MONTH_GAP",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|d_g1": {
+  "config": "D",
+  "question_id": "G1",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|d_t1": {
+  "config": "D",
+  "question_id": "T1",
+  "rubric_3_1": "wrong",
+  "rubric_3_2": "wrong"
+ },
+ "s8|d_t6": {
+  "config": "D",
+  "question_id": "T6",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|d_t9": {
+  "config": "D",
+  "question_id": "T9",
+  "rubric_3_1": "wrong",
+  "rubric_3_2": "wrong"
+ },
+ "s8|dp_cs_last_month_gap": {
+  "config": "DP",
+  "question_id": "CS_LAST_MONTH_GAP",
+  "rubric_3_1": "manual",
+  "rubric_3_2": "manual"
+ },
+ "s8|dp_cs_last_month_gap_r": {
+  "config": "DP",
+  "question_id": "CS_LAST_MONTH_GAP",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|dp_g1": {
+  "config": "DP",
+  "question_id": "G1",
+  "rubric_3_1": "manual",
+  "rubric_3_2": "manual"
+ },
+ "s8|dp_g1_r": {
+  "config": "DP",
+  "question_id": "G1",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|dp_t1": {
+  "config": "DP",
+  "question_id": "T1",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|dp_t6": {
+  "config": "DP",
+  "question_id": "T6",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8|dp_t9": {
+  "config": "DP",
+  "question_id": "T9",
+  "rubric_3_1": "wrong",
+  "rubric_3_2": "wrong"
+ },
+ "s8b|c_beyond_h": {
+  "config": "C",
+  "question_id": "BEYOND_H",
+  "rubric_3_1": "wrong",
+  "rubric_3_2": "wrong"
+ },
+ "s8b|c_cs_last_month_gap": {
+  "config": "C",
+  "question_id": "CS_LAST_MONTH_GAP",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8b|c_g1": {
+  "config": "C",
+  "question_id": "G1",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8b|c_g2": {
+  "config": "C",
+  "question_id": "G2",
+  "rubric_3_1": "manual",
+  "rubric_3_2": "correct"
+ },
+ "s8b|c_t1": {
+  "config": "C",
+  "question_id": "T1",
+  "rubric_3_1": "wrong",
+  "rubric_3_2": "wrong"
+ },
+ "s8b|c_t2": {
+  "config": "C",
+  "question_id": "T2",
+  "rubric_3_1": "wrong",
+  "rubric_3_2": "wrong"
+ },
+ "s8b|c_t5": {
+  "config": "C",
+  "question_id": "T5",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8b|c_t6": {
+  "config": "C",
+  "question_id": "T6",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8b|c_t7_r1": {
+  "config": "C",
+  "question_id": "T7_R1",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8b|c_t9": {
+  "config": "C",
+  "question_id": "T9",
+  "rubric_3_1": "wrong",
+  "rubric_3_2": "wrong"
+ },
+ "s8c0|b2_t1_s8c0_step8_r1": {
+  "config": "B2",
+  "question_id": "T1",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8c0|c_dim_mix": {
+  "config": "C",
+  "question_id": "DIM_MIX",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8c0|c_s_dormant_value_s7": {
+  "config": "C",
+  "question_id": "S_DORMANT_VALUE",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8c0|c_s_first_world_s7": {
+  "config": "C",
+  "question_id": "S_FIRST_WORLD",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8c0|c_s_own_unit": {
+  "config": "C",
+  "question_id": "S_OWN_UNIT",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8c0|c_s_stockout_country_s7": {
+  "config": "C",
+  "question_id": "S_STOCKOUT_COUNTRY",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8c0|c_t1": {
+  "config": "C",
+  "question_id": "T1",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8c0|c_t1_s7": {
+  "config": "C",
+  "question_id": "T1",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8c0|c_t1_s8c0_step8_r1": {
+  "config": "C",
+  "question_id": "T1",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8c0|c_t5": {
+  "config": "C",
+  "question_id": "T5",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s7|c_t1": {
+  "config": "C",
+  "question_id": "T1",
+  "rubric_3_1": "wrong",
+  "rubric_3_2": "wrong"
+ },
+ "s7|c_t2": {
+  "config": "C",
+  "question_id": "T2",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s7|c_t3": {
+  "config": "C",
+  "question_id": "T3",
+  "rubric_3_1": "wrong",
+  "rubric_3_2": "wrong"
+ },
+ "s7|c_t4": {
+  "config": "C",
+  "question_id": "T4",
+  "rubric_3_1": "wrong",
+  "rubric_3_2": "wrong"
+ },
+ "s7|c_t5": {
+  "config": "C",
+  "question_id": "T5",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s7|c_t6": {
+  "config": "C",
+  "question_id": "T6",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s7|c_t7": {
+  "config": "C",
+  "question_id": "T7",
+  "rubric_3_1": "wrong",
+  "rubric_3_2": "wrong"
+ },
+ "s7|c_t7_r1": {
+  "config": "C",
+  "question_id": "T7_R1",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s7|c_t8": {
+  "config": "C",
+  "question_id": "T8",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s7|c_no_demand": {
+  "config": "C",
+  "question_id": "NO_DEMAND",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s7|c_beyond_h": {
+  "config": "C",
+  "question_id": "BEYOND_H",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s7|c_bulk_scope": {
+  "config": "C",
+  "question_id": "BULK_SCOPE",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s7|c_t9": {
+  "config": "C",
+  "question_id": "T9",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s7|c_bulk_scope_drill": {
+  "config": "C",
+  "question_id": "BULK_SCOPE_DRILL",
+  "rubric_3_1": "correct",
+  "rubric_3_2": "correct"
+ },
+ "s8c0-step6|c_dim_mix (step 6)": {
+  "config": "C",
+  "question_id": "DIM_MIX",
+  "rubric_3_1": "wrong",
+  "rubric_3_2": "wrong"
+ }
+}

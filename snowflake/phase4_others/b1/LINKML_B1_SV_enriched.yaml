@@ -1,0 +1,139 @@
+# Configuration B1 (session 8): the hand-written native semantic view, written by hand on the shape of probe A's
+# B1-RANGE build (snowflake/probe_a/10_native_sv_range.sql), on the RAW base tables. Not generated: no compiler reads or
+# writes this file. Deployed after enrichment (b1/LINKML_B1_SV_enriched.yaml) with snowflake/phase4_others/deploy_sv.py.
+# Coverage itself cannot be a metric here: a derived metric over window metrics is rejected (010273, phase 0).
+name: LINKML_B1_SV
+description: >-
+  Stock and demand forecast of a grocery retailer: monthly closing stock per lot and warehouse, monthly demand
+  forecast per SKU and country, and the cumulative forecast of the 1 to 24 months after each month, the inputs of
+  stock coverage.
+tables:
+  - name: item
+    description: Item master, one row per SKU, with its family, range, item type (STANDARD or BULK), lifecycle status, and the dimension it is counted in (MASS in kg, VOLUME in L).
+    base_table: {database: LINKML_METRICS, schema: RAW, table: DIM_ITEM}
+    primary_key: {columns: [item_id]}
+    dimensions:
+      - {name: sku_code, expr: sku_code, description: SKU code., is_enum: false, sample_values: ['SKU-0001', 'SKU-0002', 'SKU-0003']}
+      - {name: sku_name, expr: sku_name, description: SKU name., is_enum: false, sample_values: ['Arabica beans 1 kg', 'Bread flour 1 kg', 'Breakfast cereals 1']}
+      - {name: family_code, expr: family_code, description: Product family code., is_enum: true, sample_values: ['BEV_ICED', 'BEV_JUICE', 'BREAKFAST_CEREAL', 'BREAKFAST_SPREAD', 'HOT_BEANS', 'HOT_GROUND', 'HOT_TEA', 'PANTRY_FLOUR', 'PANTRY_OIL', 'PANTRY_PASTA', 'PANTRY_RICE', 'SNACK_BARS', 'SNACK_CRISPS', 'SNACK_NUTS']}
+      - {name: family_name, expr: family_name, description: Product family name., is_enum: true, sample_values: ['Breakfast cereals', 'Cereal bars', 'Cooking oils', 'Crisps', 'Dry pasta', 'Flour and baking', 'Fruit juice', 'Ground coffee', 'Iced tea', 'Jams and spreads', 'Loose-leaf tea', 'Nuts and dried fruit', 'Rice and grains', 'Whole bean coffee']}
+      - {name: range_code, expr: range_code, description: Product range code., is_enum: true, sample_values: ['BEV', 'BREAKFAST', 'HOT', 'PANTRY', 'SNACK']}
+      - {name: range_name, expr: range_name, description: Product range name., is_enum: true, sample_values: ['Beverages', 'Breakfast', 'Coffee & Tea', 'Pantry', 'Snacks']}
+      - {name: item_type, expr: item_type, description: "STANDARD items are forecast; BULK items carry stock but are never forecast.", is_enum: true, sample_values: ['BULK', 'STANDARD']}
+      - {name: lifecycle_status, expr: lifecycle_status, description: Lifecycle status of the item., is_enum: true, sample_values: ['ACTIVE', 'PHASE_OUT']}
+      - {name: dimension, expr: dimension, description: "Dimension the item is counted in: MASS (kg) or VOLUME (L). kg and L never add up.", is_enum: true, sample_values: ['MASS', 'VOLUME']}
+      - {name: base_unit, expr: base_unit, description: "Base unit of the item's dimension: kg or L.", is_enum: true, sample_values: ['L', 'kg']}
+  - name: geo
+    description: Countries and regions.
+    base_table: {database: LINKML_METRICS, schema: RAW, table: DIM_GEO}
+    primary_key: {columns: [country_id]}
+    dimensions:
+      - {name: country_code, expr: country_code, description: ISO country code., is_enum: true, sample_values: ['BE', 'CH', 'DE', 'ES', 'FR', 'GB', 'IT', 'NL', 'PL', 'SE']}
+      - {name: country_name, expr: country_name, description: Country name., is_enum: true, sample_values: ['Belgium', 'France', 'Germany', 'Italy', 'Netherlands', 'Poland', 'Spain', 'Sweden', 'Switzerland', 'United Kingdom']}
+      - {name: region_code, expr: region_code, description: Region code., is_enum: true, sample_values: ['CENTRAL', 'NORDIC', 'SOUTH', 'WEST']}
+      - {name: region_name, expr: region_name, description: Region name., is_enum: true, sample_values: ['Central Europe', 'Nordics', 'Southern Europe', 'Western Europe']}
+  - name: cal
+    description: Calendar months.
+    base_table: {database: LINKML_METRICS, schema: RAW, table: DIM_CALENDAR}
+    primary_key: {columns: [month_start]}
+    dimensions:
+      - {name: month_start, expr: month_start, data_type: DATE, description: "First day of the month: the snapshot month for stock, the forecast month for forecast."}
+      - {name: month_index, expr: year * 12 + month_num, description: "Consecutive month number, the order of the forward window metrics."}
+      - {name: year_quarter, expr: "year || '-Q' || quarter", description: "Calendar quarter, for example 2026-Q2.", is_enum: true, sample_values: ['2023-Q3', '2023-Q4', '2024-Q1', '2024-Q2', '2024-Q3', '2024-Q4', '2025-Q1', '2025-Q2', '2025-Q3', '2025-Q4', '2026-Q1', '2026-Q2', '2026-Q3', '2026-Q4', '2027-Q1', '2027-Q2', '2027-Q3', '2027-Q4', '2028-Q1', '2028-Q2', '2028-Q3', '2028-Q4', '2029-Q1', '2029-Q2']}
+      - {name: year, expr: year, description: Calendar year., is_enum: true, sample_values: ['2023', '2024', '2025', '2026', '2027', '2028', '2029']}
+  - name: batch
+    description: Supplier lots.
+    base_table: {database: LINKML_METRICS, schema: RAW, table: DIM_BATCH}
+    primary_key: {columns: [batch_id]}
+    dimensions:
+      - {name: batch_status, expr: batch_status, description: "Lot status (RELEASED, QUALITY_HOLD, BLOCKED). Applies to stock only: the forecast has no lot.", is_enum: true, sample_values: ['BLOCKED', 'QUALITY_HOLD', 'RELEASED']}
+  - name: wh
+    description: Warehouses holding the stock.
+    base_table: {database: LINKML_METRICS, schema: RAW, table: DIM_WAREHOUSE}
+    primary_key: {columns: [warehouse_id]}
+    dimensions:
+      - {name: warehouse_code, expr: warehouse_code, description: Warehouse code. Applies to stock only., is_enum: true, sample_values: ['DC-BE-1', 'DC-CH-1', 'DC-CH-2', 'DC-DE-1', 'DC-DE-2', 'DC-ES-1', 'DC-FR-1', 'DC-GB-1', 'DC-IT-1', 'DC-IT-2', 'DC-NL-1', 'DC-PL-1', 'DC-PL-2', 'DC-SE-1', 'DC-SE-2']}
+      - {name: warehouse_type, expr: warehouse_type, description: Own or third-party warehouse. Applies to stock only., is_enum: true, sample_values: ['3PL', 'OWN']}
+  - name: stock
+    description: Monthly closing stock per lot and warehouse. A level, never summed across months.
+    base_table: {database: LINKML_METRICS, schema: RAW, table: FCT_STOCK_SNAPSHOT}
+    primary_key: {columns: [snapshot_month, batch_id, warehouse_id]}
+    dimensions:
+      - {name: snapshot_month, expr: snapshot_month, data_type: DATE, description: Month of the stock snapshot.}
+      - {name: expiry_bucket, expr: expiry_bucket, description: "Best-before bucket of the lot. Applies to stock only.", is_enum: true, sample_values: ['12-24M', '6-12M', '<6M', '>24M']}
+    metrics:
+      - name: stock_qty
+        description: "Closing stock in kg or L equivalent, the base unit of each item's dimension; kg and L never add up: group or filter by item.dimension when items of both are combined, or use stock_value. The latest snapshot in the query, summed over items, countries, lots and warehouses; never summed across months."
+        expr: SUM(stock_qty_eq)
+        non_additive_dimensions:
+          - {table: stock, dimension: snapshot_month, sort_direction: ascending, null_order: last}
+      - name: stock_value
+        description: "Closing stock value in EUR at standard cost: the latest snapshot in the query, never summed across months."
+        expr: SUM(stock_value_eur)
+        non_additive_dimensions:
+          - {table: stock, dimension: snapshot_month, sort_direction: ascending, null_order: last}
+  - name: fc
+    description: Monthly demand forecast per SKU and country. A flow. It carries no lot, warehouse or best-before bucket.
+    base_table: {database: LINKML_METRICS, schema: RAW, table: FCT_FORECAST}
+    primary_key: {columns: [forecast_month, item_id, country_id]}
+    dimensions:
+      - {name: forecast_month, expr: forecast_month, data_type: DATE, description: Forecast month.}
+    metrics:
+      - {name: forecast_qty, expr: SUM(forecast_qty_eq), description: "Demand forecast in kg or L equivalent; kg and L never add up: group or filter by item.dimension when items of both are combined, or use forecast_value."}
+      - {name: forecast_value, expr: SUM(forecast_value_eur), description: Demand forecast in EUR at cost of goods sold.}
+      - {name: forecast_nonzero_month, expr: "IFF(SUM(forecast_qty_eq) > 0, 1, 0)", description: 1 when the month has a non-zero forecast.}
+      - {name: c01, description: "Forecast of the month after each month (k = 1). Requires cal.month_start and cal.month_index in the query.", expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 1 FOLLOWING)"}
+      - {name: c02, description: Cumulative forecast of the 2 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING)"}
+      - {name: c03, description: Cumulative forecast of the 3 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 3 FOLLOWING)"}
+      - {name: c04, description: Cumulative forecast of the 4 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 4 FOLLOWING)"}
+      - {name: c05, description: Cumulative forecast of the 5 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 5 FOLLOWING)"}
+      - {name: c06, description: Cumulative forecast of the 6 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 6 FOLLOWING)"}
+      - {name: c07, description: Cumulative forecast of the 7 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 7 FOLLOWING)"}
+      - {name: c08, description: Cumulative forecast of the 8 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 8 FOLLOWING)"}
+      - {name: c09, description: Cumulative forecast of the 9 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 9 FOLLOWING)"}
+      - {name: c10, description: Cumulative forecast of the 10 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 10 FOLLOWING)"}
+      - {name: c11, description: Cumulative forecast of the 11 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 11 FOLLOWING)"}
+      - {name: c12, description: Cumulative forecast of the 12 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 12 FOLLOWING)"}
+      - {name: c13, description: Cumulative forecast of the 13 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 13 FOLLOWING)"}
+      - {name: c14, description: Cumulative forecast of the 14 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 14 FOLLOWING)"}
+      - {name: c15, description: Cumulative forecast of the 15 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 15 FOLLOWING)"}
+      - {name: c16, description: Cumulative forecast of the 16 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 16 FOLLOWING)"}
+      - {name: c17, description: Cumulative forecast of the 17 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 17 FOLLOWING)"}
+      - {name: c18, description: Cumulative forecast of the 18 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 18 FOLLOWING)"}
+      - {name: c19, description: Cumulative forecast of the 19 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 19 FOLLOWING)"}
+      - {name: c20, description: Cumulative forecast of the 20 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 20 FOLLOWING)"}
+      - {name: c21, description: Cumulative forecast of the 21 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 21 FOLLOWING)"}
+      - {name: c22, description: Cumulative forecast of the 22 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 22 FOLLOWING)"}
+      - {name: c23, description: Cumulative forecast of the 23 months after each month., expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 23 FOLLOWING)"}
+      - {name: c24, description: "Cumulative forecast of the 24 months after each month: the coverage horizon.", expr: "SUM(fc.forecast_qty) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 24 FOLLOWING)"}
+      - {name: nz24, description: Number of months with a non-zero forecast among the 24 months after each month., expr: "SUM(fc.forecast_nonzero_month) OVER (PARTITION BY EXCLUDING cal.month_start, cal.month_index ORDER BY cal.month_index RANGE BETWEEN 1 FOLLOWING AND 24 FOLLOWING)"}
+relationships:
+  - {name: stock_item, left_table: stock, right_table: item, relationship_columns: [{left_column: item_id, right_column: item_id}]}
+  - {name: stock_geo, left_table: stock, right_table: geo, relationship_columns: [{left_column: country_id, right_column: country_id}]}
+  - {name: stock_cal, left_table: stock, right_table: cal, relationship_columns: [{left_column: snapshot_month, right_column: month_start}]}
+  - {name: stock_batch, left_table: stock, right_table: batch, relationship_columns: [{left_column: batch_id, right_column: batch_id}]}
+  - {name: stock_wh, left_table: stock, right_table: wh, relationship_columns: [{left_column: warehouse_id, right_column: warehouse_id}]}
+  - {name: fc_item, left_table: fc, right_table: item, relationship_columns: [{left_column: item_id, right_column: item_id}]}
+  - {name: fc_geo, left_table: fc, right_table: geo, relationship_columns: [{left_column: country_id, right_column: country_id}]}
+  - {name: fc_cal, left_table: fc, right_table: cal, relationship_columns: [{left_column: forecast_month, right_column: month_start}]}
+verified_queries:
+  # Background members only (no hero of data/traps.yaml); the same two members as B2's verified queries.
+  - name: closing_stock_family_country_quarter
+    question: What was the closing stock of family SNACK_CRISPS in DE for 2026-Q1, in kg equivalent?
+    sql: |
+      -- closing stock of a quarter = the snapshot of its last month (2026-03-01)
+      SELECT i.family_code, g.country_code, SUM(s.stock_qty_eq) AS closing_stock_qty_eq
+      FROM __stock AS s
+      JOIN __item AS i ON s.item_id = i.item_id
+      JOIN __geo AS g ON s.country_id = g.country_id
+      WHERE i.family_code = 'SNACK_CRISPS' AND g.country_code = 'DE' AND s.snapshot_month = '2026-03-01'
+      GROUP BY i.family_code, g.country_code
+  - name: forecast_family_country_month
+    question: What is the demand forecast of family PANTRY_RICE in IT for 2026-08, in kg equivalent?
+    sql: |
+      SELECT i.family_code, g.country_code, SUM(f.forecast_qty_eq) AS forecast_qty_eq
+      FROM __fc AS f
+      JOIN __item AS i ON f.item_id = i.item_id
+      JOIN __geo AS g ON f.country_id = g.country_id
+      WHERE i.family_code = 'PANTRY_RICE' AND g.country_code = 'IT' AND f.forecast_month = '2026-08-01'
+      GROUP BY i.family_code, g.country_code

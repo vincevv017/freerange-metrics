@@ -1,0 +1,23 @@
+logical_table,dimension,expr,data_type,ndv,is_enum,applied,total_rows,null_count,null_pct,n_sample_values,sample_values
+item,sku_code,sku_code,,>30,false,Y,61,0,0.0,3,SKU-0001 | SKU-0002 | SKU-0003
+item,sku_name,sku_name,,>30,false,Y,61,0,0.0,3,Arabica beans 1 kg | Bread flour 1 kg | Breakfast cereals 1
+item,family_code,family_code,,14,true,Y,61,0,0.0,14,BEV_ICED | BEV_JUICE | BREAKFAST_CEREAL | BREAKFAST_SPREAD | HOT_BEANS | HOT_GROUND | HOT_TEA | PANTRY_FLOUR | PANTRY_OIL | PANTRY_PASTA | PANTRY_RICE | SNACK_BARS | SNACK_CRISPS | SNACK_NUTS
+item,family_name,family_name,,14,true,Y,61,0,0.0,14,Breakfast cereals | Cereal bars | Cooking oils | Crisps | Dry pasta | Flour and baking | Fruit juice | Ground coffee | Iced tea | Jams and spreads | Loose-leaf tea | Nuts and dried fruit | Rice and grains | Whole bean coffee
+item,range_code,range_code,,5,true,Y,61,0,0.0,5,BEV | BREAKFAST | HOT | PANTRY | SNACK
+item,range_name,range_name,,5,true,Y,61,0,0.0,5,Beverages | Breakfast | Coffee & Tea | Pantry | Snacks
+item,lifecycle_status,lifecycle_status,,2,true,Y,61,0,0.0,2,ACTIVE | PHASE_OUT
+item,item_type,item_type,,2,true,Y,61,0,0.0,2,BULK | STANDARD
+geo,country_code,country_code,,10,true,Y,10,0,0.0,10,BE | CH | DE | ES | FR | GB | IT | NL | PL | SE
+geo,country_name,country_name,,10,true,Y,10,0,0.0,10,Belgium | France | Germany | Italy | Netherlands | Poland | Spain | Sweden | Switzerland | United Kingdom
+geo,region_code,region_code,,4,true,Y,10,0,0.0,4,CENTRAL | NORDIC | SOUTH | WEST
+geo,region_name,region_name,,4,true,Y,10,0,0.0,4,Central Europe | Nordics | Southern Europe | Western Europe
+calendar,month_start,month_start,DATE,-,skip (excluded),N,72,0,0.0,0,
+calendar,year_quarter,year || '-Q' || quarter,,24,true,Y,72,0,0.0,24,2023-Q3 | 2023-Q4 | 2024-Q1 | 2024-Q2 | 2024-Q3 | 2024-Q4 | 2025-Q1 | 2025-Q2 | 2025-Q3 | 2025-Q4 | 2026-Q1 | 2026-Q2 | 2026-Q3 | 2026-Q4 | 2027-Q1 | 2027-Q2 | 2027-Q3 | 2027-Q4 | 2028-Q1 | 2028-Q2 | 2028-Q3 | 2028-Q4 | 2029-Q1 | 2029-Q2
+calendar,year,year,,7,true,Y,72,0,0.0,7,2023 | 2024 | 2025 | 2026 | 2027 | 2028 | 2029
+status,batch_status,batch_status,,3,true,Y,3,0,0.0,3,BLOCKED | QUALITY_HOLD | RELEASED
+warehouse,warehouse_code,warehouse_code,,15,true,Y,15,0,0.0,15,DC-BE-1 | DC-CH-1 | DC-CH-2 | DC-DE-1 | DC-DE-2 | DC-ES-1 | DC-FR-1 | DC-GB-1 | DC-IT-1 | DC-IT-2 | DC-NL-1 | DC-PL-1 | DC-PL-2 | DC-SE-1 | DC-SE-2
+warehouse,warehouse_type,warehouse_type,,2,true,Y,15,0,0.0,2,3PL | OWN
+stock,expiry_bucket,expiry_bucket,,4,true,Y,63428,0,0.0,4,12-24M | 6-12M | <6M | >24M
+stock,snapshot_month,snapshot_month,DATE,-,skip (excluded),N,63428,0,0.0,0,
+stock,gap_filled,gap_filled,BOOLEAN,2,skip (boolean),N,63428,0,0.0,2,false | true
+forecast,forecast_month,forecast_month,DATE,-,skip (excluded),N,15306,0,0.0,0,

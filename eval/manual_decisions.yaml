@@ -1,0 +1,111 @@
+# Decisions of the project owner on turns eval/grade.py graded "manual". grade.py reads this file and applies a
+# decision to the turn with the same request id only; any other turn the script cannot decide stays manual.
+# Rubric eval/rubric.yaml stays version 3.2: these are decisions on turns, not rule changes.
+rules:
+  - id: WRONG_VALUE_CITED_AS_HISTORY
+    statement: >-
+      A declared wrong value cited explicitly as the history of an earlier month, with the expected value given as the
+      answer, is correct. A declared wrong value given as the answer, or as an alternative answer, is wrong.
+    date: "2026-10-04"
+  - id: EXPECTED_FIGURE_ASSERTED_TRAP_FRAMED
+    statement: >-
+      Correct when the answer asserts the expected figure as its answer and frames any trap figure explicitly as
+      history, a hypothesis or a rejected alternative. Wrong when two figures are offered as candidate answers, or when
+      no figure is given.
+    date: "2026-10-07"
+decisions:
+  - request_id: 00000013-0000-4000-8000-000000000013
+    configuration: B1
+    question_id: CS_LAST_MONTH_GAP
+    verdict: correct
+    rule: WRONG_VALUE_CITED_AS_HISTORY
+    reason: >-
+      The answer gives 0 as the Q2 2026 closing stock of SKU-H11 in Switzerland and cites 400 (April) and 350 (May) as
+      the stock held earlier in the quarter, then states that the item closes at 0. 350 is the history of May, not
+      the answer.
+    decided_by: project owner
+    date: "2026-10-04"
+  - request_id: 00000012-0000-4000-8000-000000000012
+    configuration: A
+    question_id: CS_LAST_MONTH_GAP
+    verdict: correct
+    rule: WRONG_VALUE_CITED_AS_HISTORY
+    reason: >-
+      The answer gives 0 as the Q2 2026 closing stock of SKU-H11 in Switzerland and says it held 400 in April and 350
+      in May, "and the May figure is not carried forward". 350 is the history of May, not the answer.
+    decided_by: project owner
+    date: "2026-10-04"
+  # Campaign stage 1 (session 9a), decided 2026-10-07; request id of the turn's last call.
+  - request_id: 0000008d-0000-4000-8000-00000000008d
+    configuration: A
+    question_id: T2
+    verdict: correct
+    rule: EXPECTED_FIGURE_ASSERTED_TRAP_FRAMED
+    reason: >-
+      The answer gives 7.0 months as the coverage of SKU-H03 in Germany. 5.0 is a hypothesis: "If they were meant to
+      be 100 each, coverage would be 5.0 months".
+    decided_by: project owner
+    date: "2026-10-07"
+  - request_id: 00000091-0000-4000-8000-000000000091
+    configuration: A
+    question_id: T9
+    verdict: correct
+    rule: EXPECTED_FIGURE_ASSERTED_TRAP_FRAMED
+    reason: >-
+      The answer gives 0 months as the coverage of SKU-H11 in Switzerland. 3.5 is a rejected alternative: "the 350
+      packs held in May would have lasted 3.5 months, but that stock is no longer on hand in June".
+    decided_by: project owner
+    date: "2026-10-07"
+  - request_id: 0000008e-0000-4000-8000-00000000008e
+    configuration: A
+    question_id: CS_LAST_MONTH_GAP
+    verdict: correct
+    rule: WRONG_VALUE_CITED_AS_HISTORY
+    reason: >-
+      The answer gives 0 packs as the Q2 2026 closing stock of SKU-H11 in Switzerland; April (400) and May (350) are
+      history: "April and May are not added or carried forward".
+    decided_by: project owner
+    date: "2026-10-07"
+  - request_id: 0000004d-0000-4000-8000-00000000004d
+    configuration: B1
+    question_id: T4
+    verdict: correct
+    rule: EXPECTED_FIGURE_ASSERTED_TRAP_FRAMED
+    reason: >-
+      Grader false positive. The answer gives "about 8.5 months" as its only coverage figure; no trap figure is
+      stated. The trap 7.714 (window_starts_at_as_of), rounded to 0 decimals, matched "after 8 months" in "The
+      running forecast total is 920 kg after 8 months", a count of forecast months. A grader issue to fix after the
+      campaign (docs/phase5_notes.md); no grader change now.
+    decided_by: project owner
+    date: "2026-10-07"
+  - request_id: 0000005b-0000-4000-8000-00000000005b
+    configuration: B1
+    question_id: CS_LAST_MONTH_GAP
+    verdict: correct
+    rule: WRONG_VALUE_CITED_AS_HISTORY
+    reason: >-
+      The answer gives 0 kg as the Q2 2026 closing stock of SKU-H11 in Switzerland; 400 and 350 are history: "It did
+      hold stock earlier in the quarter: 400 kg at the end of April and 350 kg at the end of May".
+    decided_by: project owner
+    date: "2026-10-07"
+  - request_id: 00000027-0000-4000-8000-000000000027
+    configuration: DP
+    question_id: T2
+    verdict: correct
+    rule: EXPECTED_FIGURE_ASSERTED_TRAP_FRAMED
+    reason: >-
+      The answer gives 7.0 months as the coverage of SKU-H03 in Germany. 5 is the rejected alternative without the
+      two zero-demand months: "The two zero-demand months stretch the cover from 5 months to 7".
+    decided_by: project owner
+    date: "2026-10-07"
+  - request_id: 0000001f-0000-4000-8000-00000000001f
+    configuration: DP
+    question_id: T7
+    verdict: wrong
+    rule: EXPECTED_FIGURE_ASSERTED_TRAP_FRAMED
+    reason: >-
+      No figure: "I can't give you the coverage figure, because I couldn't run the coverage script." The dp policy
+      denied coverage.py wrapped in a pipe (2>&1 | head -60) and then --help | head; a call the policy rightly denied
+      (eval/gate.md section 2), not a harness event.
+    decided_by: project owner
+    date: "2026-10-07"

@@ -1,0 +1,413 @@
+# GENERATED from contract/stock_coverage.yaml (contract stock_coverage, version 0.5.1) and data/output/
+# by compiler/gen_craw.py. Do not edit: change the contract and run `python compiler/gen_craw.py`.
+# tests/test_c_raw.py regenerates this file and fails on any difference.
+# Configuration C-raw: semantic view LINKML_METRICS.RAW.LINKML_C_RAW_SV on the raw tables, deployed with CALL SYSTEM$CREATE_SEMANTIC_VIEW_FROM_YAML.
+name: LINKML_C_RAW_SV
+description: 'Configuration C-raw, generated from contract stock_coverage 0.5.1: stock on hand at one month and demand forecast
+  of the grocery dataset, on its raw tables. Closing stock over a period is computed by the closing_stock tool and coverage
+  by the stock_coverage tool, never here.'
+tables:
+- name: item
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: DIM_ITEM
+  primary_key:
+    columns:
+    - item_id
+  description: 'Items: SKU, family, range, item type, lifecycle status and dimension (kg or L).'
+  dimensions:
+  - name: sku_code
+    expr: sku_code
+    description: 'sku_code (conformed: applies to stock and forecast alike).'
+    is_enum: false
+    sample_values:
+    - SKU-0001
+    - SKU-0002
+    - SKU-0003
+  - name: sku_name
+    expr: sku_name
+    description: Name of sku_code.
+    is_enum: false
+    sample_values:
+    - Arabica beans 1 kg
+    - Bread flour 1 kg
+    - Breakfast cereals 1
+  - name: family_code
+    expr: family_code
+    description: 'family_code (conformed: applies to stock and forecast alike).'
+    is_enum: true
+    sample_values:
+    - BEV_ICED
+    - BEV_JUICE
+    - BREAKFAST_CEREAL
+    - BREAKFAST_SPREAD
+    - HOT_BEANS
+    - HOT_GROUND
+    - HOT_TEA
+    - PANTRY_FLOUR
+    - PANTRY_OIL
+    - PANTRY_PASTA
+    - PANTRY_RICE
+    - SNACK_BARS
+    - SNACK_CRISPS
+    - SNACK_NUTS
+  - name: family_name
+    expr: family_name
+    description: Name of family_code.
+    is_enum: true
+    sample_values:
+    - Breakfast cereals
+    - Cereal bars
+    - Cooking oils
+    - Crisps
+    - Dry pasta
+    - Flour and baking
+    - Fruit juice
+    - Ground coffee
+    - Iced tea
+    - Jams and spreads
+    - Loose-leaf tea
+    - Nuts and dried fruit
+    - Rice and grains
+    - Whole bean coffee
+  - name: range_code
+    expr: range_code
+    description: 'range_code (conformed: applies to stock and forecast alike).'
+    is_enum: true
+    sample_values:
+    - BEV
+    - BREAKFAST
+    - HOT
+    - PANTRY
+    - SNACK
+  - name: range_name
+    expr: range_name
+    description: Name of range_code.
+    is_enum: true
+    sample_values:
+    - Beverages
+    - Breakfast
+    - Coffee & Tea
+    - Pantry
+    - Snacks
+  - name: lifecycle_status
+    expr: lifecycle_status
+    description: 'An item attribute, so the forecast carries it too (decision 6, session 4). Trap T7 duplicates exactly
+      this column: QE_ITEM_GRAIN refuses a query that uses it while an item has two values. (conformed: applies to stock
+      and forecast alike). Known values: ACTIVE, PHASE_OUT.'
+    is_enum: true
+    sample_values:
+    - ACTIVE
+    - PHASE_OUT
+  - name: dimension
+    expr: dimension
+    description: 'The physical dimension in which the item is counted, with its base unit: MASS (kg) or VOLUME (L). Grouping
+      or filtering by it keeps quantity-equivalent rows within one dimension. (conformed: applies to stock and forecast
+      alike). Known values: MASS, VOLUME.'
+  - name: base_unit
+    expr: base_unit
+    description: Name of dimension.
+  - name: item_type
+    expr: item_type
+    description: 'Snapshot-only by decision: BULK items carry stock but never a forecast. Default scope STANDARD for stock
+      coverage only; closing stock counts every item type. (stock-only: restricts the stock, never the forecast). Known
+      values: STANDARD, BULK.'
+    is_enum: true
+    sample_values:
+    - BULK
+    - STANDARD
+- name: geo
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: DIM_GEO
+  primary_key:
+    columns:
+    - country_id
+  description: Countries and regions.
+  dimensions:
+  - name: country_code
+    expr: country_code
+    description: 'ISO 3166-1 alpha-2 code. (conformed: applies to stock and forecast alike).'
+    is_enum: true
+    sample_values:
+    - BE
+    - CH
+    - DE
+    - ES
+    - FR
+    - GB
+    - IT
+    - NL
+    - PL
+    - SE
+  - name: country_name
+    expr: country_name
+    description: Name of country_code.
+    is_enum: true
+    sample_values:
+    - Belgium
+    - France
+    - Germany
+    - Italy
+    - Netherlands
+    - Poland
+    - Spain
+    - Sweden
+    - Switzerland
+    - United Kingdom
+  - name: region_code
+    expr: region_code
+    description: 'region_code (conformed: applies to stock and forecast alike). Known values: CENTRAL, NORDIC, SOUTH, WEST.'
+    is_enum: true
+    sample_values:
+    - CENTRAL
+    - NORDIC
+    - SOUTH
+    - WEST
+  - name: region_name
+    expr: region_name
+    description: Name of region_code.
+    is_enum: true
+    sample_values:
+    - Central Europe
+    - Nordics
+    - Southern Europe
+    - Western Europe
+- name: calendar
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: DIM_CALENDAR
+  primary_key:
+    columns:
+    - month_start
+  description: Calendar months. For stock on hand, filter month_start or the snapshot month on exactly one month.
+  dimensions:
+  - name: month_start
+    expr: month_start
+    description: First day of the month.
+    data_type: DATE
+  - name: year_quarter
+    expr: year || '-Q' || quarter
+    description: Calendar quarter, for example 2026-Q2.
+    is_enum: true
+    sample_values:
+    - 2023-Q3
+    - 2023-Q4
+    - 2024-Q1
+    - 2024-Q2
+    - 2024-Q3
+    - 2024-Q4
+    - 2025-Q1
+    - 2025-Q2
+    - 2025-Q3
+    - 2025-Q4
+    - 2026-Q1
+    - 2026-Q2
+    - 2026-Q3
+    - 2026-Q4
+    - 2027-Q1
+    - 2027-Q2
+    - 2027-Q3
+    - 2027-Q4
+    - 2028-Q1
+    - 2028-Q2
+    - 2028-Q3
+    - 2028-Q4
+    - 2029-Q1
+    - 2029-Q2
+  - name: year
+    expr: year
+    description: Calendar year.
+    is_enum: true
+    sample_values:
+    - '2023'
+    - '2024'
+    - '2025'
+    - '2026'
+    - '2027'
+    - '2028'
+    - '2029'
+- name: batch
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: DIM_BATCH
+  primary_key:
+    columns:
+    - batch_id
+  description: Supplier lots (batches) of the stock.
+  dimensions:
+  - name: batch_status
+    expr: batch_status
+    description: 'batch_status (stock-only: restricts the stock, never the forecast). Known values: RELEASED, QUALITY_HOLD,
+      BLOCKED.'
+    is_enum: true
+    sample_values:
+    - BLOCKED
+    - QUALITY_HOLD
+    - RELEASED
+- name: warehouse
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: DIM_WAREHOUSE
+  primary_key:
+    columns:
+    - warehouse_id
+  description: Warehouses holding the stock (stock-only attributes).
+  dimensions:
+  - name: warehouse_code
+    expr: warehouse_code
+    description: 'warehouse_code (stock-only: restricts the stock, never the forecast).'
+    is_enum: true
+    sample_values:
+    - DC-BE-1
+    - DC-CH-1
+    - DC-CH-2
+    - DC-DE-1
+    - DC-DE-2
+    - DC-ES-1
+    - DC-FR-1
+    - DC-GB-1
+    - DC-IT-1
+    - DC-IT-2
+    - DC-NL-1
+    - DC-PL-1
+    - DC-PL-2
+    - DC-SE-1
+    - DC-SE-2
+  - name: warehouse_type
+    expr: warehouse_type
+    description: 'warehouse_type (stock-only: restricts the stock, never the forecast). Known values: OWN, 3PL.'
+    is_enum: true
+    sample_values:
+    - 3PL
+    - OWN
+- name: stock
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: FCT_STOCK_SNAPSHOT
+  primary_key:
+    columns:
+    - snapshot_month
+    - batch_id
+    - warehouse_id
+  description: Closing stock of the month. A level, never summed over months. One row per snapshot month, lot and warehouse;
+    a month with no row has no stock. Closing stock over a period is computed by the closing_stock tool and coverage by
+    the stock_coverage tool, never here.
+  dimensions:
+  - name: expiry_bucket
+    expr: expiry_bucket
+    description: 'expiry_bucket (stock-only: restricts the stock, never the forecast). Known values: <6M, 6-12M, 12-24M,
+      >24M.'
+    is_enum: true
+    sample_values:
+    - 12-24M
+    - 6-12M
+    - <6M
+    - '>24M'
+  - name: snapshot_month
+    expr: snapshot_month
+    description: Snapshot month of the stock.
+    data_type: DATE
+  metrics:
+  - name: stock_on_hand_qty_eq
+    description: 'Stock on hand in kg or L equivalent; kg and L never add up: group or filter by dimension when items of
+      both dimensions are combined, or use the value metric: the snapshot of one month, summed over items, countries, lots
+      and warehouses; filter snapshot_month on exactly one month. A level, never summed over months. Closing stock over
+      a period is computed by the closing_stock tool and coverage by the stock_coverage tool, never here.'
+    expr: SUM(stock_qty_eq)
+    non_additive_dimensions:
+    - table: stock
+      dimension: snapshot_month
+      sort_direction: ascending
+      null_order: last
+  - name: stock_on_hand_value
+    description: 'Stock on hand in EUR, comparable across every item: the snapshot of one month, summed over items, countries,
+      lots and warehouses; filter snapshot_month on exactly one month. A level, never summed over months. Closing stock
+      over a period is computed by the closing_stock tool and coverage by the stock_coverage tool, never here.'
+    expr: SUM(stock_value_eur)
+    non_additive_dimensions:
+    - table: stock
+      dimension: snapshot_month
+      sort_direction: ascending
+      null_order: last
+- name: forecast
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: FCT_FORECAST
+  primary_key:
+    columns:
+    - forecast_month
+    - item_id
+    - country_id
+  description: Monthly demand forecast per item and country. A flow, summed over the forward window.
+  dimensions:
+  - name: forecast_month
+    expr: forecast_month
+    description: Forecast month.
+    data_type: DATE
+  metrics:
+  - name: forecast_qty_eq
+    description: 'Monthly demand forecast per item and country. A flow, summed over the forward window. Summed over the
+      months, items and countries of the query, in kg or L equivalent; kg and L never add up: group or filter by dimension
+      when items of both dimensions are combined, or use the value metric.'
+    expr: SUM(forecast_qty_eq)
+  - name: forecast_value
+    description: Monthly demand forecast per item and country. A flow, summed over the forward window. Summed over the months,
+      items and countries of the query, in EUR, comparable across every item.
+    expr: SUM(forecast_value_eur)
+relationships:
+- name: stock_item
+  left_table: stock
+  right_table: item
+  relationship_columns:
+  - left_column: item_id
+    right_column: item_id
+- name: stock_geo
+  left_table: stock
+  right_table: geo
+  relationship_columns:
+  - left_column: country_id
+    right_column: country_id
+- name: stock_batch
+  left_table: stock
+  right_table: batch
+  relationship_columns:
+  - left_column: batch_id
+    right_column: batch_id
+- name: stock_warehouse
+  left_table: stock
+  right_table: warehouse
+  relationship_columns:
+  - left_column: warehouse_id
+    right_column: warehouse_id
+- name: stock_calendar
+  left_table: stock
+  right_table: calendar
+  relationship_columns:
+  - left_column: snapshot_month
+    right_column: month_start
+- name: forecast_item
+  left_table: forecast
+  right_table: item
+  relationship_columns:
+  - left_column: item_id
+    right_column: item_id
+- name: forecast_geo
+  left_table: forecast
+  right_table: geo
+  relationship_columns:
+  - left_column: country_id
+    right_column: country_id
+- name: forecast_calendar
+  left_table: forecast
+  right_table: calendar
+  relationship_columns:
+  - left_column: forecast_month
+    right_column: month_start

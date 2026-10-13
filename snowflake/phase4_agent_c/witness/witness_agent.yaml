@@ -1,0 +1,24 @@
+# Session 8a, latency witness LINKML_METRICS.RAW.LINKML_WITNESS_PROBE (reviewed by the project owner).
+# First binding: WITNESS_SQL. The second binding (witness.py rebind) changes tool_resources.witness.identifier only.
+models:
+  orchestration: claude-sonnet-5-5
+orchestration:
+  budget: {seconds: 120, tokens: 40000}
+instructions:
+  orchestration: For every request, call the witness tool exactly once with the label the user gives, then answer. Never answer without calling it.
+  response: Answer in one sentence that gives the label and the status the tool returned.
+tools:
+  - tool_spec:
+      type: generic
+      name: witness
+      description: Returns a fixed status object. Call it once per request with the label the user gives.
+      input_schema:
+        type: object
+        properties:
+          label: {type: string, description: "Required. The label the user gives, as is."}
+        required: [label]
+tool_resources:
+  witness:
+    type: procedure
+    identifier: LINKML_METRICS.RAW.WITNESS_SQL
+    execution_environment: {type: warehouse, warehouse: LINKML_METRICS_WH, query_timeout: 120}

@@ -1,0 +1,16 @@
+warehouse_id,warehouse_code,warehouse_type,country_id
+1,DC-FR-1,3PL,1
+2,DC-BE-1,3PL,2
+3,DC-NL-1,OWN,3
+4,DC-GB-1,3PL,4
+5,DC-DE-1,OWN,5
+6,DC-DE-2,OWN,5
+7,DC-CH-1,OWN,6
+8,DC-CH-2,OWN,6
+9,DC-PL-1,OWN,7
+10,DC-PL-2,OWN,7
+11,DC-IT-1,3PL,8
+12,DC-IT-2,3PL,8
+13,DC-ES-1,OWN,9
+14,DC-SE-1,OWN,10
+15,DC-SE-2,3PL,10

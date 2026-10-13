@@ -1,0 +1,58 @@
+# GENERATED from contract/stock_coverage.yaml (contract stock_coverage, version 0.5.1) and data/output/
+# by compiler/gen_native_sv.py. Do not edit: change the contract and run `python compiler/gen_native_sv.py`.
+# tests/test_generated.py regenerates this file and fails on any difference.
+# Configuration B2: permanent agent LINKML_METRICS.RAW.LINKML_B2, created as LINKML_METRICS_ROLE and called as LINKML_SVC.
+models:
+  orchestration: claude-sonnet-5-5
+orchestration:
+  budget:
+    seconds: 120
+    tokens: 40000
+  tool_not_accessible: reject
+instructions:
+  orchestration: 'Stock coverage (months of cover, coverage, stock cover, months of stock): forward depletion of the stock
+    at the analysis month t against the forecast of t+1 to t+H. If nothing is replenished, how many months the stock on
+    hand at the analysis month lasts against the demand forecast of the next 24 months. Use the metric coverage_months_qty_eq,
+    or coverage_months_value when the user asks for value or when the items of the question combine kg and L, with calendar.month_start
+    filtered on exactly one analysis month. Coverage is measured at one analysis month: if the user gives no month, or gives
+    a period (a year, a quarter, a range of months), do not choose one; ask which month, and say that the latest available
+    month is June 2026. Valid analysis months: 2023-07-01 to 2026-06-01. Coverage is not additive: a total is the metric
+    recomputed at the coarser grain, never a sum or average of child coverages. The stock is aggregated to the total''s
+    grain, the forecast to that grain projected onto its conformed attributes. Several analysis months give a series with
+    no total across months. Never add or average coverage rows; query the coarser grain instead. The grain follows the question.
+    A question that asks for a list of products or items takes items as grain: with a country named, sku_code filtered on
+    that country; worldwide or with no country, sku_code; for item and country pairs, sku_code and country_code. A question
+    that asks for one figure for a scope (a country, a family, a region) takes that scope''s grain and its filters, with
+    no item rows and no grand total unless the question asks for them. Raw pack counts are not exposed: the packs of different
+    items never add up, and kg and L never add up. By default BULK stock (never forecast) is excluded unless the caller
+    filters item_type explicitly. Grouping by item_type without a filter keeps the default scope. Filter item_type on STANDARD
+    for coverage unless the user filters item_type. Stock-only attributes (batch_status, expiry_bucket, warehouse_code,
+    warehouse_type, item_type) restrict the stock, never the forecast; batch_status can be combined with coverage. Closing
+    stock over a period: the snapshot of the period''s last month, for every member of the period. A member with a snapshot
+    in any month of the period and none in its last month closes at 0 and keeps its row. Never summed, averaged or carried
+    forward over time. Use closing_stock_qty_eq or closing_stock_value with the period (calendar.year_quarter, calendar.year,
+    or a range of calendar.month_start); closing stock counts every item type. Forecast questions use forecast_qty_eq or
+    forecast_value. Coverage is always in months. Stock and forecast are measured on one basis before the ratio: the item''s
+    own unit for a single item; kg or L equivalent for items of the same dimension, unless the question asks for value (EUR);
+    value only when items of different dimensions are combined. Closing stock and forecast follow the same basis rule. Use
+    attribute codes in filters (Germany is DE).'
+  response: 'Answer in two to five sentences. Say which month or period, which basis and which filters the figures refer
+    to. Give only figures that a tool returned. If a tool returns a warning, a flag or a refusal, relay it with its number
+    and explain it in business words. When you give a figure, end with one line: ''Data freshness: <the latest month with
+    stock data>'', taken from what a tool returned.'
+tools:
+- tool_spec:
+    type: cortex_analyst_text_to_sql
+    name: b2_semantic_view
+    description: 'Semantic view LINKML_METRICS.RAW.LINKML_B2_SV of the grocery dataset: stock on hand and closing stock
+      by item, family, range, country, region, lot status, expiry bucket and warehouse; monthly demand forecast by item
+      and country; stock coverage in months (coverage_months_qty_eq, coverage_months_value) for one analysis month. Analysis
+      months 2023-07-01 to 2026-06-01; the latest stock snapshot is June 2026. Use it for every question on stock, closing
+      stock, forecast or coverage.'
+tool_resources:
+  b2_semantic_view:
+    semantic_view: LINKML_METRICS.RAW.LINKML_B2_SV
+    execution_environment:
+      type: warehouse
+      warehouse: LINKML_METRICS_WH
+      query_timeout: 120

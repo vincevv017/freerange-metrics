@@ -1,0 +1,67 @@
+# Campaign questions by mechanism class (session 13, step 1c). Offline, from the recorded grades; nothing regraded.
+#
+# Rule: REFUSAL where the rubric's refusal criterion applies (eval/rubric.yaml criteria.refusal.applies_to: T5, T6,
+# T7_R1: the expected answer is a coded refusal or a clarifying question); otherwise by the question's metric in
+# generated/reference_questions.yaml: stock_coverage -> COVERAGE, closing_stock and stock_on_hand -> CLOSING_STOCK,
+# demand_forecast -> GENERAL, closing_stock_and_coverage (N1, N2, expected_route both) -> CLOSING_STOCK.
+# Judgement calls: T6 asks for coverage, expects a clarification -> REFUSAL. DIM_MIX expects BASIS_NOT_COMPARABLE but
+# the rubric grades it on basis_switch (a value coverage, or the refusal relayed with value offered), not on the
+# refusal criterion -> COVERAGE. N1 and N2 need both mechanisms; classed CLOSING_STOCK because that is the half whose
+# mechanism configuration C-raw changes (the coverage half stays on STOCK_COVERAGE).
+# Owner, session 13 step 3: N1 and N2 keep CLOSING_STOCK so the sums hold; `also: COVERAGE` marks that their graded
+# answer also carries a coverage figure, and every per-class table shows them on a line of their own.
+#
+# gapfill_dependent: for an answer computed through a semantic view, the right figure depends on the gap-filled
+# snapshot (FCT_STOCK_SNAPSHOT_GAPFILLED): data/traps.yaml declares for the question a wrong value made by carrying the
+# last known snapshot over an absent month (NON ADDITIVE BY on the raw snapshot). The reason cites that entry.
+questions:
+  T1: {class: COVERAGE, gapfill_dependent: false}
+  T2: {class: COVERAGE, gapfill_dependent: false}
+  T3: {class: COVERAGE, gapfill_dependent: false}
+  T4: {class: COVERAGE, gapfill_dependent: false}
+  T5: {class: REFUSAL, gapfill_dependent: false}
+  T6: {class: REFUSAL, gapfill_dependent: false}
+  T7: {class: COVERAGE, gapfill_dependent: false}
+  T7_R1: {class: REFUSAL, gapfill_dependent: false}
+  T8: {class: COVERAGE, gapfill_dependent: false}
+  NO_DEMAND: {class: COVERAGE, gapfill_dependent: false}
+  BEYOND_H: {class: COVERAGE, gapfill_dependent: false}
+  BULK_SCOPE: {class: COVERAGE, gapfill_dependent: false}
+  DIM_MIX: {class: COVERAGE, gapfill_dependent: false}
+  T9:
+    class: COVERAGE
+    gapfill_dependent: true
+    reason: "data/traps.yaml T9: SKU-H11 has no June snapshot; NON ADDITIVE BY with a range or no month reads May's 350, coverage 3.5 instead of 0 (NO_STOCK)"
+  CS_LAST_MONTH_GAP:
+    class: CLOSING_STOCK
+    gapfill_dependent: true
+    reason: "data/traps.yaml CS_LAST_MONTH_GAP: no SKU-H11 snapshot in June, the last month of Q2; last_known_value 350 (May carried) instead of 0"
+  CS_MIDDLE_MONTH_GAP: {class: CLOSING_STOCK, gapfill_dependent: false}
+  CS_FAMILY:
+    class: CLOSING_STOCK
+    gapfill_dependent: true
+    reason: "data/traps.yaml CS_FAMILY: SNACK_BARS holds the SKU-H11 June gap; last_known_value_per_sku 800 (350 + 450) instead of 450"
+  BULK_SCOPE_DRILL: {class: COVERAGE, gapfill_dependent: false}
+  G1: {class: GENERAL, gapfill_dependent: false}
+  G2: {class: CLOSING_STOCK, gapfill_dependent: false}
+  S_OWN_UNIT: {class: COVERAGE, gapfill_dependent: false}
+  S_STOCKOUT_COUNTRY: {class: COVERAGE, gapfill_dependent: false}
+  S_FIRST_WORLD: {class: COVERAGE, gapfill_dependent: false}
+  S_DORMANT_VALUE: {class: COVERAGE, gapfill_dependent: false}
+  H_LOCAL_STOCKOUT: {class: COVERAGE, gapfill_dependent: false}
+  H_LOWEST_COUNTRY: {class: COVERAGE, gapfill_dependent: false}
+  H_STOCKOUT_2027: {class: COVERAGE, gapfill_dependent: false}
+  H_STOCKOUT_ES: {class: COVERAGE, gapfill_dependent: false}
+  N1:
+    class: CLOSING_STOCK
+    gapfill_dependent: true
+    reason: "data/traps.yaml N1: closing stock as CS_LAST_MONTH_GAP (last_known_value 350 instead of 0) and coverage as T9 (3.5 instead of 0)"
+    also: COVERAGE
+    also_reason: "the graded answer also carries a coverage figure (criterion coverage, rubric 3.2: SKU-H11 0, NO_STOCK); counted once, under CLOSING_STOCK, and shown on its own line"
+  N2:
+    class: CLOSING_STOCK
+    gapfill_dependent: true
+    reason: "data/traps.yaml N2: last_known_value_per_sku gives May 850 and June 800 instead of 350 and 450, and coverage 4.0 instead of 2.25"
+    also: COVERAGE
+    also_reason: "the graded answer also carries a coverage figure (criterion coverage, rubric 3.2: SNACK_BARS x CH 2.25); counted once, under CLOSING_STOCK, and shown on its own line"
+  N3: {class: COVERAGE, gapfill_dependent: false}

@@ -1,0 +1,385 @@
+# Dry run of session 11 (docs/dry_run/results.md): a second instance of the depletion pattern, never deployed.
+# Cash runway: how many months the cash on hand at the balance month lasts against the planned spend of the next
+# months. No name is shared with stock coverage (variant A). Validated against contract/metamodel.yaml.
+id: cash_runway
+name: Cash runway
+description: >-
+  If no cash comes in, how many months will the cash on hand at the balance month last against the planned spend of
+  the following months? The result is in months, fractional, with linear interpolation in the month the cash runs out.
+version: 0.0.1
+status: DRAFT
+effective_date: "2026-10-07"
+ownership:
+  business_owner: Group treasurer (role)
+  technical_owner: Finance data engineer (role)
+  data_steward: Treasury data steward (role)
+  review_cadence: At every change of a rule
+
+dimension_classes:
+  - {id: PERIOD, is_time: true, description: "Fiscal month."}
+  - {id: ORGANISATION, description: "Legal entity and its segment."}
+  - {id: ACCOUNT, description: "Bank account holding the cash."}
+
+tables:
+  - id: CAL_MONTH
+    kind: DIMENSION
+    grain: [period_start]
+    columns:
+      - {name: "period_start", data_type: DATE}
+      - {name: "fiscal_year", data_type: "NUMBER(4,0)"}
+      - {name: "fiscal_quarter", data_type: "NUMBER(1,0)"}
+  - id: DIM_ENTITY
+    kind: DIMENSION
+    grain: [entity_id]
+    columns:
+      - {name: "entity_id", data_type: "NUMBER(6,0)"}
+      - {name: "entity_code", data_type: VARCHAR}
+      - {name: "entity_name", data_type: VARCHAR}
+      - {name: "segment_code", data_type: VARCHAR}
+      - {name: "segment_name", data_type: VARCHAR}
+      - {name: "local_currency", data_type: VARCHAR}
+      - {name: "fx_rate_eur", data_type: "NUMBER(12,6)"}
+  - id: DIM_BANK_ACCOUNT
+    kind: DIMENSION
+    grain: [bank_account_id]
+    columns:
+      - {name: "bank_account_id", data_type: "NUMBER(8,0)"}
+      - {name: "account_code", data_type: VARCHAR}
+      - {name: "account_type", data_type: VARCHAR}
+      - {name: "entity_id", data_type: "NUMBER(6,0)"}
+  - id: FCT_CASH_BALANCE
+    kind: FACT
+    description: Closing cash balance per bank account and month. entity_id is a denormalised key.
+    grain: [balance_month, bank_account_id]
+    columns:
+      - {name: "balance_month", data_type: DATE}
+      - {name: "bank_account_id", data_type: "NUMBER(8,0)"}
+      - {name: "entity_id", data_type: "NUMBER(6,0)"}
+      - {name: "balance_eur", data_type: "NUMBER(18,2)"}
+  - id: FCT_SPEND_PLAN
+    kind: FACT
+    description: Planned spend per entity and month (one plan version).
+    grain: [spend_month, entity_id]
+    columns:
+      - {name: "spend_month", data_type: DATE}
+      - {name: "entity_id", data_type: "NUMBER(6,0)"}
+      - {name: "spend_eur", data_type: "NUMBER(18,2)"}
+
+relationships:
+  - {id: REL_BAL_ENTITY, from_table: FCT_CASH_BALANCE, from_columns: [entity_id], to_table: DIM_ENTITY, to_columns: [entity_id], cardinality: MANY_TO_ONE}
+  - {id: REL_BAL_ACCOUNT, from_table: FCT_CASH_BALANCE, from_columns: [bank_account_id], to_table: DIM_BANK_ACCOUNT, to_columns: [bank_account_id], cardinality: MANY_TO_ONE}
+  - {id: REL_BAL_PERIOD, from_table: FCT_CASH_BALANCE, from_columns: [balance_month], to_table: CAL_MONTH, to_columns: [period_start], cardinality: MANY_TO_ONE}
+  - {id: REL_SPEND_ENTITY, from_table: FCT_SPEND_PLAN, from_columns: [entity_id], to_table: DIM_ENTITY, to_columns: [entity_id], cardinality: MANY_TO_ONE}
+  - {id: REL_SPEND_PERIOD, from_table: FCT_SPEND_PLAN, from_columns: [spend_month], to_table: CAL_MONTH, to_columns: [period_start], cardinality: MANY_TO_ONE}
+  - {id: REL_ACCOUNT_ENTITY, from_table: DIM_BANK_ACCOUNT, from_columns: [entity_id], to_table: DIM_ENTITY, to_columns: [entity_id], cardinality: MANY_TO_ONE}
+
+measures:
+  - id: cash_on_hand
+    name: Cash on hand
+    description: Closing cash balance of the month. A level, never summed over months.
+    measure_type: SNAPSHOT
+    table: FCT_CASH_BALANCE
+    time_column: balance_month
+    time_grain: MONTH
+    additivity:
+      - {dimension_class: PERIOD, aggregation: SELECT_PERIOD, note: "The balance month selects the snapshot."}
+      - {dimension_class: ORGANISATION, aggregation: SUM}
+      - {dimension_class: ACCOUNT, aggregation: SUM}
+    columns:
+      - {basis: REPORTING, column: balance_eur}
+    period_aggregation:
+      id: CLOSING_BALANCE
+      description: Closing balance over a period is the balance of the period's last month, 0 for an account with none that month.
+      method: LAST_PERIOD
+      periods: [PERIOD_RANGE, QUARTER, YEAR]
+      member_set: ANY_SNAPSHOT_IN_PERIOD
+      missing_value: "0"
+      forbidden_methods: [SUM, AVERAGE, LAST_NON_EMPTY]
+      prevents: [R_CLOSE_GAP]
+  - id: planned_spend
+    name: Planned spend
+    description: Planned spend per entity and month. A flow, summed over the forward window.
+    measure_type: FLOW
+    table: FCT_SPEND_PLAN
+    time_column: spend_month
+    time_grain: MONTH
+    additivity:
+      - {dimension_class: PERIOD, aggregation: SUM_OVER_WINDOW, note: "Window t+1 to t+H, never filtered by the balance month."}
+      - {dimension_class: ORGANISATION, aggregation: SUM}
+    columns:
+      - {basis: REPORTING, column: spend_eur}
+
+attributes:
+  - id: entity_code
+    table: DIM_ENTITY
+    column: entity_code
+    label_column: entity_name
+    dimension_class: ORGANISATION
+    applicability_class: CONFORMED
+    applicability: &conformed
+      - {measure: cash_on_hand, effect: GROUP_AND_FILTER}
+      - {measure: planned_spend, effect: GROUP_AND_FILTER}
+  - id: segment_code
+    table: DIM_ENTITY
+    column: segment_code
+    label_column: segment_name
+    dimension_class: ORGANISATION
+    applicability_class: CONFORMED
+    applicability: *conformed
+  - id: account_type
+    description: Operating or restricted cash. Restricted cash does not fund spend and is excluded by default.
+    table: DIM_BANK_ACCOUNT
+    column: account_type
+    dimension_class: ACCOUNT
+    applicability_class: SNAPSHOT_ONLY
+    applicability:
+      - {measure: cash_on_hand, effect: GROUP_AND_FILTER}
+      - {measure: planned_spend, effect: IGNORED}
+    known_values: [OPERATING, RESTRICTED]
+    prevents: [R_ACCOUNT_FILTER]
+
+measure_bases:
+  - id: REPORTING
+    kind: MONETARY
+    unit_source: FIXED
+    unit_symbol: EUR
+    valid_when: ALWAYS
+    synonyms: [euros, EUR, reporting currency]
+    description: Balance and spend in the group reporting currency.
+    not_comparable_reason: never (a reporting-currency amount adds up across entities)
+
+basis_model:
+  id: ENTITY_CURRENCY
+  description: Each entity's local currency is master data of DIM_ENTITY; every figure is converted to EUR upstream.
+  item_table: DIM_ENTITY
+  item_key: entity_id
+  dimension_column: local_currency
+  base_unit_column: local_currency
+  native_unit_column: local_currency
+  equivalence_factor_column: fx_rate_eur
+  dimensions:
+    - {id: EUR, base_unit: EUR}
+    - {id: GBP, base_unit: GBP}
+  default_basis: REPORTING
+  validity_scope: RETURNED_ROWS
+  refusal: CURRENCY_NOT_COMPARABLE
+  result_unit: months
+
+metrics:
+  - id: cash_runway
+    name: Cash runway
+    synonyms: [runway, months of cash]
+    description: Forward depletion of the cash at the balance month t against the planned spend of t+1 to t+H.
+    snapshot_measure: cash_on_hand
+    flow_measure: planned_spend
+    anchor_parameter: balance_months
+    time_grain: MONTH
+    output_unit: months
+    window_start_offset: 1
+    horizon_periods: 18
+    interpolation: LINEAR
+    densify_missing_periods: true
+    aggregate_before_compute: true
+    time_filter_on_flow: SELECTS_ANCHOR_ONLY
+    prevents: [R_REAGGREGATE, R_SPARSE_PLAN]
+    outcomes:
+      - {order: 1, condition: SNAPSHOT_NULL_OR_ZERO, result: "0", flag: NO_CASH, keeps_member: true, prevents: [R_PLAN_NO_CASH]}
+      - {order: 2, condition: DEPLETED_WITHIN_HORIZON, result: "(n - 1) + (S - C(n-1)) / f(n), n = first period in 1..H with S <= C(n)"}
+      - {order: 3, condition: NO_FLOW_IN_WINDOW, result: "null", flag: NO_SPEND, keeps_member: true}
+      - {order: 4, condition: BEYOND_HORIZON, result: "S / mean(f(i) for i in 1..H if f(i) > 0)", flag: PAST_PLAN}
+    beyond_horizon: {method: SNAPSHOT_OVER_MEAN_FLOW, average_window: HORIZON, exclude_zero_periods: true, flag: PAST_PLAN}
+    exhaustion_period:
+      id: CASH_OUT_MONTH
+      description: The month the cash runs out.
+      formula: "t + ceil(runway_months) months"
+      none_for_flags: [NO_SPEND, PAST_PLAN]
+    member_selection:
+      id: PICK_ENTITIES
+      description: Keeps detail rows by runway; entities already out of cash or with no planned spend come back apart.
+      upper_bound_parameter: runway_below
+      upper_bound_rule: "0 < runway_months <= runway_below"
+      lower_bound_parameter: runway_above
+      lower_bound_rule: "runway_months > runway_above"
+      rank_parameter: shortest_first
+      rank_rule: "runway_months ascending, ties broken by the grain codes"
+      set_apart_flags: [NO_CASH, NO_SPEND]
+      summary_rule: "Per balance month: the count of kept rows and the sum of their cash in EUR."
+
+flags:
+  - {id: NO_CASH, description: "Planned spend but no cash at the balance month.", value_semantics: "Runway 0; the row is kept."}
+  - {id: NO_SPEND, description: "No planned spend in the window.", value_semantics: "Runway null: undefined without spend."}
+  - {id: PAST_PLAN, description: "Cash outlasts the 18-month plan.", value_semantics: "Extrapolated: cash over the mean non-zero monthly spend."}
+
+totals_rules:
+  - id: RECOMPUTE_RUNWAY
+    description: A total is the runway recomputed at the coarser grain, never a sum or average of child runways.
+    method: RECOMPUTE
+    snapshot_aggregation: TOTAL_GRAIN
+    flow_aggregation: CONFORMED_PROJECTION
+    total_over_time: FORBIDDEN
+    parameter: subtotals
+    prevents: [R_REAGGREGATE]
+
+member_set_rules:
+  - id: ENTITY_SPINE
+    description: Members are cash members union spend members, then both measures are left-joined.
+    method: SPINE
+    snapshot_members: ALWAYS
+    flow_members: ONLY_ON_CONFORMED_GRAIN
+    prevents: [R_PLAN_NO_CASH]
+
+default_scopes:
+  - id: OPERATING_CASH_ONLY
+    description: Restricted cash is excluded unless the caller filters account_type explicitly.
+    attribute: account_type
+    included_values: [OPERATING]
+    applies_to_metrics: [cash_runway]
+    applies_to_measures: [cash_on_hand]
+    lifted_by: EXPLICIT_FILTER
+    warning: RESTRICTED_CASH_EXCLUDED
+
+analysis_periods:
+  - id: BALANCE_MONTHS
+    description: Months with a cash balance whose 18-month plan window is inside the loaded calendar.
+    source_table: FCT_CASH_BALANCE
+    source_column: balance_month
+    latest_token: CURRENT
+    validity: "balance rows exist for the month AND MAX(CAL_MONTH.period_start) >= month + 18 months"
+    exposed_in: [TOOL_DESCRIPTION, PROCEDURE_RESPONSE]
+    series_allowed: true
+    max_periods: 12
+    prevents: [R_NO_MONTH]
+
+parameters:
+  - id: balance_months
+    description: Balance months, as first days of month (YYYY-MM-01), or CURRENT.
+    data_type: PERIOD_LIST
+    encoding: JSON_STRING
+    json_shape: array of string, each YYYY-MM-01 or CURRENT
+    is_required: true
+    min_items: 1
+    max_items: 12
+    example: '["2026-06-01"]'
+    refusal_codes: [MONTH_REQUIRED, MONTH_UNPARSEABLE, MONTH_NOT_FIRST_DAY, MONTH_WITHOUT_BALANCE, MONTHS_OVER_CAP, PLAN_TOO_SHORT]
+  - id: breakdown
+    description: Attributes to break the runway down by, at least one.
+    data_type: ATTRIBUTE_LIST
+    encoding: JSON_STRING
+    json_shape: array of string
+    is_required: true
+    min_items: 1
+    example: '["entity_code"]'
+    refusal_codes: [BREAKDOWN_NOT_LIST, BREAKDOWN_EMPTY, BREAKDOWN_REPEATED, FIELD_UNKNOWN, FIELD_UNCLASSIFIED, FIELD_NOT_APPLICABLE, ENTITY_RECORD_SPLIT]
+  - id: where
+    description: Attribute to list of values. "{}" for no filter.
+    data_type: FILTER_MAP
+    encoding: JSON_STRING
+    json_shape: object, attribute name to array of string
+    is_required: true
+    default_value: "{}"
+    example: '{"segment_code": ["RETAIL"]}'
+    refusal_codes: [WHERE_NOT_OBJECT, WHERE_VALUES_EMPTY, FIELD_UNKNOWN, FIELD_UNCLASSIFIED, FIELD_NOT_APPLICABLE, ENTITY_RECORD_SPLIT]
+  - id: currency_basis
+    description: The basis on which cash and spend are measured; runway is always in months.
+    data_type: ENUM
+    encoding: PLAIN
+    is_required: false
+    default_value: REPORTING
+    allowed_values: [REPORTING]
+    refusal_codes: [CURRENCY_BASIS_UNKNOWN, CURRENCY_NOT_COMPARABLE]
+  - id: subtotals
+    description: Coarser grains to add as total rows, each a subset of breakdown.
+    data_type: GRAIN_LIST
+    encoding: JSON_STRING
+    json_shape: array of array of string
+    is_required: false
+    default_value: "[]"
+    refusal_codes: [SUBTOTALS_NOT_LIST, SUBTOTAL_NOT_COARSER]
+  - id: runway_below
+    description: Keep the entities whose cash runs out within this many months.
+    data_type: NUMBER
+    encoding: PLAIN
+    is_required: false
+    exclusive_minimum: 0
+    refusal_codes: [PICK_INVALID]
+  - id: runway_above
+    description: Keep the entities whose runway is above this many months.
+    data_type: NUMBER
+    encoding: PLAIN
+    is_required: false
+    exclusive_minimum: 0
+    refusal_codes: [PICK_INVALID]
+  - id: shortest_first
+    description: Keep the first n entities by runway, shortest first.
+    data_type: INTEGER
+    encoding: PLAIN
+    is_required: false
+    exclusive_minimum: 0
+    refusal_codes: [PICK_INVALID]
+
+refusal_codes:
+  - {id: MONTH_REQUIRED, check_order: 10, category: PARAMETER, prevents: [R_NO_MONTH], reason_template: "A balance month is required, as YYYY-MM-01."}
+  - {id: MONTH_UNPARSEABLE, check_order: 11, category: PARAMETER, reason_template: "'{value}' is not a date in YYYY-MM-01 form, nor CURRENT."}
+  - {id: MONTH_NOT_FIRST_DAY, check_order: 12, category: PARAMETER, reason_template: "'{value}' is not the first day of a month: use {month_start}."}
+  - {id: MONTHS_OVER_CAP, check_order: 13, category: PARAMETER, reason_template: "At most {max_periods} balance months per call."}
+  - {id: MONTH_WITHOUT_BALANCE, check_order: 14, category: AVAILABILITY, reason_template: "No cash balance for {value}. Available: {available_months} (CURRENT = {latest})."}
+  - {id: PLAN_TOO_SHORT, check_order: 15, category: AVAILABILITY, reason_template: "The {source} does not reach {horizon_end}, the end of the {horizon}-month plan of {latest}."}
+  - {id: CURRENCY_BASIS_UNKNOWN, check_order: 21, category: PARAMETER, reason_template: "currency_basis '{value}' is not REPORTING."}
+  - {id: BREAKDOWN_NOT_LIST, check_order: 30, category: PARAMETER, reason_template: "breakdown must be a JSON array of attribute names."}
+  - {id: BREAKDOWN_EMPTY, check_order: 31, category: PARAMETER, reason_template: "breakdown must name at least one attribute."}
+  - {id: BREAKDOWN_REPEATED, check_order: 32, category: PARAMETER, reason_template: "breakdown lists an attribute twice: {value}."}
+  - {id: WHERE_NOT_OBJECT, check_order: 33, category: PARAMETER, reason_template: "where must be a JSON object: attribute -> list of values."}
+  - {id: WHERE_VALUES_EMPTY, check_order: 34, category: PARAMETER, reason_template: "where '{attribute}' needs a non-empty list of values."}
+  - {id: FIELD_UNKNOWN, check_order: 35, category: SEMANTIC, reason_template: "'{attribute}' is not a runway attribute. Conformed: {conformed}. Cash-only: {snapshot_only}."}
+  - {id: FIELD_UNCLASSIFIED, check_order: 36, category: SEMANTIC, reason_template: "'{attribute}' has no applicability class."}
+  - {id: FIELD_NOT_APPLICABLE, check_order: 37, category: SEMANTIC, reason_template: "'{attribute}' does not apply to cash runway: {reason}."}
+  - {id: SUBTOTALS_NOT_LIST, check_order: 38, category: PARAMETER, reason_template: "subtotals must be a JSON array of attribute arrays."}
+  - {id: SUBTOTAL_NOT_COARSER, check_order: 39, category: SEMANTIC, prevents: [R_REAGGREGATE], reason_template: "Subtotal {value} is not a subset of {grain}."}
+  - {id: PICK_INVALID, check_order: 40, category: PARAMETER, reason_template: "{parameter} must be {expected}; got '{value}'."}
+  - {id: ENTITY_RECORD_SPLIT, check_order: 50, category: DATA_QUALITY, prevents: [R_ENTITY_FANOUT], reason_template: "{count} entity(ies) have several rows in DIM_ENTITY that differ on {attributes}."}
+  - {id: DQ_REFUSED, check_order: 51, category: DATA_QUALITY, reason_template: "Expectation {expectation} fails ({count} violations): {condition}."}
+  - {id: CURRENCY_NOT_COMPARABLE, check_order: 52, category: SEMANTIC, reason_template: "On {basis} {why}. Bases allowed: {allowed}."}
+
+warning_codes:
+  - {id: RESTRICTED_CASH_EXCLUDED, raised_by: OPERATING_CASH_ONLY, message_template: "{excluded_amount} {unit} of restricted cash excluded by default."}
+  - {id: PLAN_GAPS_FILLED, raised_by: DQ_PLAN_DENSE, message_template: "{count} entity-months of the plan have no row and were counted as 0."}
+  - {id: ENTITY_DUPLICATES, raised_by: DQ_ENTITY_GRAIN, message_template: "{count} entities have several rows in DIM_ENTITY; they agree on the attributes used."}
+  - {id: ROWS_BREAK_EXPECTATION, raised_by: DQ_BALANCE_ACCOUNT_REF, message_template: "{expectation}: {count} rows read break it ({condition})."}
+
+quality_expectations:
+  - {id: DQ_BALANCE_GRAIN, kind: GRAIN_UNIQUENESS, table: FCT_CASH_BALANCE, columns: [balance_month, bank_account_id],
+     condition: "one row per balance_month x bank_account_id", threshold: "0", severity: ERROR, on_failure: MONITOR, dmf: CUSTOM}
+  - {id: DQ_ENTITY_GRAIN, kind: GRAIN_UNIQUENESS, table: DIM_ENTITY, columns: [entity_id], condition: "one row per entity_id",
+     threshold: "0", severity: ERROR, on_failure: REFUSE_IF_USED, refusal: ENTITY_RECORD_SPLIT, warning: ENTITY_DUPLICATES,
+     call_scope: REQUEST_MEMBERS, dmf: SNOWFLAKE.CORE.DUPLICATE_COUNT, prevents: [R_ENTITY_FANOUT]}
+  - {id: DQ_ACCOUNT_GRAIN, kind: GRAIN_UNIQUENESS, table: DIM_BANK_ACCOUNT, columns: [bank_account_id], condition: "one row per bank_account_id",
+     threshold: "0", severity: ERROR, on_failure: REFUSE, refusal: DQ_REFUSED, call_scope: TABLE, dmf: SNOWFLAKE.CORE.DUPLICATE_COUNT}
+  - {id: DQ_BALANCE_ACCOUNT_REF, kind: REFERENTIAL, table: FCT_CASH_BALANCE, columns: [bank_account_id], references_table: DIM_BANK_ACCOUNT,
+     references_columns: [bank_account_id], condition: "every balance bank_account_id exists in DIM_BANK_ACCOUNT", threshold: "0",
+     severity: ERROR, on_failure: WARN, warning: ROWS_BREAK_EXPECTATION, call_scope: REQUEST_ROWS, dmf: CUSTOM}
+  - {id: DQ_PLAN_DENSE, kind: COMPLETENESS, table: FCT_SPEND_PLAN, columns: [spend_month, entity_id],
+     condition: "every entity with a plan row in the window of CURRENT has a row for every month of it", threshold: "0",
+     severity: WARNING, on_failure: WARN, warning: PLAN_GAPS_FILLED, call_scope: REQUEST_MEMBERS, dmf: CUSTOM, prevents: [R_SPARSE_PLAN]}
+  - {id: DQ_CALENDAR_REACH, kind: FRESHNESS, table: CAL_MONTH, columns: [period_start], condition: "the calendar reaches CURRENT + 18 months",
+     threshold: "0", severity: ERROR, on_failure: REFUSE, refusal: PLAN_TOO_SHORT, call_scope: TABLE, dmf: CUSTOM, prevents: [R_NO_MONTH]}
+  - {id: DQ_PLAN_REACH, kind: FRESHNESS, table: FCT_SPEND_PLAN, columns: [spend_month], condition: "the plan reaches CURRENT + 18 months",
+     threshold: "0", severity: ERROR, on_failure: REFUSE, refusal: PLAN_TOO_SHORT, call_scope: TABLE, dmf: CUSTOM}
+  - {id: DQ_SPEND_NON_NEGATIVE, kind: VALUE_RANGE, table: FCT_SPEND_PLAN, columns: [spend_eur], condition: "spend is >= 0",
+     threshold: "0", severity: ERROR, on_failure: MONITOR, dmf: SNOWFLAKE.CORE.NEGATIVE_COUNT}
+  - {id: DQ_ACCOUNT_TYPE, kind: VALUE_RANGE, table: DIM_BANK_ACCOUNT, columns: [account_type], condition: "values are within known_values",
+     threshold: "0", severity: WARNING, on_failure: MONITOR, dmf: CUSTOM}
+
+invariants:
+  - {id: INV_RUNWAY_RECOMPUTED, test_kind: METAMORPHIC, prevents: [R_REAGGREGATE], statement: "A total row equals a separate call at the total's grain."}
+  - {id: INV_ACCOUNT_FILTER_KEEPS_SPEND, test_kind: METAMORPHIC, prevents: [R_ACCOUNT_FILTER], statement: "A filter on account_type never changes the planned spend of a member."}
+
+alert_thresholds: []
+
+failure_modes:
+  - {id: R_REAGGREGATE, name: "Runway re-aggregation", source: "dry run", wrong_behaviour: "Sum or average of entity runways", correct_behaviour: "Recompute from aggregated cash and spend"}
+  - {id: R_SPARSE_PLAN, name: "Sparse plan months", source: "dry run", wrong_behaviour: "A row-based window skips missing months", correct_behaviour: "A missing month is 0"}
+  - {id: R_ACCOUNT_FILTER, name: "Account filter pushed to spend", source: "dry run", wrong_behaviour: "The account_type filter removes spend rows", correct_behaviour: "Spend ignores cash-only attributes"}
+  - {id: R_NO_MONTH, name: "Missing balance month", source: "dry run", wrong_behaviour: "A runway over a year", correct_behaviour: "Ask for the month"}
+  - {id: R_ENTITY_FANOUT, name: "Entity fan-out", source: "dry run", wrong_behaviour: "An entity with two rows counted twice", correct_behaviour: "One row per entity"}
+  - {id: R_PLAN_NO_CASH, name: "Spend but no cash", source: "dry run", wrong_behaviour: "Entity disappears", correct_behaviour: "Runway 0, row kept"}
+  - {id: R_CLOSE_GAP, name: "No balance in the period's last month", source: "dry run", wrong_behaviour: "Last known balance carried to the close", correct_behaviour: "Closing balance 0"}

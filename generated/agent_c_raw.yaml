@@ -1,0 +1,229 @@
+# GENERATED from contract/stock_coverage.yaml (contract stock_coverage, version 0.5.1) and data/output/
+# by compiler/gen_craw.py. Do not edit: change the contract and run `python compiler/gen_craw.py`.
+# tests/test_c_raw.py regenerates this file and fails on any difference.
+# Configuration C-raw: permanent agent LINKML_METRICS.RAW.LINKML_C_RAW, created as LINKML_METRICS_ROLE and called as LINKML_SVC. Three tools: the raw view, stock_coverage (LINKML_METRICS.RAW.STOCK_COVERAGE) and closing_stock (LINKML_METRICS.RAW.CLOSING_STOCK).
+models:
+  orchestration: claude-sonnet-5-5
+orchestration:
+  budget:
+    seconds: 120
+    tokens: 40000
+  tool_not_accessible: reject
+instructions:
+  orchestration: 'Route every stock coverage question, including a follow-up on coverage, to stock_coverage. Route every
+    closing stock question (the stock at the end of a month, a quarter, a year or a range of months, at any grain), including
+    a follow-up on closing stock, to closing_stock. Route questions on stock on hand at one month and on demand forecast
+    to c_raw_semantic_view. Never compute, add, average or adjust a coverage from figures c_raw_semantic_view returned,
+    and never compute, add, average or adjust a coverage figure yourself; never add or average coverage rows: for a coarser
+    group (a family, a country, a region, the whole range) call stock_coverage again at that coarser grain, or ask for the
+    total in totals. Coverage is measured at one analysis month: if the user gives no month, or gives a period (a year,
+    a quarter, a range of months), do not choose one; ask which month, and say that the latest available month is June 2026.
+    Valid analysis months: 2023-07-01 to 2026-06-01, monthly; LATEST = 2026-06-01. By default BULK stock (never forecast)
+    is excluded unless the caller filters item_type explicitly. Grouping by item_type without a filter keeps the default
+    scope. The warning carries the excluded stock per unit of the basis asked. Coverage is always in months. Stock and forecast
+    are measured on one basis before the ratio: the item''s own unit for a single item; kg or L equivalent for items of
+    the same dimension, unless the question asks for value (EUR); value only when items of different dimensions are combined.
+    Closing stock and forecast follow the same basis rule. Pass basis QTY_EQ unless the question asks for value or for one
+    item in its own unit (NATIVE). If stock_coverage refuses with BASIS_NOT_COMPARABLE, you may call it again with a basis
+    the refusal allows, and say that the basis changed and why; never add kg and L yourself. For questions on what stocks
+    out within N months, what stocks out first or what has more than N months of coverage, pass coverage_below, rank_first
+    or coverage_above: the tool filters and ranks, and reports apart the members already out and those with no demand. The
+    grain follows the question. A question that asks for a list of products or items takes items as grain: with a country
+    named, sku_code filtered on that country; worldwide or with no country, sku_code; for item and country pairs, sku_code
+    and country_code. A question that asks for one figure for a scope (a country, a family, a region) takes that scope''s
+    grain and its filters, with no item rows and no grand total unless the question asks for them. Use attribute codes in
+    grain and filters. A follow-up such as "and by country?" keeps the filters of the previous question and adds the attribute
+    to the grain. Closing stock over a period is the stock of its last month, 0 for a member with no snapshot that month:
+    never sum, average or carry it over months yourself, and never add closing stock rows; for a coarser group call closing_stock
+    again at that grain, or ask for the total in totals. Pass the period the user names (a year, a quarter, a month or a
+    range of months); if closing_stock refuses a period whose months are not all loaded, relay the refusal and never pick
+    another period.'
+  response: 'Answer in two to five sentences. Say which month or period, which basis and which filters the figures refer
+    to. Give only figures that a tool returned. If a tool returns a warning, a flag or a refusal, relay it with its number
+    and explain it in business words. When you give a figure, end with one line: ''Data freshness: <the latest month with
+    stock data>'', taken from what a tool returned.'
+tools:
+- tool_spec:
+    type: cortex_analyst_text_to_sql
+    name: c_raw_semantic_view
+    description: 'Semantic view LINKML_METRICS.RAW.LINKML_C_RAW_SV of the grocery dataset, on its raw tables: stock on hand
+      at one month by item, family, range, country, region, lot status, expiry bucket and warehouse; monthly demand forecast
+      by item and country. Snapshot months 2023-07-01 to 2026-06-01; the latest stock snapshot is June 2026. Use it for
+      stock on hand at one month and demand forecast questions; closing stock over a period is computed by the closing_stock
+      tool and coverage by the stock_coverage tool, never here.'
+- tool_spec:
+    type: generic
+    name: stock_coverage
+    description: 'Forward depletion of the stock at the analysis month t against the forecast of t+1 to t+H. Stock coverage
+      in months (months of cover, coverage, stock cover, months of stock): if nothing is replenished, how many months the
+      stock on hand at the analysis month lasts against the demand forecast of the next 24 months. This tool computes every
+      number; you never compute, add, average or adjust a coverage yourself. Coverage is not additive: a total is the metric
+      recomputed at the coarser grain, never a sum or average of child coverages. The stock is aggregated to the total''s
+      grain, the forecast to that grain projected onto its conformed attributes. Several analysis months give a series with
+      no total across months. For a coarser group, call the tool again with that coarser grain, or ask for it in totals;
+      never add or average rows. Valid analysis months: 2023-07-01 to 2026-06-01, monthly; LATEST = 2026-06-01. The result
+      is always in months. Bases (where stock and forecast are measured before the ratio): NATIVE = Each item in its own
+      unit, as it is counted (CASE_10, PACK_1000, PACK_500). For one item the months equal those of any other consistent
+      basis, valid when each row holds one item; QTY_EQ = Stock and forecast in the base unit of the items'' dimension,
+      kg or L equivalent (raw quantity times qty_eq_factor), for items of one dimension, valid when each row and total holds
+      items of one dimension, default; VALUE = Stock at standard cost against forecast at cost of goods sold. Comparable
+      across every item, always valid. A basis the request cannot compare is refused with BASIS_NOT_COMPARABLE, which names
+      the bases allowed. By default BULK stock (never forecast) is excluded unless the caller filters item_type explicitly.
+      Grouping by item_type without a filter keeps the default scope. The warning carries the excluded stock per unit of
+      the basis asked. Each result row carries coverage_months (in months on every basis), stock and forecast_over_horizon
+      (in stock_unit), stock_unit, stockout_month (the month the stock runs out: analysis month plus coverage rounded up;
+      none beyond the horizon or without demand) and flag. Flags: NO_STOCK = Forecast but no stock at the analysis month.
+      Coverage 0; the row is kept; NO_DEMAND = No forecast in the window t+1 to t+H. Coverage null: undefined without demand;
+      BEYOND_HORIZON = Stock outlasts the 24-month horizon. Extrapolated: stock over the mean non-zero monthly forecast
+      of the horizon. With coverage_below, coverage_above or rank_first, the tool keeps, orders and counts the rows itself
+      and the answer also carries selection: per analysis month, the count of kept rows, their stock per unit, and the members
+      set apart (NO_STOCK and NO_DEMAND), counted and named; never sort, filter or pick coverage rows yourself. The answer
+      also carries request.as_of_months (the month actually used), warnings (each with its number), the first and last available
+      months with LATEST, and the query ids of its statements (lineage, not for the user). A result with status "refused"
+      carries a refusal code and a reason: relay the reason, do not work around it.'
+    input_schema:
+      type: object
+      properties:
+        as_of_months:
+          type: string
+          description: 'Required. A JSON array of string, each YYYY-MM-01 or LATEST, passed as a string. Analysis months,
+            as first days of month (YYYY-MM-01), or LATEST. One month gives one answer; several give a series with no total
+            across months. If the user gives no month, or a period (a year, a quarter), ask which month: never pick one.
+            One invalid month refuses the whole call. Valid analysis months: 2023-07-01 to 2026-06-01, monthly; LATEST =
+            2026-06-01. ''June 2026'' is ["2026-06-01"]. Use ["LATEST"] when the user asks for now, the current or the latest
+            month. Example: ["2026-06-01"]'
+        basis:
+          type: string
+          description: 'Optional, default QTY_EQ. The basis on which stock and forecast are measured before the ratio; coverage
+            is always in months. QTY_EQ (kg or L equivalent, the default) for items of one dimension; VALUE (EUR) when the
+            user asks for value or when items of different dimensions are combined; NATIVE (the item''s own unit) for one
+            item. A basis the request cannot compare is refused with the bases allowed, never switched. Example: QTY_EQ'
+        grain:
+          type: string
+          description: 'Required. A JSON array of string, passed as a string. Attributes to break the coverage down by,
+            at least one. Conformed or snapshot-only attributes. Conformed attributes (stock and forecast): sku_code, family_code
+            (BEV_ICED = Iced tea, BEV_JUICE = Fruit juice, BREAKFAST_CEREAL = Breakfast cereals, BREAKFAST_SPREAD = Jams
+            and spreads, HOT_BEANS = Whole bean coffee, HOT_GROUND = Ground coffee, HOT_TEA = Loose-leaf tea, PANTRY_FLOUR
+            = Flour and baking, PANTRY_OIL = Cooking oils, PANTRY_PASTA = Dry pasta, PANTRY_RICE = Rice and grains, SNACK_BARS
+            = Cereal bars, SNACK_CRISPS = Crisps, SNACK_NUTS = Nuts and dried fruit), range_code (BEV = Beverages, BREAKFAST
+            = Breakfast, HOT = Coffee & Tea, PANTRY = Pantry, SNACK = Snacks), lifecycle_status (ACTIVE, PHASE_OUT), dimension
+            (MASS = kg, VOLUME = L), country_code (BE = Belgium, CH = Switzerland, DE = Germany, ES = Spain, FR = France,
+            GB = United Kingdom, IT = Italy, NL = Netherlands, PL = Poland, SE = Sweden), region_code (CENTRAL = Central
+            Europe, NORDIC = Nordics, SOUTH = Southern Europe, WEST = Western Europe). Stock-only attributes (the forecast
+            stays at the conformed grain): batch_status (RELEASED, QUALITY_HOLD, BLOCKED), expiry_bucket (<6M, 6-12M, 12-24M,
+            >24M), warehouse_code, warehouse_type (OWN, 3PL), item_type (STANDARD, BULK). Example: ["family_code", "country_code"]'
+        filters:
+          type: string
+          description: 'Required. A JSON object, attribute name to array of string, passed as a string. Attribute to list
+            of values. "{}" for no filter. A filter on a snapshot-only attribute restricts the stock only. A filter on item_type
+            lifts the default scope. Same attributes and codes as grain: codes, never names (Germany is DE, flour and baking
+            is PANTRY_FLOUR). Example: {"country_code": ["FR"], "batch_status": ["RELEASED"]}'
+        totals:
+          type: string
+          description: 'Optional, default []. A JSON array of array of string, passed as a string. Coarser grains to add
+            as total rows, each a subset of grain; [] for none, [[]] for a grand total. Each total is recomputed, never
+            summed. Example: [["country_code"], []]'
+        coverage_below:
+          type: string
+          description: 'Optional. Keep the members that stock out within this many months: 0 < coverage <= N, from the next
+            month up to month N included. Members already out (coverage 0) and members with no demand come back apart. A
+            positive number. ''Within the next 3 months'' is "3". Example: 3'
+        coverage_above:
+          type: string
+          description: 'Optional. Keep the members whose coverage is above this many months (stock that sleeps); with coverage_below,
+            a window. A positive number. ''More than 12 months of coverage'' is "12". Example: 12'
+        rank_first:
+          type: string
+          description: 'Optional. Keep the first n members by coverage, lowest first, ties broken by the grain codes; with
+            coverage_below or coverage_above, the first n of the members they keep. Members already out and members with
+            no demand are not ranked: they come back apart. A positive integer. ''Which 10 products first'' is "10"; ''first''
+            with no number is "10". Example: 10'
+      required:
+      - as_of_months
+      - grain
+      - filters
+- tool_spec:
+    type: generic
+    name: closing_stock
+    description: 'Closing stock over a period: the snapshot of the period''s last month, for every member of the period.
+      A member with a snapshot in any month of the period and none in its last month closes at 0 and keeps its row. Never
+      summed, averaged or carried forward over time. A total is recomputed at its coarser grain from the stock rows, never
+      added from the rows returned. Several periods give a series with no total across periods. This tool computes every
+      number; you never add, average or carry a closing stock yourself: for a coarser group, call the tool again with that
+      coarser grain, or ask for it in totals. Periods: a year (YYYY), a quarter (YYYY-Qn), a month (YYYY-MM-01), a range
+      of months (YYYY-MM-01/YYYY-MM-01) or LATEST. A period with a month that has no stock snapshot is refused, never guessed.
+      Snapshot months: 2023-07-01 to 2026-06-01, monthly; LATEST = 2026-06-01. Bases (the unit of the stock): NATIVE = Each
+      item in its own unit, as it is counted (CASE_10, PACK_1000, PACK_500). For one item the months equal those of any
+      other consistent basis, valid when each row holds one item; QTY_EQ = Stock and forecast in the base unit of the items''
+      dimension, kg or L equivalent (raw quantity times qty_eq_factor), for items of one dimension, valid when each row
+      and total holds items of one dimension, default; VALUE = Stock at standard cost against forecast at cost of goods
+      sold. Comparable across every item, always valid. A basis the rows returned cannot sum is refused with BASIS_NOT_COMPARABLE,
+      which names the bases allowed. Closing stock counts every item type. Each result row carries period, first_month,
+      last_month (the month read), row_type (DETAIL or TOTAL), the grain attributes, closing_stock (in stock_unit), stock_unit
+      and closed_without_snapshot (true when the member has no snapshot in the last month, so it closes at 0). The answer
+      also carries request.periods (the months actually used), warnings (each with its number), the first and last available
+      months with LATEST, and the query ids of its statements (lineage, not for the user). A result with status "refused"
+      carries a refusal code and a reason: relay the reason, do not work around it.'
+    input_schema:
+      type: object
+      properties:
+        periods:
+          type: string
+          description: 'Required, passed as a string. JSON array of periods, each a year (YYYY), a quarter (YYYY-Qn), a
+            month (YYYY-MM-01), a range of months (YYYY-MM-01/YYYY-MM-01) or LATEST. Several periods give a series, never
+            a total across periods. ''Q2 2026'' is ["2026-Q2"], ''end of June 2026'' is ["2026-06-01"], ''each month of
+            Q2 2026'' is ["2026-04-01", "2026-05-01", "2026-06-01"]. Example: ["2026-Q2"]'
+        grain:
+          type: string
+          description: 'Required, passed as a string. JSON array of attributes to break the closing stock down by, at least
+            one. Conformed attributes: sku_code, family_code (BEV_ICED = Iced tea, BEV_JUICE = Fruit juice, BREAKFAST_CEREAL
+            = Breakfast cereals, BREAKFAST_SPREAD = Jams and spreads, HOT_BEANS = Whole bean coffee, HOT_GROUND = Ground
+            coffee, HOT_TEA = Loose-leaf tea, PANTRY_FLOUR = Flour and baking, PANTRY_OIL = Cooking oils, PANTRY_PASTA =
+            Dry pasta, PANTRY_RICE = Rice and grains, SNACK_BARS = Cereal bars, SNACK_CRISPS = Crisps, SNACK_NUTS = Nuts
+            and dried fruit), range_code (BEV = Beverages, BREAKFAST = Breakfast, HOT = Coffee & Tea, PANTRY = Pantry, SNACK
+            = Snacks), lifecycle_status (ACTIVE, PHASE_OUT), dimension (MASS = kg, VOLUME = L), country_code (BE = Belgium,
+            CH = Switzerland, DE = Germany, ES = Spain, FR = France, GB = United Kingdom, IT = Italy, NL = Netherlands,
+            PL = Poland, SE = Sweden), region_code (CENTRAL = Central Europe, NORDIC = Nordics, SOUTH = Southern Europe,
+            WEST = Western Europe). Stock-only attributes: batch_status (RELEASED, QUALITY_HOLD, BLOCKED), expiry_bucket
+            (<6M, 6-12M, 12-24M, >24M), warehouse_code, warehouse_type (OWN, 3PL), item_type (STANDARD, BULK). Example:
+            ["family_code", "country_code"]'
+        filters:
+          type: string
+          description: 'Required, passed as a string. JSON object, attribute to list of values. "{}" for no filter. Same
+            attributes and codes as grain: codes, never names (Germany is DE, cereal bars is SNACK_BARS). Example: {"country_code":
+            ["FR"], "batch_status": ["RELEASED"]}'
+        basis:
+          type: string
+          description: 'Optional, default QTY_EQ. NATIVE (one item per row), QTY_EQ (kg or L equivalent, one dimension per
+            row, the default) or VALUE (EUR). A basis the rows returned cannot sum is refused with the bases allowed. Example:
+            QTY_EQ'
+        totals:
+          type: string
+          description: 'Optional, default [], passed as a string. JSON array of coarser grains, each a subset of grain;
+            [] for none, [[]] for a grand total. Each total is recomputed from the stock rows, never added from the rows
+            returned. Example: [["country_code"], []]'
+      required:
+      - periods
+      - grain
+      - filters
+tool_resources:
+  c_raw_semantic_view:
+    semantic_view: LINKML_METRICS.RAW.LINKML_C_RAW_SV
+    execution_environment:
+      type: warehouse
+      warehouse: LINKML_METRICS_WH
+      query_timeout: 120
+  stock_coverage:
+    type: procedure
+    identifier: LINKML_METRICS.RAW.STOCK_COVERAGE
+    execution_environment:
+      type: warehouse
+      warehouse: LINKML_METRICS_WH
+      query_timeout: 120
+  closing_stock:
+    type: procedure
+    identifier: LINKML_METRICS.RAW.CLOSING_STOCK
+    execution_environment:
+      type: warehouse
+      warehouse: LINKML_METRICS_WH
+      query_timeout: 120

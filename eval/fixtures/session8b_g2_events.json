@@ -1,0 +1,223 @@
+{
+ "source": "session 8b smoke of agent C, G2 (call 10 of budget s8b): the response.table event and the final response, text and table blocks only, as recorded in the run folder's events.jsonl (no host, no tool result); tool_uses: the type and name of each tool call of the turn, from the run's summary",
+ "label": "c_g2",
+ "config": "C",
+ "question_id": "G2",
+ "request_id": "0000016d-0000-4000-8000-00000000016d",
+ "n": 10,
+ "events": [
+  {
+   "event": "response.table",
+   "data": {
+    "content_index": 5,
+    "query_id": "0000016c-0000-4000-8000-00000000016c",
+    "result_set": {
+     "data": [
+      [
+       "BE",
+       "14764495.4040"
+      ],
+      [
+       "CH",
+       "28912589.5002"
+      ],
+      [
+       "DE",
+       "24697602.4328"
+      ],
+      [
+       "ES",
+       "48525033.1342"
+      ],
+      [
+       "FR",
+       "43879032.9288"
+      ],
+      [
+       "GB",
+       "24672306.0572"
+      ],
+      [
+       "IT",
+       "14978427.8516"
+      ],
+      [
+       "NL",
+       "20232037.4658"
+      ],
+      [
+       "PL",
+       "15096357.3398"
+      ],
+      [
+       "SE",
+       "14476855.4803"
+      ]
+     ],
+     "resultSetMetaData": {
+      "format": "jsonv2",
+      "numRows": 10,
+      "partition": 0,
+      "rowType": [
+       {
+        "length": 16777216,
+        "name": "COUNTRY_CODE",
+        "nullable": true,
+        "precision": 0,
+        "scale": 0,
+        "type": "text"
+       },
+       {
+        "length": 0,
+        "name": "CLOSING_STOCK_VALUE",
+        "nullable": true,
+        "precision": 30,
+        "scale": 4,
+        "type": "fixed"
+       }
+      ]
+     },
+     "statementHandle": "0000016c-0000-4000-8000-00000000016c"
+    },
+    "sequence_number": 43,
+    "title": "Closing stock value (EUR) by country, June 2026",
+    "tool_use_id": "toolu_bdrk_01HCDfKScwygqCZeHzXe8iaC"
+   }
+  },
+  {
+   "event": "response",
+   "data": {
+    "content": [
+     {
+      "text": "Closing stock at the June 2026 snapshot, valued in EUR, covers all item types and all lot statuses. Spain holds the most (about €48.5M), followed by France (€43.9M) and Switzerland (€28.9M). Sweden holds the least (€14.5M).\n\n",
+      "type": "text"
+     },
+     {
+      "table": {
+       "query_id": "0000016c-0000-4000-8000-00000000016c",
+       "result_set": {
+        "data": [
+         [
+          "BE",
+          "14764495.4040"
+         ],
+         [
+          "CH",
+          "28912589.5002"
+         ],
+         [
+          "DE",
+          "24697602.4328"
+         ],
+         [
+          "ES",
+          "48525033.1342"
+         ],
+         [
+          "FR",
+          "43879032.9288"
+         ],
+         [
+          "GB",
+          "24672306.0572"
+         ],
+         [
+          "IT",
+          "14978427.8516"
+         ],
+         [
+          "NL",
+          "20232037.4658"
+         ],
+         [
+          "PL",
+          "15096357.3398"
+         ],
+         [
+          "SE",
+          "14476855.4803"
+         ]
+        ],
+        "resultSetMetaData": {
+         "format": "jsonv2",
+         "numRows": 10,
+         "partition": 0,
+         "rowType": [
+          {
+           "length": 16777216,
+           "name": "COUNTRY_CODE",
+           "nullable": true,
+           "precision": 0,
+           "scale": 0,
+           "type": "text"
+          },
+          {
+           "length": 0,
+           "name": "CLOSING_STOCK_VALUE",
+           "nullable": true,
+           "precision": 30,
+           "scale": 4,
+           "type": "fixed"
+          }
+         ]
+        },
+        "statementHandle": "0000016c-0000-4000-8000-00000000016c"
+       },
+       "title": "Closing stock value (EUR) by country, June 2026",
+       "tool_use_id": "toolu_bdrk_01HCDfKScwygqCZeHzXe8iaC"
+      },
+      "type": "table"
+     }
+    ],
+    "metadata": {
+     "usage": {
+      "tokens_consumed": [
+       {
+        "context_window": 1000000,
+        "input_tokens": {
+         "cache_read": 124157,
+         "cache_write": 32064,
+         "total": 156233,
+         "uncached": 12
+        },
+        "model_name": "claude-sonnet-5-5",
+        "model_role": "orchestration",
+        "output_tokens": {
+         "total": 560
+        }
+       },
+       {
+        "context_window": 262144,
+        "input_tokens": {
+         "cache_read": 0,
+         "cache_write": 0,
+         "total": 963,
+         "uncached": 963
+        },
+        "model_name": "cygnal-qwen3-8b-032026",
+        "model_role": "guardrail",
+        "output_tokens": {
+         "total": 6
+        }
+       }
+      ]
+     }
+    },
+    "role": "assistant",
+    "schema_version": "v2",
+    "sequence_number": 47,
+    "status": "completed"
+   }
+  }
+ ],
+ "tool_uses": [
+  {
+   "type": "system_agentic_semantic_context",
+   "name": "b2_semantic_view"
+  },
+  {
+   "type": "system_execute_sql",
+   "name": "system_execute_sql"
+  }
+ ]
+}

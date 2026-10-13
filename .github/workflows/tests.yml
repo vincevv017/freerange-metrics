@@ -1,0 +1,26 @@
+# The offline suite on every push and pull request (session 15). No Snowflake secret: the on-account tests skip
+# unless their own variable is set (tests/test_live_gates.py), and the author's run folder is not here, so the tests
+# that read it skip too.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-suite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Offline suite
+        run: python -m pytest -q -rs

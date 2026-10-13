@@ -1,0 +1,1362 @@
+# GENERATED from contract/stock_coverage.yaml (contract stock_coverage, version 0.5.1),
+# data/traps.yaml and data/output/ by compiler/gen_questions.py. Do not edit: run `python compiler/gen_questions.py`.
+# tests/test_generated.py regenerates this file and fails on any difference; tests/test_procedure.py asserts every
+# expected value, flag, warning and refusal against the procedure.
+contract:
+  id: stock_coverage
+  version: 0.5.1
+as_of: '2026-06-01'
+questions:
+- id: T1
+  failure_mode: T1
+  source_question: Stock coverage of flour and baking in France at AS_OF
+  question: What is the stock coverage of flour and baking in France as of June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - family_code
+    - country_code
+    filters:
+      family_code:
+      - PANTRY_FLOUR
+      country_code:
+      - FR
+  expected:
+    value: 2.8
+    flag: null
+    warnings: {}
+    names_as_of: true
+    wrong_values:
+      sum_of_children: 12.5
+      average_of_children: 6.25
+      stock_weighted_average_of_children: 10.357142857142858
+- id: T2
+  failure_mode: T2
+  source_question: Stock coverage of SKU-H03 in Germany at AS_OF
+  question: What is the stock coverage of salted almonds 1 kg (SKU-H03) in Germany as of June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - sku_code
+    - country_code
+    filters:
+      sku_code:
+      - SKU-H03
+      country_code:
+      - DE
+  expected:
+    value: 7.0
+    flag: null
+    warnings:
+      FORECAST_GAPS_FILLED: 2
+    names_as_of: true
+    wrong_values:
+      row_based_window: 5.0
+- id: T3
+  failure_mode: T3
+  source_question: Stock coverage of released lots of SKU-H04 in Italy at AS_OF
+  question: What is the stock coverage of released lots of green tea loose-leaf 1 kg (SKU-H04) in Italy as of June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - sku_code
+    - country_code
+    filters:
+      sku_code:
+      - SKU-H04
+      country_code:
+      - IT
+      batch_status:
+      - RELEASED
+  expected:
+    value: 6.0
+    flag: null
+    warnings: {}
+    names_as_of: true
+- id: T4
+  failure_mode: T4
+  source_question: Stock coverage of SKU-H05 in Spain for the AS_OF month
+  question: What is the stock coverage of strawberry jam 1 kg (SKU-H05) in Spain for June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - sku_code
+    - country_code
+    filters:
+      sku_code:
+      - SKU-H05
+      country_code:
+      - ES
+  expected:
+    value: 8.5
+    flag: null
+    warnings: {}
+    names_as_of: true
+    wrong_values:
+      window_starts_at_as_of: 7.714285714285714
+- id: T5
+  failure_mode: T5
+  source_question: Stock coverage of dry pasta in the United Kingdom in number of packs at AS_OF
+  question: What is the stock coverage of dry pasta in the United Kingdom in number of packs as of June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: NATIVE
+    grain:
+    - family_code
+    - country_code
+    filters:
+      family_code:
+      - PANTRY_PASTA
+      country_code:
+      - GB
+  expected:
+    refusal: BASIS_NOT_COMPARABLE
+    reason_template: 'Coverage is always in months, but on {basis} {why}, so stock and forecast cannot be summed for this
+      request. Bases allowed for this request: {allowed}.'
+    allowed_bases:
+    - QTY_EQ
+    - VALUE
+    offer_instead:
+      basis: QTY_EQ
+      value: 2.3650554566616457
+    wrong_values:
+      raw_units_summed: 8.496629213483146
+- id: T6
+  failure_mode: T6
+  source_question: Stock coverage of flour and baking in France over the whole year 2026
+  question: What is the stock coverage of flour and baking in France over the whole year 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: clarify
+  tool_parameters:
+    as_of_months: null
+    basis: QTY_EQ
+    grain:
+    - family_code
+    - country_code
+    filters:
+      family_code:
+      - PANTRY_FLOUR
+      country_code:
+      - FR
+  expected:
+    refusal: AS_OF_MISSING
+    also_correct: a clarifying question asking for the analysis month, with no number
+    reason_template: 'An analysis month is required. Coverage is a point-in-time measure: give one or more months as YYYY-MM-01.
+      It is never summed or averaged over several months.'
+- id: T7
+  failure_mode: T7
+  source_question: Stock coverage of cooking oils in Sweden at AS_OF
+  question: What is the stock coverage of cooking oils in Sweden as of June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - family_code
+    - country_code
+    filters:
+      family_code:
+      - PANTRY_OIL
+      country_code:
+      - SE
+  expected:
+    value: 2.25
+    flag: null
+    warnings:
+      MASTER_DATA_DUPLICATES: 1
+    names_as_of: true
+    wrong_values:
+      naive_join_on_duplicated_item: 3.0
+      naive_join_stock_qty_eq: 1500
+- id: T7_R1
+  failure_mode: T7
+  source_question: Stock coverage of cooking oils in Sweden by lifecycle status at AS_OF
+  question: What is the stock coverage of cooking oils in Sweden by lifecycle status as of June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - family_code
+    - country_code
+    - lifecycle_status
+    filters:
+      family_code:
+      - PANTRY_OIL
+      country_code:
+      - SE
+  expected:
+    refusal: MASTER_DATA_FANOUT
+    reason_template: '{count} item(s) have several rows in DIM_ITEM that differ on {attributes}; any number at this grain
+      would be fanned out.'
+    wrong_values:
+      naive_join_stock_qty_eq: 1500
+- id: T8
+  failure_mode: T8
+  source_question: Stock coverage of SKU-H08 in the Netherlands at AS_OF
+  question: What is the stock coverage of cashew nuts 1 kg (SKU-H08) in the Netherlands as of June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - sku_code
+    - country_code
+    filters:
+      sku_code:
+      - SKU-H08
+      country_code:
+      - NL
+  expected:
+    value: 0.0
+    flag: NO_STOCK
+    warnings: {}
+    names_as_of: true
+- id: NO_DEMAND
+  failure_mode: NO_DEMAND
+  source_question: Stock coverage of SKU-H09 in Belgium at AS_OF
+  question: What is the stock coverage of iced tea summer edition 1 L (discontinued) (SKU-H09) in Belgium as of June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - sku_code
+    - country_code
+    filters:
+      sku_code:
+      - SKU-H09
+      country_code:
+      - BE
+  expected:
+    value: null
+    flag: NO_DEMAND
+    warnings: {}
+    names_as_of: true
+- id: BEYOND_H
+  failure_mode: BEYOND_H
+  source_question: Stock coverage of SKU-H10 in Poland at AS_OF
+  question: What is the stock coverage of arabica beans 1 kg (SKU-H10) in Poland as of June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - sku_code
+    - country_code
+    filters:
+      sku_code:
+      - SKU-H10
+      country_code:
+      - PL
+  expected:
+    value: 50.0
+    flag: BEYOND_HORIZON
+    warnings:
+      FORECAST_GAPS_FILLED: 2
+    names_as_of: true
+    wrong_values:
+      average_over_full_forecast_range: 11.971830985915492
+- id: BULK_SCOPE
+  failure_mode: BULK_SCOPE
+  source_question: Stock coverage of ground coffee at AS_OF
+  question: What is the stock coverage of ground coffee as of June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - family_code
+    filters:
+      family_code:
+      - HOT_GROUND
+  expected:
+    value: 8.67354124748491
+    flag: null
+    warnings:
+      FORECAST_GAPS_FILLED: 2
+      DEFAULT_SCOPE_EXCLUDED: 51475.5
+    names_as_of: true
+    wrong_values:
+      bulk_counted_by_default: 17.44238782051282
+- id: DIM_MIX
+  failure_mode: DIM_MIX
+  source_question: Stock coverage in France in AS_OF
+  question: What is the stock coverage in France in June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - country_code
+    filters:
+      country_code:
+      - FR
+  expected:
+    refusal: BASIS_NOT_COMPARABLE
+    reason_template: 'Coverage is always in months, but on {basis} {why}, so stock and forecast cannot be summed for this
+      request. Bases allowed for this request: {allowed}.'
+    allowed_bases:
+    - VALUE
+    offer_instead:
+      basis: VALUE
+      value: 8.700920093442502
+    wrong_values:
+      kg_and_l_added: 10.207983145513934
+- id: T9
+  failure_mode: T9
+  source_question: Stock coverage of SKU-H11 in Switzerland at AS_OF
+  question: What is the stock coverage of oat cereal bar 1 kg (SKU-H11) in Switzerland as of June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - sku_code
+    - country_code
+    filters:
+      sku_code:
+      - SKU-H11
+      country_code:
+      - CH
+  expected:
+    value: 0.0
+    flag: NO_STOCK
+    warnings: {}
+    names_as_of: true
+    wrong_values:
+      last_known_stock_over_forecast: 3.5
+- id: CS_LAST_MONTH_GAP
+  failure_mode: CS_LAST_MONTH_GAP
+  source_question: Closing stock of SKU-H11 in Switzerland for Q2 2026
+  question: What was the closing stock of oat cereal bar 1 kg (SKU-H11) in Switzerland for Q2 2026?
+  metric: closing_stock
+  asked_to_agent_c: false
+  expected_route: semantic_view
+  answered_by: LINKML_METRICS.RAW.CLOSING_STOCK_SV (generated/closing_stock_sv.sql)
+  query:
+    grain:
+    - sku_code
+    - country_code
+    filters:
+      sku_code: SKU-H11
+      country_code: CH
+    period_k:
+    - -2
+    - 0
+  expected:
+    value: 0.0
+    wrong_values:
+      sum_over_period: 750.0
+      last_known_value: 350.0
+      average_over_period: 250.0
+- id: CS_MIDDLE_MONTH_GAP
+  failure_mode: CS_MIDDLE_MONTH_GAP
+  source_question: Closing stock of SKU-H12 in Switzerland for Q2 2026
+  question: What was the closing stock of nut cereal bar 1 kg (SKU-H12) in Switzerland for Q2 2026?
+  metric: closing_stock
+  asked_to_agent_c: false
+  expected_route: semantic_view
+  answered_by: LINKML_METRICS.RAW.CLOSING_STOCK_SV (generated/closing_stock_sv.sql)
+  query:
+    grain:
+    - sku_code
+    - country_code
+    filters:
+      sku_code: SKU-H12
+      country_code: CH
+    period_k:
+    - -2
+    - 0
+  expected:
+    value: 450.0
+    wrong_values:
+      sum_over_period: 950.0
+      average_over_period: 316.6666666666667
+- id: CS_FAMILY
+  failure_mode: CS_FAMILY
+  source_question: Closing stock of cereal bars in Switzerland for Q2 2026
+  question: What was the closing stock of cereal bars in Switzerland for Q2 2026?
+  metric: closing_stock
+  asked_to_agent_c: false
+  expected_route: semantic_view
+  answered_by: LINKML_METRICS.RAW.CLOSING_STOCK_SV (generated/closing_stock_sv.sql)
+  query:
+    grain:
+    - family_code
+    - country_code
+    filters:
+      family_code: SNACK_BARS
+      country_code: CH
+    period_k:
+    - -2
+    - 0
+  expected:
+    value: 450.0
+    wrong_values:
+      sum_over_period: 1700.0
+      last_known_value_per_sku: 800.0
+      average_over_period: 566.6666666666666
+- id: BULK_SCOPE_DRILL
+  failure_mode: BULK_SCOPE
+  follows: BULK_SCOPE
+  question: And by country?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - family_code
+    - country_code
+    filters:
+      family_code:
+      - HOT_GROUND
+  expected:
+    rows:
+    - family_code: HOT_GROUND
+      country_code: BE
+      value: 11.378205128205128
+      flag: null
+    - family_code: HOT_GROUND
+      country_code: DE
+      value: 4.119718309859155
+      flag: null
+    - family_code: HOT_GROUND
+      country_code: ES
+      value: 1.9329073482428116
+      flag: null
+    - family_code: HOT_GROUND
+      country_code: FR
+      value: 7.488571428571428
+      flag: null
+    - family_code: HOT_GROUND
+      country_code: IT
+      value: 8.659354838709678
+      flag: null
+    - family_code: HOT_GROUND
+      country_code: SE
+      value: 10.717781402936378
+      flag: null
+    warnings_codes:
+    - DEFAULT_SCOPE_EXCLUDED
+    - FORECAST_GAPS_FILLED
+    names_as_of: true
+    never: add or average the country rows; the family total is the parent answer
+- id: G1
+  failure_mode: null
+  source_question: What is the demand forecast of fruit juice in France for September 2026, in kg or L equivalent?
+  question: What is the demand forecast of fruit juice in France for September 2026, in kg or L equivalent?
+  metric: demand_forecast
+  asked_to_agent_c: false
+  expected_route: semantic_view
+  query:
+    measure: demand_forecast
+    basis: QTY_EQ
+    filters:
+      family_code: BEV_JUICE
+      country_code: FR
+    month_k: 3
+  expected:
+    value: 6416.0
+    unit: L equivalent (QTY_EQ)
+    wrong_values:
+      raw_units_summed: 764.0
+      month_of_as_of: 5899.0
+      cumulative_to_month: 20721.0
+- id: G2
+  failure_mode: null
+  source_question: What was the closing stock value in EUR by country as of June 2026?
+  question: What was the closing stock value in EUR by country as of June 2026?
+  metric: stock_on_hand
+  asked_to_agent_c: false
+  expected_route: semantic_view
+  query:
+    measure: stock_on_hand
+    basis: VALUE
+    grain:
+    - country_code
+    period_k:
+    - 0
+    - 0
+  expected:
+    rows:
+    - country_code: FR
+      value: 43879032.9288
+    - country_code: BE
+      value: 14764495.404
+    - country_code: NL
+      value: 20232037.4658
+    - country_code: GB
+      value: 24672306.0572
+    - country_code: DE
+      value: 24697602.4328
+    - country_code: CH
+      value: 28912589.5002
+    - country_code: PL
+      value: 15096357.3398
+    - country_code: IT
+      value: 14978427.8516
+    - country_code: ES
+      value: 48525033.1342
+    - country_code: SE
+      value: 14476855.4803
+    unit: EUR
+    wrong_values:
+      item_join_fanout:
+        SE: 14481655.4803
+      default_scope_applied:
+        FR: 28426712.276
+        BE: 13468899.0378
+        NL: 19040588.8503
+        ES: 44923005.4946
+        SE: 14403093.2275
+    never: 'join the snapshot to DIM_ITEM without one row per item: SKU-H06 counts twice in SE'
+- id: S_OWN_UNIT
+  label: (a)
+  failure_mode: null
+  source_question: What is the stock coverage of SKU-0046 in its own unit (cases) in June 2026?
+  question: What is the stock coverage of SKU-0046 in its own unit (cases) in June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: NATIVE
+    grain:
+    - sku_code
+    filters:
+      sku_code:
+      - SKU-0046
+  expected:
+    names_as_of: true
+    names_basis: NATIVE
+    value: 3.0626363353069492
+    flag: null
+    stock_unit: CASE_10
+    stockout_month: '2026-10-01'
+    related:
+      qty_eq: 3.0626363353069492
+- id: S_STOCKOUT_COUNTRY
+  label: (c)
+  failure_mode: null
+  source_question: Which products will stock out within the next 3 months in France, from June 2026?
+  question: Which products will stock out within the next 3 months in France, from June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - sku_code
+    filters:
+      country_code:
+      - FR
+    selection:
+      coverage_below: 3
+  expected:
+    names_as_of: true
+    names_basis: QTY_EQ
+    rows:
+    - sku_code: SKU-H02
+      value: 0.5
+      stock_unit: kg
+      stockout_month: '2026-07-01'
+    - sku_code: SKU-0039
+      value: 1.0124223602484472
+      stock_unit: kg
+      stockout_month: '2026-08-01'
+    - sku_code: SKU-0031
+      value: 1.8432835820895521
+      stock_unit: L
+      stockout_month: '2026-08-01'
+    - sku_code: SKU-0010
+      value: 2.2094972067039107
+      stock_unit: kg
+      stockout_month: '2026-09-01'
+    summary:
+      count: 4
+      stock:
+      - unit: L
+        amount: 11030.0
+      - unit: kg
+        amount: 1030.0
+    set_apart:
+      NO_STOCK: []
+      NO_DEMAND: []
+- id: S_FIRST_WORLD
+  label: (d)
+  failure_mode: null
+  source_question: Worldwide, which 10 products will stock out first from June 2026, not counting those already out?
+  question: Worldwide, which 10 products will stock out first from June 2026, not counting those already out?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - sku_code
+    filters: {}
+    selection:
+      rank_first: 10
+  expected:
+    names_as_of: true
+    names_basis: QTY_EQ
+    rows:
+    - sku_code: SKU-H02
+      value: 0.5
+      stock_unit: kg
+      stockout_month: '2026-07-01'
+    - sku_code: SKU-H07
+      value: 1.0
+      stock_unit: L
+      stockout_month: '2026-07-01'
+    - sku_code: SKU-0046
+      value: 3.0626363353069492
+      stock_unit: kg
+      stockout_month: '2026-10-01'
+    - sku_code: SKU-0043
+      value: 3.7488202488202487
+      stock_unit: kg
+      stockout_month: '2026-10-01'
+    - sku_code: SKU-0036
+      value: 4.483697478991597
+      stock_unit: kg
+      stockout_month: '2026-11-01'
+    - sku_code: SKU-H12
+      value: 4.5
+      stock_unit: kg
+      stockout_month: '2026-11-01'
+    - sku_code: SKU-0025
+      value: 5.256016742239274
+      stock_unit: L
+      stockout_month: '2026-12-01'
+    - sku_code: SKU-0009
+      value: 5.3992914979757085
+      stock_unit: kg
+      stockout_month: '2026-12-01'
+    - sku_code: SKU-0041
+      value: 5.405078597339783
+      stock_unit: kg
+      stockout_month: '2026-12-01'
+    - sku_code: SKU-0017
+      value: 5.684008276677505
+      stock_unit: kg
+      stockout_month: '2026-12-01'
+    summary:
+      count: 10
+      stock:
+      - unit: L
+        amount: 95030.0
+      - unit: kg
+        amount: 829667.0
+    set_apart:
+      NO_STOCK:
+      - - SKU-H08
+      - - SKU-H11
+      NO_DEMAND:
+      - - SKU-H09
+- id: S_DORMANT_VALUE
+  label: (e)
+  failure_mode: null
+  source_question: Across all countries, which item and country pairs have more than 12 months of coverage in June 2026,
+    and how much stock value does that tie up?
+  question: Across all countries, which item and country pairs have more than 12 months of coverage in June 2026, and how
+    much stock value does that tie up?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: VALUE
+    grain:
+    - sku_code
+    - country_code
+    filters: {}
+    selection:
+      coverage_above: 12
+  expected:
+    names_as_of: true
+    names_basis: VALUE
+    summary:
+      count: 28
+      stock:
+      - unit: EUR
+        amount: 70987982.9948
+    set_apart:
+      NO_STOCK:
+      - - SKU-H08
+        - NL
+      - - SKU-H11
+        - CH
+      NO_DEMAND:
+      - - SKU-H09
+        - BE
+    graded_on: the count of pairs and the stock value they tie up (71.0 million EUR rounded is right), not the listing
+    total_stock_value: 228619582.0678
+    related:
+      worldwide:
+        query:
+          grain:
+          - sku_code
+          filters: {}
+          basis: VALUE
+          coverage_above: 12
+        expected_rows:
+        - - SKU-H10
+          - 50.0
+          - EUR
+          - null
+        expected_summary:
+          count: 1
+          stock:
+          - unit: EUR
+            amount: 20000.0
+- id: H_LOCAL_STOCKOUT
+  held_out: true
+  failure_mode: null
+  source_question: As of June 2026, which items will stock out in at least one country within 3 months, while their stock
+    across all countries covers more than 6 months?
+  question: As of June 2026, which items will stock out in at least one country within 3 months, while their stock across
+    all countries covers more than 6 months?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    calls:
+    - as_of_months:
+      - '2026-06-01'
+      basis: QTY_EQ
+      grain:
+      - sku_code
+      - country_code
+      filters: {}
+      selection:
+        coverage_below: 3
+    - as_of_months:
+      - '2026-06-01'
+      basis: QTY_EQ
+      grain:
+      - sku_code
+      filters: {}
+      selection:
+        coverage_above: 6
+    combine: intersection of the sku_code values the calls return
+  expected:
+    names_as_of: true
+    names_basis: QTY_EQ
+    graded_on: item_set
+    items:
+    - SKU-0001
+    - SKU-0003
+    - SKU-0008
+    - SKU-0010
+    - SKU-0011
+    - SKU-0013
+    - SKU-0014
+    - SKU-0018
+    - SKU-0021
+    - SKU-0024
+    - SKU-0031
+    - SKU-0037
+    - SKU-0038
+    - SKU-0042
+    calls:
+    - count: 32
+      stock:
+      - unit: L
+        amount: 73338.0
+      - unit: kg
+        amount: 401131.0
+      apart:
+        NO_STOCK:
+        - - SKU-H08
+          - NL
+        - - SKU-H11
+          - CH
+        NO_DEMAND:
+        - - SKU-H09
+          - BE
+    - count: 36
+      stock:
+      - unit: L
+        amount: 731389.0
+      - unit: kg
+        amount: 3281581.0
+      apart:
+        NO_STOCK:
+        - - SKU-H08
+        - - SKU-H11
+        NO_DEMAND:
+        - - SKU-H09
+    wrong_values:
+      two_lists_without_intersection: 48
+- id: H_LOWEST_COUNTRY
+  held_out: true
+  failure_mode: null
+  source_question: Which country has the lowest stock coverage of breakfast cereals as of June 2026?
+  question: Which country has the lowest stock coverage of breakfast cereals as of June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - country_code
+    filters:
+      family_code:
+      - BREAKFAST_CEREAL
+    selection:
+      rank_first: 1
+  expected:
+    names_as_of: true
+    names_basis: QTY_EQ
+    graded_on: lowest_member
+    rows:
+    - country_code: PL
+      coverage_months: 2.1618732501908884
+      measured_in: kg
+      stockout_month: '2026-09-01'
+    set_apart:
+      NO_STOCK: []
+      NO_DEMAND: []
+    wrong_values:
+      naive_mean_ratio_lowest: CH
+- id: H_STOCKOUT_2027
+  held_out: true
+  failure_mode: null
+  source_question: As of June 2026, which items will stock out during 2027?
+  question: As of June 2026, which items will stock out during 2027?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - sku_code
+    filters: {}
+    selection:
+      coverage_below: 18
+      coverage_above: 6
+  expected:
+    names_as_of: true
+    names_basis: QTY_EQ
+    graded_on: item_set
+    rows:
+    - sku_code: SKU-0032
+      coverage_months: 6.020332258864369
+      measured_in: kg
+      stockout_month: '2027-01-01'
+    - sku_code: SKU-0011
+      coverage_months: 6.091607943625881
+      measured_in: kg
+      stockout_month: '2027-01-01'
+    - sku_code: SKU-0021
+      coverage_months: 6.178234582829504
+      measured_in: kg
+      stockout_month: '2027-01-01'
+    - sku_code: SKU-0010
+      coverage_months: 6.3931818181818185
+      measured_in: kg
+      stockout_month: '2027-01-01'
+    - sku_code: SKU-0007
+      coverage_months: 6.610013780431787
+      measured_in: kg
+      stockout_month: '2027-01-01'
+    - sku_code: SKU-0042
+      coverage_months: 6.62020202020202
+      measured_in: kg
+      stockout_month: '2027-01-01'
+    - sku_code: SKU-0014
+      coverage_months: 6.686158192090396
+      measured_in: kg
+      stockout_month: '2027-01-01'
+    - sku_code: SKU-0013
+      coverage_months: 6.923710904480135
+      measured_in: kg
+      stockout_month: '2027-01-01'
+    - sku_code: SKU-0016
+      coverage_months: 6.969369369369369
+      measured_in: kg
+      stockout_month: '2027-01-01'
+    - sku_code: SKU-H03
+      coverage_months: 7.0
+      measured_in: kg
+      stockout_month: '2027-01-01'
+    - sku_code: SKU-0027
+      coverage_months: 7.122062663185378
+      measured_in: L
+      stockout_month: '2027-02-01'
+    - sku_code: SKU-0008
+      coverage_months: 7.323052464228935
+      measured_in: kg
+      stockout_month: '2027-02-01'
+    - sku_code: SKU-0031
+      coverage_months: 7.480759620189905
+      measured_in: L
+      stockout_month: '2027-02-01'
+    - sku_code: SKU-0038
+      coverage_months: 7.62475884244373
+      measured_in: kg
+      stockout_month: '2027-02-01'
+    - sku_code: SKU-0022
+      coverage_months: 7.8108228980322005
+      measured_in: kg
+      stockout_month: '2027-02-01'
+    - sku_code: SKU-0019
+      coverage_months: 8.235066609368285
+      measured_in: kg
+      stockout_month: '2027-03-01'
+    - sku_code: SKU-0048
+      coverage_months: 8.359049479166666
+      measured_in: kg
+      stockout_month: '2027-03-01'
+    - sku_code: SKU-0024
+      coverage_months: 8.419703872437358
+      measured_in: L
+      stockout_month: '2027-03-01'
+    - sku_code: SKU-H05
+      coverage_months: 8.5
+      measured_in: kg
+      stockout_month: '2027-03-01'
+    - sku_code: SKU-0037
+      coverage_months: 8.51174469463794
+      measured_in: kg
+      stockout_month: '2027-03-01'
+    - sku_code: SKU-0047
+      coverage_months: 8.584278768233387
+      measured_in: kg
+      stockout_month: '2027-03-01'
+    - sku_code: SKU-0001
+      coverage_months: 8.643559096945552
+      measured_in: kg
+      stockout_month: '2027-03-01'
+    - sku_code: SKU-0003
+      coverage_months: 8.72487494315598
+      measured_in: kg
+      stockout_month: '2027-03-01'
+    - sku_code: SKU-0029
+      coverage_months: 9.182938388625592
+      measured_in: L
+      stockout_month: '2027-04-01'
+    - sku_code: SKU-0020
+      coverage_months: 9.203993055555555
+      measured_in: kg
+      stockout_month: '2027-04-01'
+    - sku_code: SKU-0023
+      coverage_months: 9.322535863026376
+      measured_in: L
+      stockout_month: '2027-04-01'
+    - sku_code: SKU-0045
+      coverage_months: 9.471403038427168
+      measured_in: kg
+      stockout_month: '2027-04-01'
+    - sku_code: SKU-0034
+      coverage_months: 9.805236728837876
+      measured_in: kg
+      stockout_month: '2027-04-01'
+    - sku_code: SKU-0018
+      coverage_months: 9.81381714466804
+      measured_in: kg
+      stockout_month: '2027-04-01'
+    - sku_code: SKU-0044
+      coverage_months: 9.976313841598817
+      measured_in: kg
+      stockout_month: '2027-04-01'
+    - sku_code: SKU-H04
+      coverage_months: 10.0
+      measured_in: kg
+      stockout_month: '2027-04-01'
+    - sku_code: SKU-0006
+      coverage_months: 10.369774919614148
+      measured_in: kg
+      stockout_month: '2027-05-01'
+    - sku_code: SKU-0030
+      coverage_months: 10.582027168234065
+      measured_in: L
+      stockout_month: '2027-05-01'
+    - sku_code: SKU-0040
+      coverage_months: 10.622938184060429
+      measured_in: kg
+      stockout_month: '2027-05-01'
+    - sku_code: SKU-H01
+      coverage_months: 12.0
+      measured_in: kg
+      stockout_month: '2027-06-01'
+    items:
+    - SKU-0032
+    - SKU-0011
+    - SKU-0021
+    - SKU-0010
+    - SKU-0007
+    - SKU-0042
+    - SKU-0014
+    - SKU-0013
+    - SKU-0016
+    - SKU-H03
+    - SKU-0027
+    - SKU-0008
+    - SKU-0031
+    - SKU-0038
+    - SKU-0022
+    - SKU-0019
+    - SKU-0048
+    - SKU-0024
+    - SKU-H05
+    - SKU-0037
+    - SKU-0047
+    - SKU-0001
+    - SKU-0003
+    - SKU-0029
+    - SKU-0020
+    - SKU-0023
+    - SKU-0045
+    - SKU-0034
+    - SKU-0018
+    - SKU-0044
+    - SKU-H04
+    - SKU-0006
+    - SKU-0030
+    - SKU-0040
+    - SKU-H01
+    summary:
+      count: 35
+      stock:
+      - unit: L
+        amount: 731389.0
+      - unit: kg
+        amount: 3276581.0
+    set_apart:
+      NO_STOCK:
+      - - SKU-H08
+      - - SKU-H11
+      NO_DEMAND:
+      - - SKU-H09
+    wrong_values:
+      coverage_above_7: 25
+      no_upper_bound: 36
+- id: H_STOCKOUT_ES
+  held_out: true
+  failure_mode: null
+  source_question: Which products will stock out within the next 3 months in Spain, from June 2026?
+  question: Which products will stock out within the next 3 months in Spain, from June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - sku_code
+    filters:
+      country_code:
+      - ES
+    selection:
+      coverage_below: 3
+  expected:
+    names_as_of: true
+    names_basis: QTY_EQ
+    graded_on: item_set
+    rows:
+    - sku_code: SKU-0001
+      coverage_months: 1.9329073482428116
+      measured_in: kg
+      stockout_month: '2026-08-01'
+    - sku_code: SKU-0028
+      coverage_months: 2.7317073170731705
+      measured_in: L
+      stockout_month: '2026-09-01'
+    - sku_code: SKU-0024
+      coverage_months: 2.9198473282442747
+      measured_in: L
+      stockout_month: '2026-09-01'
+    items:
+    - SKU-0001
+    - SKU-0028
+    - SKU-0024
+    summary:
+      count: 3
+      stock:
+      - unit: L
+        amount: 25515.0
+      - unit: kg
+        amount: 1063.0
+    set_apart:
+      NO_STOCK: []
+      NO_DEMAND: []
+    wrong_values:
+      naive_mean_ratio:
+      - SKU-0001
+      - SKU-0025
+- id: N1
+  added_in_stage: 2
+  failure_mode: null
+  source_question: What was the closing stock of SKU-H11 in Switzerland at the end of Q2 2026, and how many months of stock
+    coverage does it have as of June 2026?
+  question: What was the closing stock of SKU-H11 in Switzerland at the end of Q2 2026, and how many months of stock coverage
+    does it have as of June 2026?
+  metric: closing_stock_and_coverage
+  asked_to_agent_c: true
+  expected_route: both
+  answered_by: the closing-stock view for the closing stock, the coverage mechanism for coverage
+  query:
+    grain:
+    - sku_code
+    - country_code
+    filters:
+      sku_code: SKU-H11
+      country_code: CH
+    period_k:
+    - -2
+    - 0
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - sku_code
+    - country_code
+    filters:
+      sku_code:
+      - SKU-H11
+      country_code:
+      - CH
+  expected:
+    names_as_of: true
+    names_basis: QTY_EQ
+    closing_stock:
+      value: 0.0
+      wrong_values:
+        sum_over_period: 750.0
+        last_known_value: 350.0
+        average_over_period: 250.0
+    coverage:
+      value: 0.0
+      flag: NO_STOCK
+      warnings: {}
+      wrong_values:
+        last_known_stock_over_forecast: 3.5
+- id: N2
+  added_in_stage: 2
+  failure_mode: null
+  source_question: For the SNACK_BARS family in Switzerland, what was the closing stock at the end of each month of Q2 2026,
+    and how many months of coverage does the June 2026 stock give?
+  question: For the SNACK_BARS family in Switzerland, what was the closing stock at the end of each month of Q2 2026, and
+    how many months of coverage does the June 2026 stock give?
+  metric: closing_stock_and_coverage
+  asked_to_agent_c: true
+  expected_route: both
+  answered_by: the closing-stock view for the closing stock, the coverage mechanism for coverage
+  query:
+    grain:
+    - family_code
+    - country_code
+    filters:
+      family_code: SNACK_BARS
+      country_code: CH
+    months_k:
+    - -2
+    - -1
+    - 0
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - family_code
+    - country_code
+    filters:
+      family_code:
+      - SNACK_BARS
+      country_code:
+      - CH
+  expected:
+    names_as_of: true
+    names_basis: QTY_EQ
+    closing_stock:
+      rows:
+      - month: '2026-04-01'
+        value: 900.0
+      - month: '2026-05-01'
+        value: 350.0
+      - month: '2026-06-01'
+        value: 450.0
+      wrong_values:
+        last_known_value_per_sku:
+          '2026-05-01': 850.0
+          '2026-06-01': 800.0
+      added_over_months:
+        sum_over_period: 1700.0
+        average_over_period: 566.6666666666666
+      never: 'add or average the months: the closing stock of a month is its own snapshot'
+    coverage:
+      value: 2.25
+      flag: null
+      warnings: {}
+      wrong_values:
+        last_known_stock_over_forecast: 4.0
+- id: N3
+  added_in_stage: 2
+  failure_mode: null
+  source_question: Which products will run out of stock first in France, as of June 2026?
+  question: Which products will run out of stock first in France, as of June 2026?
+  metric: stock_coverage
+  asked_to_agent_c: true
+  expected_route: coverage
+  tool_parameters:
+    as_of_months:
+    - '2026-06-01'
+    basis: QTY_EQ
+    grain:
+    - sku_code
+    filters:
+      country_code:
+      - FR
+    selection:
+      rank_first: 10
+  expected:
+    names_as_of: true
+    names_basis: QTY_EQ
+    graded_on: item_set
+    rows:
+    - sku_code: SKU-H02
+      coverage_months: 0.5
+      measured_in: kg
+      stockout_month: '2026-07-01'
+    - sku_code: SKU-0039
+      coverage_months: 1.0124223602484472
+      measured_in: kg
+      stockout_month: '2026-08-01'
+    - sku_code: SKU-0031
+      coverage_months: 1.8432835820895521
+      measured_in: L
+      stockout_month: '2026-08-01'
+    - sku_code: SKU-0010
+      coverage_months: 2.2094972067039107
+      measured_in: kg
+      stockout_month: '2026-09-01'
+    - sku_code: SKU-0008
+      coverage_months: 3.1333333333333333
+      measured_in: kg
+      stockout_month: '2026-10-01'
+    - sku_code: SKU-0033
+      coverage_months: 3.3575851393188856
+      measured_in: kg
+      stockout_month: '2026-10-01'
+    - sku_code: SKU-0027
+      coverage_months: 4.428571428571429
+      measured_in: L
+      stockout_month: '2026-11-01'
+    - sku_code: SKU-0016
+      coverage_months: 4.462603878116344
+      measured_in: kg
+      stockout_month: '2026-11-01'
+    - sku_code: SKU-0024
+      coverage_months: 5.962962962962963
+      measured_in: L
+      stockout_month: '2026-12-01'
+    - sku_code: SKU-0021
+      coverage_months: 6.217054263565892
+      measured_in: kg
+      stockout_month: '2027-01-01'
+    items:
+    - SKU-H02
+    - SKU-0039
+    - SKU-0031
+    - SKU-0010
+    - SKU-0008
+    - SKU-0033
+    - SKU-0027
+    - SKU-0016
+    - SKU-0024
+    - SKU-0021
+    summary:
+      count: 10
+      stock:
+      - unit: L
+        amount: 44302.0
+      - unit: kg
+        amount: 59757.5
+    set_apart:
+      NO_STOCK: []
+      NO_DEMAND: []
+    wrong_values:
+      naive_mean_ratio:
+      - SKU-H02
+      - SKU-0039
+      - SKU-0010
+      - SKU-0031
+      - SKU-0027
+      - SKU-0008
+      - SKU-0033
+      - SKU-0016
+      - SKU-0045
+      - SKU-0021
+      stockout_within_3_months:
+      - SKU-H02
+      - SKU-0039
+      - SKU-0031
+      - SKU-0010
+      bulk_counted_apart: SKU-0015

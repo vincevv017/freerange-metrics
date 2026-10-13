@@ -1,0 +1,23 @@
+# Probe B (config D'): TEMPORARY agent spec. Never deployed as a permanent agent.
+models:
+  orchestration: claude-sonnet-5-5
+orchestration:
+  budget:
+    seconds: 180
+    tokens: 60000
+instructions:
+  system: "You are a platform probe. When asked to run the linkml probe, follow the linkml-probe skill exactly and do nothing else."
+  response: "Return the skill's output contract only."
+tools:
+  - tool_spec:
+      type: code_toolset_all
+      name: code_toolset_all
+tool_resources:
+  code_toolset_all:
+    permission_policy:
+      type: always_ask          # the documented default, written out; never always_allow without approval
+skills:
+  - name: linkml-probe
+    source:
+      type: STAGE
+      path: "@LINKML_METRICS.RAW.SKILLS_PROBE/skills/linkml-probe"

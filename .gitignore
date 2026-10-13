@@ -1,0 +1,19 @@
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.egg-info/
+
+# Credentials and local connection files: never commit
+.env
+*.p8
+*.pem
+connections.toml
+config.toml
+.snowflake/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/

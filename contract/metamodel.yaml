@@ -1,0 +1,1451 @@
+id: https://github.com/vincevv017/freerange-metrics/contract/metamodel
+name: metric_semantics
+title: Metric semantics metamodel
+version: 0.4.2
+description: >-
+  A generic vocabulary for declaring what a metric means and when its number can be trusted: measure types and
+  additivity per dimension class, attribute applicability per measure, the bases on
+  which measures are compared (an item's own unit, a base-unit equivalent per physical dimension, a value) and where
+  each one is valid, a depletion pattern (a snapshot drained by a forward flow) with its member selection, totals and
+  member-set rules, the parameter surface of the
+  tool that computes the metric and its refusal codes, data-quality expectations and calculation invariants. Nothing
+  here is specific to one metric: a contract instance (for example stock_coverage.yaml) fills it in, and the Phase 3
+  compiler generates the runtime objects from that instance.
+license: MIT
+prefixes:
+  linkml: https://w3id.org/linkml/
+  lmm: https://github.com/vincevv017/freerange-metrics/contract/metamodel/
+default_prefix: lmm
+default_range: string
+imports:
+  - linkml:types
+
+# ======================================================================================================== classes
+classes:
+
+  MetricContract:
+    tree_root: true
+    description: One metric contract. The single hand-written source of truth for a metric and everything it needs.
+    slots:
+      - id
+      - name
+      - description
+      - version
+      - status
+      - effective_date
+      - ownership
+      - changes
+      - dimension_classes
+      - tables
+      - relationships
+      - measures
+      - attributes
+      - measure_bases
+      - basis_model
+      - metrics
+      - totals_rules
+      - member_set_rules
+      - default_scopes
+      - analysis_periods
+      - parameters
+      - refusal_codes
+      - flags
+      - warning_codes
+      - quality_expectations
+      - invariants
+      - alert_thresholds
+      - failure_modes
+      - open_decisions
+    slot_usage:
+      id: {required: true}
+      version: {required: true}
+      effective_date: {required: true}
+      ownership: {required: true}
+      measures: {required: true}
+      attributes: {required: true}
+      metrics: {required: true}
+      parameters: {required: true}
+      measure_bases: {required: true}
+      basis_model: {required: true}
+
+  # ---------------------------------------------------------------------------------------------- governance
+  Ownership:
+    description: Who answers for the contract. Roles, never personal names.
+    attributes:
+      business_owner:
+        required: true
+        description: >-
+          Role accountable for the business meaning: the definition, the refusals and the traps. A role, never a
+          person's name.
+      technical_owner:
+        required: true
+        description: "Role accountable for the generated objects and their deployment. A role, never a person's name."
+      data_steward: {description: "Role accountable for the data-quality expectations."}
+      review_cadence:
+        description: "When the contract is reviewed, for example at every change of a rule and before each release."
+
+  ContractChange:
+    description: One entry of the contract's change log.
+    attributes:
+      version:
+        required: true
+        description: The contract version this entry records, for example 0.5.1.
+      date:
+        range: date
+        required: true
+        description: The date the version was made (YYYY-MM-DD).
+      summary:
+        required: true
+        description: What changed and why, and whether a rule changed or only its wording.
+
+  OpenDecision:
+    description: >-
+      A choice the contract had to make that the owner has not confirmed. The compiler may refuse to build a
+      release while an open decision marked blocking remains.
+    slots: [id, description, evidence]
+    attributes:
+      current_choice:
+        required: true
+        description: The choice the contract applies today, until the owner confirms or changes it.
+      blocking:
+        range: boolean
+        description: True when a release must wait for the owner's decision. Declared, not read by the compiler.
+
+  # ---------------------------------------------------------------------------------------------- physical model
+  DimensionClass:
+    description: >-
+      A class of dimension along which additivity is declared once (time, product, geography, location...).
+      Attributes belong to one class; measures declare their additivity per class.
+    slots: [id, description]
+    attributes:
+      is_time: {range: boolean, description: "True for the class that carries calendar time."}
+
+  Table:
+    description: A physical table read by the metric, with its declared grain.
+    slots: [id, description]
+    attributes:
+      kind:
+        range: TableKind
+        required: true
+        description: >-
+          FACT for a table of measures, DIMENSION for a table of attributes. Declared, not read by the compiler.
+      columns:
+        range: Column
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          The physical columns in load order, with their Snowflake types. generated/schema.py lists them for the
+          loader; the data metric functions take their types.
+      grain:
+        multivalued: true
+        required: true
+        description: >-
+          Columns whose values identify one row. Uniqueness is a quality expectation, not an assumption. The flow
+          table's grain less its time column gives the members of the metric (item and country); the snapshot table's
+          grain gives the keys of the gap-filled closing view.
+
+  Column:
+    description: 'One physical column of a table: its name and its Snowflake type.'
+    attributes:
+      name:
+        identifier: false
+        required: true
+        description: Column name, in lower case here; Snowflake stores it in upper case.
+      data_type: {required: true, description: "Physical type of the target platform (for example NUMBER(18,4))."}
+      description:
+        description: Optional note on the column.
+      nullable:
+        range: boolean
+        description: >-
+          Whether the column may hold NULL. Declared, not read by the compiler: missing values are checked by
+          COMPLETENESS quality expectations.
+
+  Relationship:
+    description: A join path between two tables. The cardinality is declared and checked, never assumed.
+    slots: [id, description]
+    attributes:
+      from_table:
+        range: Table
+        required: true
+        description: The table that holds the foreign key, usually a fact.
+      from_columns:
+        multivalued: true
+        required: true
+        description: Its key columns, in the order of to_columns.
+      to_table:
+        range: Table
+        required: true
+        description: The table joined to, usually a dimension.
+      to_columns:
+        multivalued: true
+        required: true
+        description: The joined table's key columns.
+      cardinality:
+        range: Cardinality
+        required: true
+        description: >-
+          The declared cardinality. The procedure and the closing view join only MANY_TO_ONE relationships from a
+          fact; whether the key is really unique is checked by a GRAIN_UNIQUENESS quality expectation.
+
+  # ---------------------------------------------------------------------------------------------- semantics
+  Measure:
+    description: A numeric fact, typed as a snapshot (a level at a point in time) or a flow (an amount per period).
+    slots: [id, name, description]
+    attributes:
+      measure_type:
+        range: MeasureType
+        required: true
+        description: >-
+          SNAPSHOT (a level read at one period) or FLOW (an amount per period, summed over a window). The tests check
+          that the additivity agrees with it; the compiler takes each measure's role from the metric
+          (snapshot_measure, flow_measure).
+      table:
+        range: Table
+        required: true
+        description: The fact table that holds the measure.
+      time_column:
+        required: true
+        description: >-
+          Column of the table that carries the period. The procedure reads the snapshot at exactly the analysis month,
+          and the flow over the forward window, each on its own time column.
+      time_grain:
+        range: TimeGrain
+        required: true
+        description: >-
+          The period of one row (MONTH here). Declared, not read by the compiler: the generated SQL counts months.
+      additivity:
+        range: Additivity
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: One entry per dimension class. A class not listed is not additive.
+      columns:
+        range: MeasureColumn
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: The physical column of this measure on each measure basis.
+      period_aggregation:
+        range: PeriodAggregation
+        inlined: true
+        description: >-
+          How the measure reads over a period longer than its time grain. Required for a SNAPSHOT measure (a level
+          is never summed over time); a FLOW measure sums over the period and declares none.
+
+  PeriodAggregation:
+    description: >-
+      The value of a SNAPSHOT measure over a period (a range of its time grain, a quarter, a year): which snapshot is
+      read, which members the period has, and what a member with no row in the selected snapshot is worth.
+    slots: [id, description, prevents]
+    attributes:
+      method:
+        range: PeriodAggregationMethod
+        required: true
+        description: >-
+          How the snapshot reads over a period. The closing view supports LAST_PERIOD only: gen_closing_sv.py stops on
+          any other method.
+      periods:
+        range: PeriodKind
+        multivalued: true
+        required: true
+        description: >-
+          Periods the rule applies to. Each becomes a dimension of the closing view: PERIOD_RANGE a range of months,
+          QUARTER the year and quarter, YEAR the year.
+      member_set:
+        range: PeriodMemberSet
+        required: true
+        description: >-
+          Which members a period has. Declared, not read by the compiler: the gap-filled view implements
+          ANY_SNAPSHOT_IN_PERIOD by giving each key a row from its first snapshot month to the month after its last.
+      missing_value:
+        required: true
+        description: >-
+          Value of a member of the period with no row in the selected snapshot (0 here). The gap-filled view writes it
+          into every measure column where the key has no row; the member keeps its row.
+      forbidden_methods:
+        range: PeriodAggregationMethod
+        multivalued: true
+        required: true
+        description: Methods a consumer must never apply over the period. Each one is a known wrong behaviour.
+
+  Additivity:
+    description: How a measure aggregates along one dimension class.
+    attributes:
+      dimension_class:
+        range: DimensionClass
+        required: true
+        description: The dimension class this rule covers.
+      aggregation:
+        range: AggregationRule
+        required: true
+        description: >-
+          SUM, SELECT_PERIOD, SUM_OVER_WINDOW or NONE. The tests check it against measure_type (a snapshot selects its
+          period on TIME, a flow sums over the window); the generated SQL implements it.
+      note:
+        description: A free note that explains the rule.
+
+  MeasureColumn:
+    description: The physical column of a measure on one measure basis.
+    attributes:
+      basis:
+        range: MeasureBasis
+        required: true
+        description: The measure basis (QTY_EQ, VALUE, NATIVE).
+      column:
+        required: true
+        description: >-
+          The column that holds the measure on that basis; the procedure reads it when the caller asks for that basis.
+
+  Attribute:
+    description: >-
+      Something a user can group or filter by. It must declare its applicability to every measure of each metric
+      it is used with; an attribute without a declaration cannot be used with the metric.
+    slots: [id, description, synonyms, prevents]
+    attributes:
+      table:
+        range: Table
+        required: true
+        description: >-
+          The table that holds the attribute's column; the procedure joins it from each fact through the declared
+          relationships.
+      column:
+        required: true
+        description: The physical column grouped or filtered.
+      dimension_class:
+        range: DimensionClass
+        required: true
+        description: The dimension class the attribute belongs to. Read by the tests, not by the compiler.
+      applicability_class:
+        range: ApplicabilityClass
+        required: true
+        description: >-
+          How the procedure routes the attribute. CONFORMED groups and filters stock and forecast; SNAPSHOT_ONLY
+          restricts the stock and leaves the forecast at the conformed grain; NOT_APPLICABLE is refused
+          (ATTRIBUTE_NOT_APPLICABLE).
+      applicability:
+        range: MeasureApplicability
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          Effect on each measure. Must agree with applicability_class: CONFORMED = every measure GROUP_AND_FILTER;
+          SNAPSHOT_ONLY = snapshot measures GROUP_AND_FILTER, flow measures IGNORED; NOT_APPLICABLE = REFUSED.
+      known_values:
+        multivalued: true
+        description: >-
+          Values listed in the agent's tool description and the semantic view; a VALUE_RANGE quality expectation on
+          the column takes them as its accepted values. Empty means an open set.
+      label_column:
+        description: >-
+          Optional human-readable column shown next to the code. The tool description lists code = name pairs for an
+          attribute with at most 30 codes, read from the dataset.
+
+  MeasureApplicability:
+    description: The effect of an attribute on one measure.
+    attributes:
+      measure:
+        range: Measure
+        required: true
+        description: The measure.
+      effect:
+        range: ApplicabilityEffect
+        required: true
+        description: >-
+          GROUP_AND_FILTER, IGNORED or REFUSED. The tests check that it agrees with the attribute's
+          applicability_class; the closing view exposes the attributes that GROUP_AND_FILTER the snapshot.
+
+  MeasureBasis:
+    description: >-
+      A basis on which the snapshot and the flow are measured before a ratio, or summed. A basis is not the unit of a
+      ratio's result: it decides which quantities are comparable. Each basis is valid only where its sums stay
+      comparable (valid_when); elsewhere the call is refused, never switched to another basis silently.
+    slots: [id, description, synonyms, prevents]
+    attributes:
+      kind:
+        range: BasisKind
+        required: true
+        description: >-
+          NATIVE_UNIT, BASE_UNIT_EQUIVALENT or MONETARY: what the basis measures. Declared, not read by the compiler:
+          the procedure reads valid_when and unit_source.
+      unit_source:
+        range: BasisUnitSource
+        required: true
+        description: Where the unit of a figure on this basis comes from (the item, its dimension, or a fixed symbol).
+      unit_symbol:
+        description: "The unit shown for every figure on this basis when unit_source is FIXED (EUR)."
+      valid_when:
+        range: BasisValidity
+        required: true
+        description: >-
+          Where the basis stays comparable: ONE_ITEM_PER_ROW, ONE_DIMENSION_PER_ROW or ALWAYS. The procedure counts
+          the items and the dimensions behind every returned row and total, and refuses with BASIS_NOT_COMPARABLE
+          where the rule breaks.
+      not_comparable_reason:
+        required: true
+        description: Why a row or a total breaks valid_when, in business words, for the refusal reason.
+
+  ItemDimension:
+    description: >-
+      A physical dimension in which items are counted (mass, volume). Quantities of two dimensions never add up, in
+      any conversion.
+    slots: [id, description]
+    attributes:
+      base_unit: {required: true, description: "The unit of the quantity equivalent in this dimension (kg, L)."}
+
+  BasisModel:
+    description: >-
+      Where each item's dimension and units are read, the default basis and how the validity of a basis is judged.
+      One per contract.
+    slots: [id, description, prevents]
+    attributes:
+      item_table:
+        range: Table
+        required: true
+        description: >-
+          The table that holds each item's dimension and units (DIM_ITEM). The procedure reads it to count the items
+          and dimensions behind each row.
+      item_key:
+        required: true
+        description: The key column of the item table.
+      dimension_column:
+        required: true
+        description: The column that holds each item's dimension (MASS, VOLUME).
+      base_unit_column:
+        required: true
+        description: >-
+          The column that holds the base unit of the item's dimension (kg, L): the unit of a row on the equivalent
+          basis.
+      native_unit_column: {required: true, description: "The item's own unit: how the item is counted (a pack size)."}
+      equivalence_factor_column:
+        required: true
+        description: >-
+          Base units per native unit (kg or L per pack). The facts carry the equivalent quantities in their own
+          columns; the compiler lists this column in generated/schema.py and does not compute with it.
+      dimensions:
+        range: ItemDimension
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          The physical dimensions declared, each with its base unit. A data metric function (QE_ITEM_DIMENSION) checks
+          every item against this list.
+      default_basis:
+        range: MeasureBasis
+        required: true
+        description: The basis used when the caller names none. Refused like any other basis where it is not valid.
+      validity_scope:
+        range: BasisValidityScope
+        required: true
+        description: >-
+          Where the validity of a basis is judged. Declared, not read by the compiler: the procedure always judges the
+          rows and totals the call returns (RETURNED_ROWS).
+      refusal:
+        range: RefusalCode
+        required: true
+        description: >-
+          The refusal raised when the basis asked is not comparable (BASIS_NOT_COMPARABLE); the agent's tool
+          description names it.
+      result_unit:
+        required: true
+        description: The unit of the metric's result, the same on every basis.
+
+  # ---------------------------------------------------------------------------------------------- metric patterns
+  DepletionMetric:
+    description: >-
+      A snapshot drained by a forward flow: how many periods the level at the anchor period lasts against the
+      flow of the following periods. Inputs are aggregated to the requested grain before the algorithm runs.
+    slots: [id, name, description, synonyms, prevents]
+    attributes:
+      snapshot_measure:
+        range: Measure
+        required: true
+        description: The level that is drained (stock on hand), read at the analysis month.
+      flow_measure:
+        range: Measure
+        required: true
+        description: The amount that drains it (demand forecast), summed over the forward window.
+      anchor_parameter:
+        range: Parameter
+        required: true
+        description: >-
+          The parameter that selects the analysis month (as_of_months). Read by the tests; the procedure's argument
+          names are fixed in the compiler.
+      time_grain:
+        range: TimeGrain
+        required: true
+        description: >-
+          The period of the anchor and of the window (MONTH). Declared, not read by the compiler: the generated SQL is
+          monthly.
+      output_unit:
+        required: true
+        description: The unit of the result (months), the same on every basis.
+      window_start_offset:
+        range: integer
+        required: true
+        description: >-
+          First flow period counted, relative to the analysis month: 1 means the window starts the month after the
+          analysis month, so the analysis month's own forecast never counts (trap T4).
+      horizon_periods:
+        range: integer
+        required: true
+        description: >-
+          Length H of the forward window, in periods (24): the flow of t+1 to t+24 is read. A month is a valid
+          analysis month only when the calendar and the forecast reach it plus H.
+      interpolation:
+        range: Interpolation
+        required: true
+        description: >-
+          LINEAR: in the month the stock runs out, the fraction of that month's flow it covers is added. Declared, not
+          read by the compiler: the procedure's SQL implements LINEAR.
+      densify_missing_periods:
+        range: boolean
+        required: true
+        description: >-
+          True: a period with no flow row counts as zero, never as a skipped row (trap T2). Declared, not read by the
+          compiler: the procedure crosses every member with every month of the window.
+      aggregate_before_compute:
+        range: boolean
+        required: true
+        description: >-
+          True: stock and flow are summed to the requested grain before the algorithm runs, never computed per item
+          and averaged (trap T1). Declared, not read by the compiler: the procedure implements it.
+      time_filter_on_flow:
+        range: TimeFilterRule
+        required: true
+        description: >-
+          SELECTS_ANCHOR_ONLY: the month asked selects the snapshot, and the flow window stays relative to it, never
+          cut by the filter (trap T4). Declared, not read by the compiler: the procedure implements it.
+      outcomes:
+        range: DepletionOutcome
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          The outcomes, evaluated in order; the first matching condition decides the value and the flag. The procedure
+          reads each outcome's flag; the value rules are written in its SQL in this order.
+      beyond_horizon:
+        range: BeyondHorizonRule
+        required: true
+        inlined: true
+        description: The rule for a level that outlasts the horizon.
+      exhaustion_period:
+        range: ExhaustionPeriodRule
+        inlined: true
+        description: The period in which a member's snapshot runs out, carried by each result row.
+      member_selection:
+        range: MemberSelection
+        inlined: true
+        description: >-
+          How a caller keeps some members by their result (a window, the first n), and what comes back apart.
+      reference_sql: {description: "Path of the reference SQL the generated procedure must match."}
+      reference_cases: {description: "Path of the algorithm check that pins the formula on worked cases."}
+
+  DepletionOutcome:
+    description: >-
+      One outcome of the depletion algorithm: a condition, the value returned and the flag set on the row.
+    attributes:
+      order:
+        range: integer
+        required: true
+        description: >-
+          Evaluation order, from 1; the first matching condition wins. Checked by the tests; the procedure's SQL
+          evaluates the conditions in this order.
+      condition:
+        range: DepletionCondition
+        required: true
+        description: The condition tested. The procedure maps each condition to its flag.
+      result: {required: true, description: "The value returned, as a formula over the pattern's symbols."}
+      flag:
+        range: Flag
+        description: >-
+          The flag set on the row (NO_STOCK, NO_DEMAND); the procedure writes this code into the row's flag.
+      keeps_member: {range: boolean, description: "True when the member keeps its row although a measure is absent."}
+      prevents:
+        range: FailureMode
+        multivalued: true
+        description: Failure modes this outcome prevents.
+
+  ExhaustionPeriodRule:
+    description: The period in which a member's level runs out, returned on every result row (stockout_month).
+    slots: [id, description]
+    attributes:
+      formula:
+        required: true
+        description: >-
+          The period, as a formula over the anchor and the result: t + ceil(coverage) months, so 0.5 and 1.0 from June
+          both give July. The procedure's SQL implements it.
+      none_for_flags:
+        range: Flag
+        multivalued: true
+        description: >-
+          Flags for which no period is given (NO_DEMAND, BEYOND_HORIZON): the row's stockout_month is null. The
+          procedure reads them.
+
+  MemberSelection:
+    description: >-
+      Keeps the detail rows of a call by their result. The procedure filters and ranks; a consumer never sorts or
+      filters results itself. Total rows are not selected: they keep their totals rule. Members whose result is set
+      by a flag listed in set_apart_flags never mix with the kept rows: they come back apart, counted and named.
+    slots: [id, description, prevents]
+    attributes:
+      upper_bound_parameter:
+        range: Parameter
+        required: true
+        description: >-
+          The parameter that keeps the members running out within N periods (coverage_below): 0 < result <= N.
+      upper_bound_rule:
+        required: true
+        description: "The rows kept by the upper bound, as a condition. The procedure's SQL implements it."
+      lower_bound_parameter:
+        range: Parameter
+        required: true
+        description: >-
+          The parameter that keeps the members above N periods (coverage_above): result > N. With the upper bound, a
+          window.
+      lower_bound_rule:
+        required: true
+        description: The rows kept by the lower bound, as a condition. The procedure's SQL implements it.
+      rank_parameter:
+        range: Parameter
+        required: true
+        description: >-
+          The parameter that keeps the first n members by result, lowest first (rank_first), per analysis month.
+      rank_rule:
+        required: true
+        description: >-
+          The order of the rows and how ties are broken (by the grain codes, in grain order). The procedure's SQL
+          implements it.
+      set_apart_flags:
+        range: Flag
+        multivalued: true
+        required: true
+        description: >-
+          Flags whose members never mix with the kept rows (NO_STOCK, NO_DEMAND): the procedure returns them apart,
+          counted and named.
+      grain_rule:
+        description: >-
+          Which grain a question takes: a list question takes items, a question for one figure takes its scope's grain
+          (metamodel 0.4.1). Given verbatim to every configuration.
+      summary_rule:
+        required: true
+        description: >-
+          What the summary of the kept rows gives. The summary is a total: it follows the basis rule (a snapshot sum
+          per comparable unit, never across units) and never sums or averages the metric's result.
+
+  BeyondHorizonRule:
+    description: How a level that outlasts the horizon is valued, and the flag that marks it.
+    attributes:
+      method:
+        range: BeyondHorizonMethod
+        required: true
+        description: >-
+          SNAPSHOT_OVER_MEAN_FLOW: the level divided by the mean flow per period. Declared, not read by the compiler:
+          the procedure's SQL implements this method only.
+      average_window:
+        range: AverageWindow
+        required: true
+        description: >-
+          The flow periods the mean covers: HORIZON, the H periods of the window. Declared, not read by the compiler:
+          the procedure's SQL implements it.
+      exclude_zero_periods:
+        range: boolean
+        required: true
+        description: >-
+          True: periods with no flow are left out of the mean, so a sparse forecast does not stretch the result.
+          Declared, not read by the compiler: the procedure's SQL implements it.
+      flag:
+        range: Flag
+        required: true
+        description: The flag set on an extrapolated row (BEYOND_HORIZON); the procedure reads it.
+      prevents:
+        range: FailureMode
+        multivalued: true
+        description: Failure modes this rule prevents.
+
+  Flag:
+    description: A code attached to a result row that changes how the number reads.
+    slots: [id, description]
+    attributes:
+      value_semantics:
+        required: true
+        description: "What the number means when this flag is set. Written into the agent's tool description."
+
+  WarningCode:
+    description: A message attached to a whole answer, raised by a rule or a failed quality expectation.
+    slots: [id, description]
+    attributes:
+      message_template:
+        required: true
+        description: >-
+          The message attached to the answer; the procedure fills the {placeholders} (a count, an amount, a unit).
+      raised_by: {required: true, description: "Id of the rule or expectation that raises it."}
+
+  # ---------------------------------------------------------------------------------------------- query rules
+  TotalsRule:
+    description: How a total (a coarser grain) is obtained.
+    slots: [id, description, prevents]
+    attributes:
+      method:
+        range: TotalsMethod
+        required: true
+        description: >-
+          RECOMPUTE: a total aggregates the inputs to its grain and runs the algorithm again. Declared, not read by
+          the compiler: the procedure implements this one method.
+      snapshot_aggregation:
+        range: TotalsProjection
+        required: true
+        description: >-
+          How the snapshot reaches the total's grain (TOTAL_GRAIN). Declared, not read by the compiler: the procedure
+          implements it.
+      flow_aggregation:
+        range: TotalsProjection
+        required: true
+        description: >-
+          How the flow reaches it (CONFORMED_PROJECTION: the total's grain less its snapshot-only attributes).
+          Declared, not read by the compiler: the procedure implements it.
+      total_over_time:
+        range: TimeTotalRule
+        required: true
+        description: >-
+          FORBIDDEN: several analysis months give a series, never a total across months. Declared, not read by the
+          compiler: the procedure implements it.
+      parameter:
+        range: Parameter
+        description: "The parameter through which a caller asks for totals (totals)."
+
+  MemberSetRule:
+    description: Which members (rows) an answer contains.
+    slots: [id, description, prevents]
+    attributes:
+      method:
+        range: MemberSetMethod
+        required: true
+        description: >-
+          SPINE: members are the union of the snapshot's and the flow's members, then both measures are left-joined.
+          Declared, not read by the compiler: the procedure implements it.
+      snapshot_members:
+        range: MemberSource
+        required: true
+        description: >-
+          When the snapshot contributes members (ALWAYS). Declared, not read by the compiler: the procedure implements
+          it.
+      flow_members:
+        range: MemberSource
+        required: true
+        description: >-
+          When the flow contributes members. ONLY_ON_CONFORMED_GRAIN: a forecast creates a row only when the grain
+          holds no snapshot-only attribute. The procedure reads it.
+
+  DefaultScope:
+    description: >-
+      A restriction applied when the caller does not ask otherwise. Lifted only by an explicit filter on the same
+      attribute. The answer reports what the scope removed.
+    slots: [id, description, prevents]
+    attributes:
+      attribute:
+        range: Attribute
+        required: true
+        description: The attribute restricted by default (item_type).
+      included_values:
+        multivalued: true
+        required: true
+        description: The values kept unless the caller filters the attribute (STANDARD).
+      applies_to_metrics:
+        range: DepletionMetric
+        multivalued: true
+        required: true
+        description: >-
+          The metrics whose computation applies the scope. Outside them (for example the snapshot measure's period
+          aggregation, closing stock), the scope does not apply.
+      applies_to_measures:
+        range: Measure
+        multivalued: true
+        required: true
+        description: The measures whose rows the scope restricts, inside the metrics of applies_to_metrics only.
+      lifted_by:
+        range: ScopeLift
+        required: true
+        description: >-
+          EXPLICIT_FILTER: a filter on the same attribute lifts the scope; grouping by it does not. Declared, not read
+          by the compiler: the procedure implements it.
+      warning:
+        range: WarningCode
+        required: true
+        description: >-
+          The warning raised with the amount the scope removed, per analysis month and unit (DEFAULT_SCOPE_EXCLUDED).
+
+  AnalysisPeriods:
+    description: >-
+      The anchor periods a caller may ask for, and where the list is exposed so that an agent proposes only
+      periods that exist.
+    slots: [id, description, prevents]
+    attributes:
+      source_table:
+        range: Table
+        required: true
+        description: The table whose period column lists the periods that exist (the stock snapshot).
+      source_column:
+        required: true
+        description: Its period column.
+      latest_token: {required: true, description: "A literal the caller may pass for the most recent valid period."}
+      validity:
+        required: true
+        description: >-
+          The condition a period must meet to be offered and accepted. The procedure and the agent's specification
+          apply it: a snapshot exists for the month, and the calendar and the flow reach the month plus H.
+      exposed_in:
+        range: ExposureTarget
+        multivalued: true
+        required: true
+        description: >-
+          Where the valid periods are shown. Declared, not read by the compiler: the agent's specification carries the
+          first, last and LATEST months at generation, and every procedure answer carries them at call time.
+      series_allowed:
+        range: boolean
+        required: true
+        description: >-
+          True: several analysis months may be asked in one call; they give a series. Declared, not read by the
+          compiler: the procedure accepts up to max_periods months.
+      max_periods:
+        range: integer
+        description: The most analysis months per call (24); more is refused with AS_OF_TOO_MANY.
+
+  # ---------------------------------------------------------------------------------------------- tool surface
+  Parameter:
+    description: One parameter of the generated tool and procedure.
+    slots: [id, description]
+    attributes:
+      data_type:
+        range: ParameterType
+        required: true
+        description: The parameter's kind. The procedure parses the NUMBER and INTEGER selection parameters by it.
+      encoding:
+        range: ParameterEncoding
+        required: true
+        description: PLAIN or JSON_STRING; the tool description says that a JSON value is passed as a string.
+      json_shape: {description: "JSON shape when encoding is JSON_STRING, for example array of string."}
+      is_required:
+        range: boolean
+        required: true
+        description: Required parameters come first in the procedure's signature and form the tool's required list.
+      default_value:
+        description: >-
+          Used when the caller passes nothing: the argument's DEFAULT in the procedure, and stated in the tool
+          description.
+      allowed_values:
+        multivalued: true
+        description: >-
+          The values accepted, for an ENUM. Declared, not read by the compiler: the procedure accepts a basis by its
+          id or one of its synonyms (measure_bases).
+      min_items:
+        range: integer
+        description: >-
+          The fewest items in a list. Declared, not read by the compiler: an empty list has its own refusal
+          (AS_OF_MISSING, GRAIN_EMPTY).
+      max_items:
+        range: integer
+        description: >-
+          The most items in a list. Declared, not read by the compiler: the cap on analysis months comes from
+          analysis_periods.max_periods.
+      refusal_codes:
+        range: RefusalCode
+        multivalued: true
+        description: The refusal codes this parameter can raise; the tests check that each one exists.
+      example:
+        description: An example value, written into the tool description and the procedure's header.
+      exclusive_minimum:
+        range: float
+        description: >-
+          A NUMBER or INTEGER parameter must be greater than this (0 here); the procedure refuses 0 or less with
+          SELECTION_INVALID.
+
+  RefusalCode:
+    description: A refusal the procedure returns instead of a number, with its reason.
+    slots: [id, description, prevents, evidence]
+    attributes:
+      reason_template:
+        required: true
+        description: >-
+          The reason returned with the code; the procedure fills the {placeholders} (the value given, the months
+          available, the attributes allowed).
+      category:
+        range: RefusalCategory
+        required: true
+        description: 'PARAMETER, SEMANTIC, DATA_QUALITY or AVAILABILITY: a reading aid, not read by the compiler.'
+      check_order:
+        range: integer
+        description: >-
+          Validation order: lower checks run first and the first that fails ends the call. The generator fails when
+          the order breaks a check's prerequisite.
+
+  # ---------------------------------------------------------------------------------------------- trust
+  QualityExpectation:
+    description: >-
+      A condition on the data under which the metric's promise holds. Compiled to a data metric function and
+      checked again by the procedure where on_failure says so.
+    slots: [id, description, prevents]
+    attributes:
+      kind:
+        range: QualityKind
+        required: true
+        description: >-
+          The kind of check; it picks the SQL template of the data metric function and of the in-call check.
+      table:
+        range: Table
+        required: true
+        description: The table checked.
+      columns:
+        multivalued: true
+        description: >-
+          The columns checked. For COMPLETENESS and FRESHNESS the time column comes first; a system data metric
+          function is called once per column.
+      references_table:
+        range: Table
+        description: 'For a check across tables (REFERENTIAL, some CARDINALITY): the table that must hold a match.'
+      references_columns:
+        multivalued: true
+        description: Its matching columns, in the order of columns.
+      condition: {required: true, description: "The condition, in words or as a SQL predicate."}
+      threshold:
+        required: true
+        description: >-
+          The accepted violation count (0 here). TBD means no threshold yet: a FRESHNESS check with TBD is not run in
+          the call.
+      severity:
+        range: Severity
+        required: true
+        description: 'ERROR, WARNING or INFO: a reading aid. What a failure does is set by on_failure.'
+      on_failure:
+        range: FailureAction
+        required: true
+        description: >-
+          What a failure does: REFUSE every query, REFUSE_IF_USED a query that uses the affected columns, WARN in the
+          answer, or MONITOR (data metric function only).
+      warning:
+        range: WarningCode
+        description: The warning raised when the check fails in a call (WARN, REFUSE_IF_USED).
+      refusal:
+        range: RefusalCode
+        description: The refusal raised when the check fails in a call (REFUSE, REFUSE_IF_USED).
+      dmf:
+        required: true
+        description: >-
+          A system data metric function (SNOWFLAKE.CORE.DUPLICATE_COUNT, NULL_COUNT, NEGATIVE_COUNT, FRESHNESS), or
+          CUSTOM: gen_dmf.py then writes one from the kind.
+      call_scope:
+        range: CallScope
+        description: >-
+          Rows the procedure checks again at call time. Required unless on_failure is MONITOR. A count over the whole
+          table would warn on every answer; a check scoped to the request warns only when the answer reads the rows.
+      schedule:
+        description: >-
+          When the data metric function would run. Declared, not read by the compiler: generated/dmf.sql attaches
+          nothing to a table and sets no schedule.
+
+  CalculationInvariant:
+    description: A property every correct result satisfies, turned into a property test on the procedure.
+    slots: [id, description, prevents]
+    attributes:
+      statement:
+        required: true
+        description: >-
+          The property, in words. Declared, not read by the compiler; tests/test_procedure.py checks several of them
+          against the deployed procedure.
+      test_kind:
+        range: TestKind
+        required: true
+        description: 'The shape of the test: PROPERTY, EXAMPLE or METAMORPHIC.'
+
+  AlertThreshold:
+    description: A threshold that turns a metric value into an alert (consumed by the restitution layer).
+    slots: [id, description]
+    attributes:
+      metric:
+        range: DepletionMetric
+        required: true
+        description: The metric compared.
+      comparison:
+        range: Comparison
+        required: true
+        description: LT, LE, GT or GE.
+      value:
+        required: true
+        pattern: "^(TBD|-?[0-9]+(\\.[0-9]+)?)$"
+        description: A number, or TBD while the owner has not set it.
+      compared_to: {required: true, description: "The quantity compared, as a formula over metric outputs and attributes."}
+      unit:
+        required: true
+        description: The unit of the value (months).
+      raises_flag:
+        description: >-
+          The flag a restitution layer would raise (STOCKOUT_RISK, EXPIRY_RISK). Declared, not read by the compiler;
+          the values are TBD.
+
+  FailureMode:
+    description: >-
+      A known way to get the metric wrong (a trap). Rules, refusals and expectations reference the failure modes
+      they prevent; a failure mode nothing references is a gap.
+    slots: [id, name, description]
+    attributes:
+      wrong_behaviour:
+        required: true
+        description: >-
+          What a wrong implementation does, in words; the trap in data/traps.yaml declares the value it returns.
+      correct_behaviour:
+        required: true
+        description: What a correct implementation does.
+      source: {required: true, description: "Where the trap is defined (file and section)."}
+      reference_question:
+        description: >-
+          A natural-language question that exercises the trap; compiler/gen_questions.py turns it into a campaign
+          question.
+
+# ======================================================================================================== slots
+slots:
+  id:
+    identifier: true
+    required: true
+    description: >-
+      The element's identifier, unique in its section. Codes in UPPER_CASE travel verbatim into the procedure's answer
+      and the tool description.
+  name:
+    description: A human-readable name.
+  description:
+    description: >-
+      Plain-language text. Some of it travels into generated objects: a metric's, a flag's and a basis's into the
+      agent's tool description, an attribute's into view comments and the ATTRIBUTE_NOT_APPLICABLE reason.
+  version:
+    description: >-
+      The contract's version. Every generated file names it in its header, and the procedure returns it with each
+      answer.
+  status:
+    range: ContractStatus
+    description: DRAFT, ACTIVE or DEPRECATED.
+  effective_date:
+    range: date
+    description: The date from which the version applies.
+  synonyms:
+    multivalued: true
+    description: >-
+      Other words for the element. A metric's go into the tool description and B2's view; a basis's are accepted by
+      the procedure as the basis parameter.
+  evidence:
+    range: EvidenceTag
+    description: How the element is known (documented, measured here, inferred).
+  prevents:
+    range: FailureMode
+    multivalued: true
+    description: >-
+      Failure modes this element prevents or detects. A failure mode that nothing prevents fails
+      tests/test_contract.py.
+  ownership:
+    range: Ownership
+    inlined: true
+    description: Who answers for the contract, by role.
+  changes:
+    range: ContractChange
+    multivalued: true
+    inlined_as_list: true
+    description: The change log, one entry per version.
+  dimension_classes:
+    range: DimensionClass
+    multivalued: true
+    inlined_as_list: true
+    description: The classes along which additivity is declared (time, product, geography).
+  tables:
+    range: Table
+    multivalued: true
+    inlined_as_list: true
+    description: The physical tables the metric reads.
+  relationships:
+    range: Relationship
+    multivalued: true
+    inlined_as_list: true
+    description: The join paths between the tables.
+  measures:
+    range: Measure
+    multivalued: true
+    inlined_as_list: true
+    description: The numeric facts; a depletion metric has a snapshot and a flow.
+  attributes:
+    range: Attribute
+    multivalued: true
+    inlined_as_list: true
+    description: >-
+      Everything a caller may group or filter by. An attribute not declared here is refused (ATTRIBUTE_UNKNOWN).
+  measure_bases:
+    range: MeasureBasis
+    multivalued: true
+    inlined_as_list: true
+    description: The bases on which the measures are compared before the ratio.
+  basis_model:
+    range: BasisModel
+    inlined: true
+    description: Where each item's dimension and units are read, and the default basis.
+  metrics:
+    range: DepletionMetric
+    multivalued: true
+    inlined_as_list: true
+    description: The metrics of the contract. DepletionMetric is the only pattern; the compiler reads the first entry.
+  totals_rules:
+    range: TotalsRule
+    multivalued: true
+    inlined_as_list: true
+    description: How totals are obtained; the compiler reads the first entry.
+  member_set_rules:
+    range: MemberSetRule
+    multivalued: true
+    inlined_as_list: true
+    description: Which members an answer contains; the compiler reads the first entry.
+  default_scopes:
+    range: DefaultScope
+    multivalued: true
+    inlined_as_list: true
+    description: Restrictions applied unless the caller lifts them. The procedure reads the first entry and needs one.
+  analysis_periods:
+    range: AnalysisPeriods
+    multivalued: true
+    inlined_as_list: true
+    description: The anchor periods a caller may ask for; the compiler reads the first entry.
+  parameters:
+    range: Parameter
+    multivalued: true
+    inlined_as_list: true
+    description: >-
+      The tool's parameters. Each is one VARCHAR argument of the procedure and one string property of the tool.
+  refusal_codes:
+    range: RefusalCode
+    multivalued: true
+    inlined_as_list: true
+    description: The refusals, in check order. Each must have a check in the procedure, or the generator fails.
+  flags:
+    range: Flag
+    multivalued: true
+    inlined_as_list: true
+    description: Codes on a result row that change how its number reads.
+  warning_codes:
+    range: WarningCode
+    multivalued: true
+    inlined_as_list: true
+    description: Messages attached to an answer that is still given.
+  quality_expectations:
+    range: QualityExpectation
+    multivalued: true
+    inlined_as_list: true
+    description: >-
+      Conditions on the data: compiled to data metric functions, and checked again in the call unless MONITOR.
+  invariants:
+    range: CalculationInvariant
+    multivalued: true
+    inlined_as_list: true
+    description: Properties every correct result satisfies; several are tested against the deployed procedure.
+  alert_thresholds:
+    range: AlertThreshold
+    multivalued: true
+    inlined_as_list: true
+    description: Thresholds for a later restitution layer; not compiled.
+  failure_modes:
+    range: FailureMode
+    multivalued: true
+    inlined_as_list: true
+    description: 'The traps: known ways to get the metric wrong, each with its wrong and correct behaviour.'
+  open_decisions:
+    range: OpenDecision
+    multivalued: true
+    inlined_as_list: true
+    description: Choices the owner has not confirmed yet.
+
+# ======================================================================================================== enums
+enums:
+  ContractStatus:
+    description: The life stage of a contract.
+    permissible_values:
+      DRAFT:
+        description: Being written; it may change at any version.
+      ACTIVE:
+        description: 'In force: the generated objects are released from it.'
+      DEPRECATED:
+        description: Kept for history; no longer released.
+  EvidenceTag:
+    description: How an element is known.
+    permissible_values:
+      DOCUMENTED: {description: "Platform documentation or release notes."}
+      MEASURED: {description: "Run on the project account, evidence in the repository."}
+      IMPLEMENTED: {description: "Present in a probe implementation but not exercised."}
+      INFERRED: {description: "Reasoned from the other two, not run."}
+      DECIDED: {description: "A decision of the contract owner."}
+  TableKind:
+    description: The role of a table.
+    permissible_values:
+      FACT:
+        description: 'Holds measures: snapshot or flow rows.'
+      DIMENSION:
+        description: Holds attributes, one row per key.
+  Cardinality:
+    description: How many rows of one table match one row of another.
+    permissible_values:
+      MANY_TO_ONE:
+        description: >-
+          Many rows of from_table match one row of to_table (a fact to its dimension). The only cardinality the
+          compiler joins on.
+      ONE_TO_ONE:
+        description: One row matches one row.
+      ONE_TO_MANY:
+        description: One row matches many rows.
+  MeasureType:
+    description: Whether a measure is a level or an amount per period.
+    permissible_values:
+      SNAPSHOT: {description: "A level at a point in time (stock, balance). Never summed over time."}
+      FLOW: {description: "An amount per period (sales, forecast, receipts). Summed over a time window."}
+  TimeGrain:
+    description: The length of one period.
+    permissible_values:
+      DAY:
+        description: One day.
+      WEEK:
+        description: One week.
+      MONTH:
+        description: One calendar month, the only grain the generated SQL supports.
+      QUARTER:
+        description: One calendar quarter.
+      YEAR:
+        description: One calendar year.
+  PeriodAggregationMethod:
+    description: How a snapshot measure reads over a period longer than its time grain.
+    permissible_values:
+      LAST_PERIOD: {description: "The snapshot of the period's last time grain (the closing level), for every member."}
+      LAST_NON_EMPTY: {description: "Each member's latest snapshot inside the period: carries a value forward."}
+      SUM: {description: "The snapshots of the period added up."}
+      AVERAGE: {description: "The snapshots of the period averaged over its time grains."}
+  PeriodKind:
+    description: The kinds of period a period aggregation applies to.
+    permissible_values:
+      PERIOD_RANGE: {description: "A contiguous range of the measure's time grain (for example April to June)."}
+      QUARTER:
+        description: A calendar quarter (year_quarter in the closing view).
+      YEAR:
+        description: A calendar year.
+  PeriodMemberSet:
+    description: Which members a period has.
+    permissible_values:
+      ANY_SNAPSHOT_IN_PERIOD: {description: "A member with a snapshot in any time grain of the period is a member of the period."}
+  CallScope:
+    description: The rows the procedure checks again at call time.
+    permissible_values:
+      TABLE: {description: "The whole table: the condition holds for every query or for none."}
+      REQUEST_MEMBERS: {description: "The members (keys) the request selects, through its conformed and snapshot filters."}
+      REQUEST_ROWS: {description: "The fact rows the request reads: the snapshots of its analysis months and the flow of their horizons."}
+  AggregationRule:
+    description: How a measure aggregates along a dimension class.
+    permissible_values:
+      SUM:
+        description: Added up along the class.
+      SELECT_PERIOD: {description: "Not additive; one period is selected (the anchor), never summed."}
+      SUM_OVER_WINDOW: {description: "Summed over a window defined by the metric pattern, not by a filter."}
+      NONE: {description: "Not aggregatable along this class."}
+  ApplicabilityClass:
+    description: How an attribute applies to the measures of a metric.
+    permissible_values:
+      CONFORMED: {description: "Groups and filters every measure of the metric."}
+      SNAPSHOT_ONLY:
+        description: >-
+          Groups and filters the snapshot measure only; the flow stays at the parent conformed grain.
+          Called stock-only in the stock coverage definition.
+        aliases: [STOCK_ONLY]
+      NOT_APPLICABLE: {description: "Cannot be used with the metric; the procedure refuses it."}
+  ApplicabilityEffect:
+    description: The effect of an attribute on one measure.
+    permissible_values:
+      GROUP_AND_FILTER:
+        description: The attribute groups and filters the measure.
+      IGNORED: {description: "The measure is neither grouped nor filtered by the attribute."}
+      REFUSED:
+        description: The attribute cannot be used with the measure; the procedure refuses it.
+  Interpolation:
+    description: How a fraction of a period is counted.
+    permissible_values:
+      LINEAR:
+        description: >-
+          In the period the level runs out, add the fraction of that period's flow it covers: (n - 1) + (S - C(n-1)) /
+          f(n).
+      NONE:
+        description: Count whole periods only.
+  TimeFilterRule:
+    description: What a time filter does to the flow.
+    permissible_values:
+      SELECTS_ANCHOR_ONLY: {description: "A time filter selects the anchor period; the flow window stays relative to it."}
+  DepletionCondition:
+    description: The conditions of the depletion outcomes.
+    permissible_values:
+      SNAPSHOT_NULL_OR_ZERO:
+        description: 'No level at the anchor: the result is 0 and the member keeps its row (NO_STOCK).'
+      DEPLETED_WITHIN_HORIZON:
+        description: 'The cumulative flow reaches the level within H periods: the interpolated count of periods.'
+      NO_FLOW_IN_WINDOW:
+        description: 'A level but no flow in the window: the result is null (NO_DEMAND).'
+      BEYOND_HORIZON:
+        description: 'The level outlasts the H periods: valued by the beyond-horizon rule.'
+  BeyondHorizonMethod:
+    description: How a level that outlasts the horizon is valued.
+    permissible_values:
+      SNAPSHOT_OVER_MEAN_FLOW:
+        description: The level divided by the mean flow per period of the averaging window.
+      CAP_AT_HORIZON:
+        description: The result capped at H. Not implemented by the procedure.
+  AverageWindow:
+    description: The flow periods a mean covers.
+    permissible_values:
+      HORIZON: {description: "The mean is taken over the horizon window only."}
+      FULL_RANGE: {description: "The mean is taken over every loaded flow period after the anchor."}
+  TotalsMethod:
+    description: How a total is obtained.
+    permissible_values:
+      RECOMPUTE: {description: "Aggregate the inputs to the total's grain, then run the algorithm."}
+  TotalsProjection:
+    description: How a measure reaches the grain of a total.
+    permissible_values:
+      TOTAL_GRAIN: {description: "Aggregated to the total's grain."}
+      CONFORMED_PROJECTION: {description: "Aggregated to the total's grain projected onto conformed attributes."}
+  TimeTotalRule:
+    description: Whether a total across anchor periods is allowed.
+    permissible_values:
+      FORBIDDEN: {description: "Several anchor periods give a series; no row totals across them."}
+  MemberSetMethod:
+    description: How the members of an answer are formed.
+    permissible_values:
+      SPINE: {description: "Members are the union of the measures' members, then every measure is left-joined."}
+  MemberSource:
+    description: When a measure contributes members.
+    permissible_values:
+      ALWAYS:
+        description: Contributes members on every grain.
+      ONLY_ON_CONFORMED_GRAIN: {description: "Contributes members only when the grain holds no snapshot-only attribute."}
+      NEVER:
+        description: Never contributes members.
+  ScopeLift:
+    description: What lifts a default scope.
+    permissible_values:
+      EXPLICIT_FILTER: {description: "Lifted only by a filter on the same attribute."}
+  ExposureTarget:
+    description: Where the valid analysis periods are shown.
+    permissible_values:
+      TOOL_DESCRIPTION: {description: "Written into the generated tool description at compile time."}
+      PROCEDURE_RESPONSE: {description: "Returned by the procedure with every answer and refusal."}
+      REGISTRY: {description: "Queryable in the generated registry."}
+  ParameterType:
+    description: The kind of a parameter.
+    permissible_values:
+      PERIOD:
+        description: One period.
+      PERIOD_LIST:
+        description: A list of periods (YYYY-MM-01), or the latest token.
+      ENUM:
+        description: One value of allowed_values.
+      ATTRIBUTE_LIST:
+        description: A list of attribute ids.
+      FILTER_MAP:
+        description: A map from an attribute id to a list of values.
+      GRAIN_LIST:
+        description: >-
+          A list of attribute lists, for example [["country_code"], []] for a total by country and a grand total.
+      NUMBER: {description: "A number, passed as a string and parsed by the procedure."}
+      INTEGER: {description: "An integer, passed as a string and parsed by the procedure."}
+  ParameterEncoding:
+    description: How a parameter's value is passed.
+    permissible_values:
+      PLAIN:
+        description: A plain string.
+      JSON_STRING: {description: "A JSON value passed as a string, parsed and validated by the procedure."}
+  RefusalCategory:
+    description: A reading aid that groups the refusal codes.
+    permissible_values:
+      PARAMETER:
+        description: A malformed or invalid parameter.
+      SEMANTIC:
+        description: A well-formed request the metric cannot answer correctly.
+      DATA_QUALITY:
+        description: The data breaks an expectation the answer depends on.
+      AVAILABILITY:
+        description: The data asked for is not loaded.
+  QualityKind:
+    description: The kind of a quality check; it picks the SQL template.
+    permissible_values:
+      GRAIN_UNIQUENESS:
+        description: One row per declared grain; counts the rows beyond the first.
+      REFERENTIAL:
+        description: Every key has a match in references_table; counts the orphan rows.
+      CARDINALITY:
+        description: >-
+          Each value determines the next column's value (each sku_code one family), or a denormalised key agrees with
+          its source; counts the violations.
+      COMPLETENESS:
+        description: No value missing, or for the flow no month missing in the horizon window; counts what is missing.
+      FRESHNESS:
+        description: >-
+          The data reaches far enough: the calendar or the flow reach the latest snapshot plus H, or the latest
+          snapshot is recent.
+      VALUE_RANGE:
+        description: >-
+          Values in range: not negative, among the known values, or a declared dimension; counts the violations.
+  Severity:
+    description: How serious a failed expectation is.
+    permissible_values:
+      ERROR:
+        description: The metric's promise breaks.
+      WARNING:
+        description: The answer holds but the data is imperfect.
+      INFO:
+        description: For the record only.
+  FailureAction:
+    description: What a failed expectation does in a call.
+    permissible_values:
+      REFUSE: {description: "The procedure refuses every query."}
+      REFUSE_IF_USED: {description: "The procedure refuses a query that uses the affected columns, else warns."}
+      WARN: {description: "The answer carries a warning."}
+      MONITOR: {description: "Checked by the data metric function only."}
+  BasisKind:
+    description: What a measure basis measures.
+    permissible_values:
+      NATIVE_UNIT: {description: "Each item in its own unit (how it is counted). Comparable within one item only."}
+      BASE_UNIT_EQUIVALENT: {description: "The quantity in the base unit of the item's dimension (kg, L)."}
+      MONETARY: {description: "A value in one currency. Comparable across every item."}
+  BasisUnitSource:
+    description: Where the unit of a figure on a basis comes from.
+    permissible_values:
+      ITEM_NATIVE_UNIT: {description: "The item's own unit."}
+      ITEM_BASE_UNIT: {description: "The base unit of the item's dimension."}
+      FIXED: {description: "The basis's unit_symbol."}
+  BasisValidity:
+    description: Where a measure basis stays comparable.
+    permissible_values:
+      ONE_ITEM_PER_ROW: {description: "Every returned row and total holds one item."}
+      ONE_DIMENSION_PER_ROW: {description: "Every returned row and total holds items of one dimension."}
+      ALWAYS:
+        description: Comparable on every row and total.
+  BasisValidityScope:
+    description: Where the validity of a basis is judged.
+    permissible_values:
+      RETURNED_ROWS:
+        description: >-
+          Judged on the rows and the totals the call returns, after any member selection. A summary of kept rows
+          is a total that is split by unit, or omitted, where its basis is not comparable; it never refuses the call.
+  TestKind:
+    description: The shape of an invariant's test.
+    permissible_values:
+      PROPERTY:
+        description: Holds for every result of every call.
+      EXAMPLE:
+        description: Holds on worked examples (the traps' members).
+      METAMORPHIC: {description: "Compares two calls whose inputs differ in a controlled way."}
+  Comparison:
+    description: The comparison of an alert threshold.
+    permissible_values:
+      LT:
+        description: Raised when the value is below the threshold.
+      LE:
+        description: Raised when the value is at or below the threshold.
+      GT:
+        description: Raised when the value is above the threshold.
+      GE:
+        description: Raised when the value is at or above the threshold.

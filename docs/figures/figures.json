@@ -1,0 +1,337 @@
+{
+ "01-closing-stock-trap": {
+  "data": {
+   "contract_value": 0.0,
+   "country": "Switzerland",
+   "item": "Oat cereal bar 1 kg",
+   "months": [
+    {
+     "month": "2026-04-01",
+     "stock": 400
+    },
+    {
+     "month": "2026-05-01",
+     "stock": 350
+    },
+    {
+     "month": "2026-06-01",
+     "stock": null
+    }
+   ],
+   "native_value": 350.0,
+   "period": "Q2 2026",
+   "sku": "SKU-H11"
+  },
+  "shown": [
+   "400",
+   "350",
+   "350",
+   "0"
+  ]
+ },
+ "02-how-it-works": {
+  "data": {
+   "agent": "generated/agent_c_raw.yaml",
+   "custom_dmfs": 17,
+   "procedures": [
+    "STOCK_COVERAGE",
+    "CLOSING_STOCK"
+   ],
+   "reference_questions": 31,
+   "semantic_views": [
+    "LINKML_C_RAW_SV"
+   ],
+   "tables": [
+    "DIM_CALENDAR",
+    "DIM_GEO",
+    "DIM_ITEM",
+    "DIM_WAREHOUSE",
+    "DIM_BATCH",
+    "FCT_STOCK_SNAPSHOT",
+    "FCT_FORECAST"
+   ]
+  },
+  "shown": [
+   "STOCK_COVERAGE",
+   "CLOSING_STOCK",
+   "a figure, a warning or a coded refusal",
+   "Seven tables",
+   "in no answer's path",
+   "Files in generated/",
+   "Deploy script",
+   "Evaluation harness",
+   "Not Snowflake's agent evaluations.",
+   "Not generated",
+   "no Snowflake call"
+  ]
+ },
+ "03-one-question": {
+  "data": {
+   "answer": "France's stock coverage in June 2026 is about 8.7 months. On that basis, the stock runs out around March 2027. The figure compares stock at standard cost (about €28.4M) with the next 24 months of forecast cost of goods sold (about €77.1M).\n\nI used the value basis (EUR) because the usual kg/L-equivalent basis was refused. France's items mix kg and L, so those units can't be added together.\n\nTwo warnings came back:\n- **FORECAST_GAPS_FILLED (20):** 20 item-months in the forecast horizon had no forecast row, so they were counted as zero demand.\n- **DEFAULT_SCOPE_EXCLUDED:** About €15.45M of BULK stock was left out because it has no forecast. Including it would require filtering item type explicitly.\n\nData freshness: 2026-06-01",
+   "answer_config": "CR",
+   "answer_excerpt": "France's stock coverage in June 2026 is about 8.7 months.",
+   "answer_label": "CR_DIM_MIX_craw-s1_r1",
+   "answer_source": "eval/fixtures/grades_craw-s1.json",
+   "answer_verdict": "correct",
+   "as_of_month": "2026-06-01",
+   "filters": {
+    "country_code": [
+     "FR"
+    ]
+   },
+   "first_basis": "QTY_EQ",
+   "grain": [
+    "country_code"
+   ],
+   "question": "What is the stock coverage in France in June 2026?",
+   "reason": "Coverage is always in months, but on QTY_EQ at least one row or total adds kg and L (items of different dimensions), so stock and forecast cannot be summed for this request. Bases allowed for this request: VALUE.",
+   "refusal": "BASIS_NOT_COMPARABLE",
+   "scope": [
+    "STANDARD"
+   ],
+   "second_basis": "VALUE",
+   "units": [
+    "kg",
+    "L"
+   ],
+   "value": 8.700920093442502
+  },
+  "shown": [
+   "June 2026",
+   "France",
+   "kg or L equivalent",
+   "BASIS_NOT_COMPARABLE",
+   "France mixes kg and L, which can't be added.",
+   "8.7 months, on value (EUR)",
+   "Stock and forecast of France's standard items summed, coverage computed once.",
+   "France's stock coverage in June 2026 is about 8.7 months.",
+   "Source: graded turn of the raw-table version, eval/fixtures/grades_craw-s1.json."
+  ]
+ },
+ "04-closing-rule-two-ways": {
+  "data": {
+   "added_percent": 4.1,
+   "compilation_s": 5.2,
+   "members_compared": 12304.0,
+   "members_equal": 12304.0,
+   "quarter_scan_times": 2.0,
+   "snapshot_rows": 60915.0,
+   "view_rows": 63428.0
+  },
+  "shown": [
+   "4.1%",
+   "63,428",
+   "60,915",
+   "2.0 times",
+   "12,304 of 12,304",
+   "(5.2 s)"
+  ]
+ },
+ "05-trade-off": {
+  "data": {
+   "bars": [
+    {
+     "credits": 0.0195,
+     "figure_only": 24,
+     "label": "24 of 24 · 0.020 credits per turn",
+     "name": "Generated tools, gap-filled view",
+     "row": "C"
+    },
+    {
+     "credits": 0.0195,
+     "figure_only": 22,
+     "label": "22 of 24 · 0.020 credits per turn",
+     "name": "Generated tools, raw tables",
+     "row": "C-raw"
+    },
+    {
+     "credits": 0.0972,
+     "figure_only": 20,
+     "label": "20 of 24 · 0.097 credits per turn",
+     "name": "Skill, script computes",
+     "row": "D"
+    },
+    {
+     "credits": 0.0547,
+     "figure_only": 19,
+     "label": "19 of 24 · 0.055 credits per turn",
+     "name": "Hand-written semantic view",
+     "row": "B1"
+    },
+    {
+     "credits": 0.069,
+     "figure_only": 19,
+     "label": "19 of 24 · 0.069 credits per turn",
+     "name": "Autopilot semantic view",
+     "row": "A"
+    },
+    {
+     "credits": 0.0814,
+     "figure_only": 19,
+     "label": "19 of 24 · 0.081 credits per turn",
+     "name": "Skill, agent writes queries",
+     "row": "D′"
+    },
+    {
+     "credits": 0.1042,
+     "figure_only": 19,
+     "label": "19 of 24 · 0.104 credits per turn",
+     "name": "Generated semantic view",
+     "row": "B2"
+    }
+   ],
+   "of": 24
+  },
+  "shown": [
+   "24 of 24 · 0.020 credits per turn",
+   "22 of 24 · 0.020 credits per turn",
+   "20 of 24 · 0.097 credits per turn",
+   "19 of 24 · 0.055 credits per turn",
+   "19 of 24 · 0.069 credits per turn",
+   "19 of 24 · 0.081 credits per turn",
+   "19 of 24 · 0.104 credits per turn"
+  ]
+ },
+ "06-results-table": {
+  "data": {
+   "columns": [
+    {
+     "sub": "",
+     "title": "Technique"
+    },
+    {
+     "sub": "of 24",
+     "title": "Right figure, basis named"
+    },
+    {
+     "sub": "of 24",
+     "title": "Score of record"
+    },
+    {
+     "sub": "median",
+     "title": "AI Credits per turn"
+    },
+    {
+     "sub": "",
+     "title": "Refuses with a code"
+    }
+   ],
+   "of_s1": 24,
+   "rows": [
+    {
+     "coded_refusal": true,
+     "credits": 0.0195,
+     "credits_shown": "0.020",
+     "figure_only": 22,
+     "highlight": true,
+     "name": "Generated tools, raw tables",
+     "record_s1": 21,
+     "row": "C-raw"
+    },
+    {
+     "coded_refusal": true,
+     "credits": 0.0195,
+     "credits_shown": "0.020",
+     "figure_only": 24,
+     "highlight": true,
+     "name": "Generated tools, gap-filled view",
+     "record_s1": 24,
+     "row": "C"
+    },
+    {
+     "coded_refusal": false,
+     "credits": 0.1042,
+     "credits_shown": "0.104",
+     "figure_only": 19,
+     "highlight": false,
+     "name": "Generated semantic view",
+     "record_s1": 15,
+     "row": "B2"
+    },
+    {
+     "coded_refusal": false,
+     "credits": 0.0972,
+     "credits_shown": "0.097",
+     "figure_only": 20,
+     "highlight": false,
+     "name": "Skill, script computes",
+     "record_s1": 17,
+     "row": "D"
+    },
+    {
+     "coded_refusal": false,
+     "credits": 0.0814,
+     "credits_shown": "0.081",
+     "figure_only": 19,
+     "highlight": false,
+     "name": "Skill, agent writes queries",
+     "record_s1": 15,
+     "row": "D′"
+    },
+    {
+     "coded_refusal": false,
+     "credits": 0.069,
+     "credits_shown": "0.069",
+     "figure_only": 19,
+     "highlight": false,
+     "name": "Autopilot semantic view",
+     "record_s1": 16,
+     "row": "A"
+    },
+    {
+     "coded_refusal": false,
+     "credits": 0.0547,
+     "credits_shown": "0.055",
+     "figure_only": 19,
+     "highlight": false,
+     "name": "Hand-written semantic view",
+     "record_s1": 13,
+     "row": "B1"
+    }
+   ]
+  },
+  "shown": [
+   "Technique",
+   "Right figure, basis named",
+   "Score of record",
+   "AI Credits per turn",
+   "Refuses with a code",
+   "Generated tools, raw tables*",
+   "22",
+   "21",
+   "0.020",
+   "yes",
+   "Generated tools, gap-filled view",
+   "24",
+   "24",
+   "0.020",
+   "yes",
+   "Generated semantic view",
+   "19",
+   "15",
+   "0.104",
+   "no, in prose",
+   "Skill, script computes",
+   "20",
+   "17",
+   "0.097",
+   "no, in prose",
+   "Skill, agent writes queries",
+   "19",
+   "15",
+   "0.081",
+   "no, in prose",
+   "Autopilot semantic view",
+   "19",
+   "16",
+   "0.069",
+   "no, in prose",
+   "Hand-written semantic view",
+   "19",
+   "13",
+   "0.055",
+   "no, in prose",
+   "* replayed the same questions after the campaign."
+  ]
+ }
+}

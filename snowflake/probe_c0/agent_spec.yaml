@@ -1,0 +1,63 @@
+# Probe C0 (config C, hand-written): permanent agent LINKML_METRICS.RAW.LINKML_C0_PROBE, called as LINKML_SVC with a
+# key-pair JWT, dropped at session end. One custom tool bound to STOCK_COVERAGE_PROBE. TEMPORARY: the Phase 3
+# compiler generates the real spec and tool description from the LinkML contract.
+models:
+  orchestration: claude-sonnet-5-5
+orchestration:
+  budget:
+    seconds: 120
+    tokens: 40000
+instructions:
+  orchestration: "For any stock coverage question, call stock_coverage. Never compute, sum, average or adjust a coverage figure yourself."
+  response: "Answer in one to three sentences. State the analysis month, the unit and the filters the tool applied. Explain any flag in words. Give only numbers the tool returned. If the tool refuses, relay its reason and ask the question needed to continue."
+tools:
+  - tool_spec:
+      type: generic
+      name: stock_coverage
+      description: |
+        Returns forward-looking stock coverage in months: how many months of forecast demand the stock on hand at
+        the start of an analysis month will cover, at the grain you ask for. This tool computes the number; you never
+        compute, sum, average or adjust coverage yourself. Coverage is not additive: for a coarser group (a family, a
+        country, the whole range), call the tool again with that coarser grain, never add or average rows.
+        Result rows carry coverage_months, stock, forecast_over_horizon and flag. Flags: NO_DEMAND = no forecast,
+        coverage undefined; BEYOND_HORIZON = stock outlasts the 24-month horizon, coverage extrapolated from average
+        monthly demand; NO_STOCK = forecast but no stock, coverage 0. A result with status "refused" carries a
+        reason: relay it, do not work around it.
+      input_schema:
+        type: object
+        properties:
+          as_of_month:
+            type: string
+            description: >-
+              Required. The analysis month, as the first day of the month (YYYY-MM-01): "June 2026" is 2026-06-01.
+              Coverage is measured at one month. If the user gives no month, or a period (a year, a quarter, a
+              range of months), do not choose one: ask which month.
+          unit_variant:
+            type: string
+            description: >-
+              Required. QTY_EQ (equivalent kg or litres) unless the user asks for value; VALUE (EUR at standard
+              cost). Raw pack counts are not available: they do not add up across pack sizes.
+          grain:
+            type: string
+            description: >-
+              Required, a JSON array of attribute names as a string, at least one, for example
+              ["family_code", "country_code"]: what to break the coverage down by. Conformed attributes apply to
+              stock and forecast: sku_code, family_code, range_code, country_code (ISO code, for example IT),
+              region_code. Stock-only attributes apply to stock only, the forecast stays at the conformed grain:
+              batch_status (RELEASED, QUALITY_HOLD, BLOCKED), warehouse_code, warehouse_type, expiry_bucket,
+              item_type (STANDARD, BULK). lifecycle_status is not available for coverage.
+          filters:
+            type: string
+            description: >-
+              Required. A JSON object as a string, attribute to list of values, for example
+              {"range_code": ["BEV"], "country_code": ["DE", "AT"], "item_type": ["STANDARD"]}. Use "{}" for no
+              filter. Same attributes as grain. A filter on a stock-only attribute restricts the stock only.
+        required: [as_of_month, unit_variant, grain, filters]
+tool_resources:
+  stock_coverage:
+    type: procedure
+    identifier: LINKML_METRICS.RAW.STOCK_COVERAGE_PROBE
+    execution_environment:
+      type: warehouse
+      warehouse: LINKML_METRICS_WH
+      query_timeout: 120

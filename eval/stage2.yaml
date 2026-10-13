@@ -1,0 +1,205 @@
+# Written by eval/gate.py from the stage 1 grades; the rule is eval/gate.md.
+discriminating:
+- T1
+- T2
+- T7
+- T7_R1
+- T8
+- NO_DEMAND
+- BEYOND_H
+- BULK_SCOPE
+- DIM_MIX
+- T9
+- CS_LAST_MONTH_GAP
+- BULK_SCOPE_DRILL
+- G1
+- S_STOCKOUT_COUNTRY
+- S_FIRST_WORLD
+- S_DORMANT_VALUE
+a_passed:
+- T1
+- T2
+- T7
+- BULK_SCOPE
+- DIM_MIX
+- T9
+- CS_LAST_MONTH_GAP
+- G1
+drop_order:
+- G1
+reasons:
+  BEYOND_H:
+    failed:
+    - A
+    - B1
+    - B2
+    - DP
+    basis:
+    - A
+    warnings:
+    - C
+    value:
+    - A
+    - B1
+    - B2
+    - C
+    - D
+    - DP
+  T9:
+    failed:
+    - B1
+    - B2
+    - D
+    - DP
+    basis:
+    - A
+    - B2
+    forced: owner, 2026-10-07
+  S_FIRST_WORLD:
+    failed:
+    - A
+    - B1
+    - B2
+    - D
+    - DP
+    products:
+    - B1
+    - B2
+    - C
+    - D
+    basis:
+    - B1
+    refused:
+    - A
+  S_STOCKOUT_COUNTRY:
+    failed:
+    - A
+    - B2
+    - D
+    - DP
+    products:
+    - D
+    - DP
+    basis:
+    - A
+  T7:
+    failed:
+    - B1
+    - B2
+    - D
+    - DP
+    warnings:
+    - C
+    refused:
+    - DP
+    value:
+    - A
+    - B1
+    - B2
+    - C
+    - D
+    - DP
+  T7_R1:
+    failed:
+    - A
+    - B1
+    - B2
+    - D
+    basis:
+    - A
+    refused:
+    - C
+    - DP
+  S_DORMANT_VALUE:
+    failed:
+    - A
+    - B1
+    - B2
+    - DP
+    products:
+    - C
+    - D
+    basis:
+    - B1
+    - B2
+    - DP
+  BULK_SCOPE:
+    failed:
+    - D
+    basis:
+    - A
+    warnings:
+    - B2
+    - C
+    - DP
+  BULK_SCOPE_DRILL:
+    failed:
+    - A
+    - B1
+    - DP
+    scope:
+    - B2
+    - DP
+    warnings:
+    - B1
+    - B2
+    - DP
+    value:
+    - A
+    - B1
+    - B2
+    - C
+    - D
+    - DP
+  T2:
+    failed:
+    - B1
+    basis:
+    - A
+    - C
+    warnings:
+    - C
+  T1:
+    failed:
+    - B1
+    - B2
+  DIM_MIX:
+    failed:
+    - DP
+    refused:
+    - A
+  NO_DEMAND:
+    failed:
+    - A
+    - B1
+    - B2
+    - D
+    - DP
+    refused:
+    - C
+    - D
+  G1:
+    month:
+    - DP
+  T8:
+    failed:
+    - A
+    - B1
+    basis:
+    - A
+    - DP
+  CS_LAST_MONTH_GAP:
+    forced: owner, 2026-10-07
+not_selected:
+- CS_FAMILY
+- CS_MIDDLE_MONTH_GAP
+- G2
+- S_OWN_UNIT
+- T3
+- T4
+- T5
+- T6
+forced:
+- CS_LAST_MONTH_GAP
+- T9
+forced_by: owner, 2026-10-07

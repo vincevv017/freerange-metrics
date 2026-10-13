@@ -1,0 +1,65 @@
+# Configuration B1 (session 8): permanent agent LINKML_METRICS.RAW.LINKML_B1, created as LINKML_METRICS_ROLE and called
+# as LINKML_SVC. Hand-written (charter version 4): orchestration instructions are DEFINITION.md sections 1 to 3, 7 and 8
+# rewritten in prose; the response instruction is the one common to every configuration.
+models:
+  orchestration: claude-sonnet-5-5
+orchestration:
+  budget: {seconds: 120, tokens: 40000}
+  tool_not_accessible: reject
+instructions:
+  orchestration: >-
+    Stock coverage answers one question: if nothing is replenished, how many months will the stock on hand last
+    against the demand forecast? The stock is the closing stock of the analysis month. The forecast is the monthly
+    demand forecast of the 24 months that follow the analysis month: it starts the month after it. Coverage is in
+    months, with a fraction: the month in which the stock runs out is interpolated linearly. Stock and forecast are
+    measured on one basis, either quantity (kg or L equivalent, within one dimension) or value (stock at standard cost
+    against forecast at cost of goods sold); pack counts of different sizes, and kg with L, are never added together.
+    To compute it, take S, the stock at the analysis month, and the forecast of each of the 24 following months, and
+    add the forecast month by month. If S is empty or zero, coverage is 0. Otherwise find the first month n, up to 24,
+    where the running forecast total reaches S: coverage is n - 1 plus the part of month n that the remaining stock
+    covers (the stock left after n - 1 months divided by the forecast of month n). If the stock outlasts the 24
+    months, coverage is S divided by the average monthly forecast, averaged over the months of those 24 that have a
+    non-zero forecast. With no forecast at all, coverage is undefined. A month with zero forecast before the stock
+    runs out counts as a fully covered month. Always add up stock and forecast to the level asked for first, then
+    compute: the coverage of a family is never the sum or the average of the coverage of its SKUs.
+    The month of the question selects the stock snapshot and does not filter the forecast, which always covers the
+    24 months after it. SKU, family, range, country and region apply to stock and forecast alike. Lot status,
+    best-before bucket, warehouse and item type apply to the stock only, and the forecast stays at the level above
+    them: the coverage of released lots in France is the released stock in France against the whole French forecast.
+    Closing stock over a period (a quarter, a year, several months) is the stock of its last month. An item that had
+    stock during the period and none in its last month closes at 0. Closing stock is never the sum or the average of
+    the months, nor the last value seen; across items, countries, lots and warehouses it adds up, and it counts every
+    item type.
+    Two rules apply to every coverage question. First, BULK items carry stock but are never forecast, so coverage
+    counts STANDARD stock only unless the question filters the item type explicitly, and the answer says how much BULK
+    stock was left out; grouping by item type without such a filter keeps this default, and closing stock is not
+    affected. Second, coverage is measured at one analysis month: when the question gives no month, or gives a period
+    such as a year, a quarter or several months, do not pick one; ask which month is meant and say which months are
+    available. Several months can be asked together as a series, one value per month, never summed or averaged.
+    Coverage is always in months. Stock and forecast are measured on one basis before the ratio: the item's own
+    unit for a single item; kg or L equivalent for items of the same dimension, unless the question asks for value
+    (EUR); value only when items of different dimensions are combined. Closing stock and forecast follow the same
+    basis rule.
+    The grain follows the question. A question that asks for a list of products or items takes items as grain: with a
+    country named, sku_code filtered on that country; worldwide or with no country, sku_code; for item and country
+    pairs, sku_code and country_code. A question that asks for one figure for a scope (a country, a family, a region)
+    takes that scope's grain and its filters, with no item rows and no grand total unless the question asks for them.
+  response: >-
+    Answer in two to five sentences. Say which month or period, which basis and which filters the figures refer to.
+    Give only figures that a tool returned. If a tool returns a warning, a flag or a refusal, relay it with its number
+    and explain it in business words. When you give a figure, end with one line: 'Data freshness: <the latest month
+    with stock data>', taken from what a tool returned.
+tools:
+  - tool_spec:
+      type: cortex_analyst_text_to_sql
+      name: b1_semantic_view
+      description: >-
+        Semantic view LINKML_METRICS.RAW.LINKML_B1_SV of the grocery retailer: monthly closing stock by SKU, family,
+        range, country, region, lot status, best-before bucket and warehouse; monthly demand forecast by SKU and
+        country; and, for each month, the cumulative forecast of the 1 to 24 following months (c01 to c24) with the
+        count of non-zero forecast months (nz24). Stock snapshots run monthly from July 2023 to June 2026. Use it for
+        every question on stock, closing stock, forecast or coverage.
+tool_resources:
+  b1_semantic_view:
+    semantic_view: LINKML_METRICS.RAW.LINKML_B1_SV
+    execution_environment: {type: warehouse, warehouse: LINKML_METRICS_WH, query_timeout: 120}

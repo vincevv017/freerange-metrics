@@ -1,0 +1,309 @@
+{
+ "source": "linkml-metrics-runs/manual/trace_dp_sku0001_it_manual_r1.json and summary_dp_sku0001_it_manual_r1.json (session 8c-1, D', DP_SKU0001_IT_manual_r1, 3 REST calls); trace rows as run_call.py read them by time (21 rows, 5 of them from the owner's concurrent Snowsight request 00000011), reduced to START_TIMESTAMP, TIMESTAMP, RECORD.name and the record id, object name, version, thread id and database id attributes",
+ "label": "DP_SKU0001_IT_manual_r1",
+ "agent": "LINKML_DP",
+ "window_utc": [
+  "2026-10-05T18:52:52.891849+00:00",
+  "2026-10-05T18:53:46.204739+00:00"
+ ],
+ "calls": [
+  {
+   "request_id": "0000000c-0000-4000-8000-00000000000c",
+   "started_utc": "2026-10-05T18:52:52.891857+00:00",
+   "status": 200
+  },
+  {
+   "request_id": "0000000d-0000-4000-8000-00000000000d",
+   "started_utc": "2026-10-05T18:53:10.362006+00:00",
+   "status": 200
+  },
+  {
+   "request_id": "0000000e-0000-4000-8000-00000000000e",
+   "started_utc": "2026-10-05T18:53:32.817757+00:00",
+   "status": 200
+  }
+ ],
+ "rows": [
+  {
+   "START_TIMESTAMP": null,
+   "TIMESTAMP": "2026-10-05 18:53:14.277000",
+   "RECORD": {
+    "name": "CORTEX_AGENT_REQUEST"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000d-0000-4000-8000-00000000000d",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:53:14.277000",
+   "TIMESTAMP": "2026-10-05 18:53:24.029000",
+   "RECORD": {
+    "name": "Agent"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000d-0000-4000-8000-00000000000d",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:53:17.976000",
+   "TIMESTAMP": "2026-10-05 18:53:18.102000",
+   "RECORD": {
+    "name": "SemanticContextTool_b2_semantic_view"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000d-0000-4000-8000-00000000000d",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:53:14.278000",
+   "TIMESTAMP": "2026-10-05 18:53:17.976000",
+   "RECORD": {
+    "name": "CodingAgent.Step-2"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000d-0000-4000-8000-00000000000d",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:53:18.109000",
+   "TIMESTAMP": "2026-10-05 18:53:23.850000",
+   "RECORD": {
+    "name": "CodingAgent.Step-3"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000d-0000-4000-8000-00000000000d",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:53:14.277000",
+   "TIMESTAMP": "2026-10-05 18:53:24.020000",
+   "RECORD": {
+    "name": "CodingAgentRun"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000d-0000-4000-8000-00000000000d",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.agent.thread_id": 0,
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": null,
+   "TIMESTAMP": "2026-10-05 18:52:53.678000",
+   "RECORD": {
+    "name": "CORTEX_AGENT_REQUEST"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000c-0000-4000-8000-00000000000c",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:52:53.678000",
+   "TIMESTAMP": "2026-10-05 18:53:04.578000",
+   "RECORD": {
+    "name": "Agent"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000c-0000-4000-8000-00000000000c",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:52:59.763000",
+   "TIMESTAMP": "2026-10-05 18:52:59.772000",
+   "RECORD": {
+    "name": "CodeExecutionTool_skill"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000c-0000-4000-8000-00000000000c",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:52:56.844000",
+   "TIMESTAMP": "2026-10-05 18:52:59.763000",
+   "RECORD": {
+    "name": "CodingAgent.Step-0"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000c-0000-4000-8000-00000000000c",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:52:59.776000",
+   "TIMESTAMP": "2026-10-05 18:53:04.549000",
+   "RECORD": {
+    "name": "CodingAgent.Step-1"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000c-0000-4000-8000-00000000000c",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:52:53.678000",
+   "TIMESTAMP": "2026-10-05 18:53:04.566000",
+   "RECORD": {
+    "name": "CodingAgentRun"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000c-0000-4000-8000-00000000000c",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.agent.thread_id": 0,
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": null,
+   "TIMESTAMP": "2026-10-05 18:53:33.589000",
+   "RECORD": {
+    "name": "CORTEX_AGENT_REQUEST"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000e-0000-4000-8000-00000000000e",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:53:33.589000",
+   "TIMESTAMP": "2026-10-05 18:53:40.920000",
+   "RECORD": {
+    "name": "Agent"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000e-0000-4000-8000-00000000000e",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:53:36.823000",
+   "TIMESTAMP": "2026-10-05 18:53:40.895000",
+   "RECORD": {
+    "name": "CodingAgent.Step-4"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000e-0000-4000-8000-00000000000e",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:53:33.589000",
+   "TIMESTAMP": "2026-10-05 18:53:40.914000",
+   "RECORD": {
+    "name": "CodingAgentRun"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "0000000e-0000-4000-8000-00000000000e",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "VERSION$7",
+    "snow.ai.observability.agent.thread_id": 0,
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": null,
+   "TIMESTAMP": "2026-10-05 18:52:55.428000",
+   "RECORD": {
+    "name": "CORTEX_AGENT_REQUEST"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "00000011-0000-4000-8000-000000000011",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "LIVE",
+    "snow.ai.observability.agent.thread_id": 1000000001,
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:52:55.428000",
+   "TIMESTAMP": "2026-10-05 18:52:59.950000",
+   "RECORD": {
+    "name": "Agent"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "00000011-0000-4000-8000-000000000011",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "LIVE",
+    "snow.ai.observability.agent.thread_id": 1000000001,
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:52:55.397000",
+   "TIMESTAMP": "2026-10-05 18:52:55.428000",
+   "RECORD": {
+    "name": "CodeExecutionTool_bash"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "00000011-0000-4000-8000-000000000011",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "LIVE",
+    "snow.ai.observability.agent.thread_id": 1000000001,
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:52:55.428000",
+   "TIMESTAMP": "2026-10-05 18:52:59.940000",
+   "RECORD": {
+    "name": "CodingAgent.Step-2"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "00000011-0000-4000-8000-000000000011",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "LIVE",
+    "snow.ai.observability.agent.thread_id": 1000000001,
+    "snow.ai.observability.database.id": 1000000001
+   }
+  },
+  {
+   "START_TIMESTAMP": "2026-10-05 18:52:55.428000",
+   "TIMESTAMP": "2026-10-05 18:52:59.944000",
+   "RECORD": {
+    "name": "CodingAgentRun"
+   },
+   "RECORD_ATTRIBUTES": {
+    "ai.observability.record_id": "00000011-0000-4000-8000-000000000011",
+    "snow.ai.observability.object.name": "LINKML_DP",
+    "snow.ai.observability.object.version.name": "LIVE",
+    "snow.ai.observability.agent.thread_id": 1000000001,
+    "snow.ai.observability.database.id": 1000000001
+   }
+  }
+ ]
+}

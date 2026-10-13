@@ -1,0 +1,451 @@
+name: AP_LINKLM
+tables:
+  - name: DIM_BATCH
+    description: "The table contains records of production batches, each identified by a unique batch code and associated item. Each record captures the batch's lifecycle details, including its current status, production month, and expiration date."
+    base_table:
+      database: LINKML_METRICS
+      schema: RAW
+      table: DIM_BATCH
+    primary_key:
+      columns:
+        - BATCH_ID
+    dimensions:
+      - name: BATCH_CODE
+        expr: BATCH_CODE
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - B000001
+          - B000002
+          - B000003
+      - name: BATCH_ID
+        expr: BATCH_ID
+        data_type: "NUMBER(8,0)"
+        access_modifier: public_access
+        sample_values:
+          - "1"
+          - "2"
+          - "3"
+      - name: BATCH_STATUS
+        expr: BATCH_STATUS
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - QUALITY_HOLD
+          - RELEASED
+          - BLOCKED
+      - name: ITEM_ID
+        expr: ITEM_ID
+        data_type: "NUMBER(6,0)"
+        access_modifier: public_access
+        sample_values:
+          - "1"
+          - "2"
+          - "3"
+    time_dimensions:
+      - name: EXPIRY_DATE
+        expr: EXPIRY_DATE
+        data_type: DATE
+        access_modifier: public_access
+        sample_values:
+          - "19438"
+          - "19566"
+          - "19654"
+      - name: PRODUCTION_MONTH
+        expr: PRODUCTION_MONTH
+        data_type: DATE
+        access_modifier: public_access
+        sample_values:
+          - "18687"
+          - "18779"
+          - "18871"
+  - name: DIM_CALENDAR
+    description: "The table contains records representing calendar time periods. Each record corresponds to a specific month and includes temporal categorization details such as the associated year, quarter, and month identifiers."
+    base_table:
+      database: LINKML_METRICS
+      schema: RAW
+      table: DIM_CALENDAR
+    dimensions:
+      - name: MONTH_LABEL
+        expr: MONTH_LABEL
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - 2023-07
+          - 2023-08
+          - 2023-10
+      - name: MONTH_NUM
+        expr: MONTH_NUM
+        data_type: "NUMBER(2,0)"
+        access_modifier: public_access
+        sample_values:
+          - "7"
+          - "8"
+          - "9"
+      - name: QUARTER
+        expr: QUARTER
+        data_type: "NUMBER(1,0)"
+        access_modifier: public_access
+        sample_values:
+          - "3"
+          - "4"
+          - "1"
+      - name: YEAR
+        expr: YEAR
+        data_type: "NUMBER(4,0)"
+        access_modifier: public_access
+        sample_values:
+          - "2023"
+          - "2024"
+          - "2025"
+    time_dimensions:
+      - name: MONTH_START
+        expr: MONTH_START
+        data_type: DATE
+        access_modifier: public_access
+        sample_values:
+          - "19539"
+          - "19570"
+          - "19601"
+  - name: DIM_GEO
+    description: "The table contains geographic reference data organized by country and region. Each record represents a country-level entry with associated regional classifications, including standardized codes and names."
+    base_table:
+      database: LINKML_METRICS
+      schema: RAW
+      table: DIM_GEO
+    primary_key:
+      columns:
+        - COUNTRY_ID
+    dimensions:
+      - name: COUNTRY_CODE
+        expr: COUNTRY_CODE
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - FR
+          - BE
+          - NL
+      - name: COUNTRY_ID
+        expr: COUNTRY_ID
+        data_type: "NUMBER(6,0)"
+        access_modifier: public_access
+        sample_values:
+          - "1"
+          - "2"
+          - "3"
+      - name: COUNTRY_NAME
+        expr: COUNTRY_NAME
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - France
+          - Belgium
+          - Netherlands
+      - name: REGION_CODE
+        expr: REGION_CODE
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - WEST
+          - SOUTH
+          - CENTRAL
+      - name: REGION_NAME
+        expr: REGION_NAME
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - Western Europe
+          - Central Europe
+          - Southern Europe
+  - name: DIM_ITEM
+    description: "The table contains records of individual items, identified by SKU, along with their hierarchical product groupings such as family and range classifications. Each record includes details about the item's type, lifecycle status, unit of measure, and cost-related financials in EUR."
+    base_table:
+      database: LINKML_METRICS
+      schema: RAW
+      table: DIM_ITEM
+    primary_key:
+      columns:
+        - ITEM_ID
+    dimensions:
+      - name: FAMILY_CODE
+        expr: FAMILY_CODE
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - HOT_GROUND
+          - HOT_BEANS
+          - HOT_TEA
+      - name: FAMILY_NAME
+        expr: FAMILY_NAME
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - Ground coffee
+          - Whole bean coffee
+          - Loose-leaf tea
+      - name: ITEM_ID
+        expr: ITEM_ID
+        data_type: "NUMBER(6,0)"
+        access_modifier: public_access
+        sample_values:
+          - "1"
+          - "2"
+          - "3"
+      - name: ITEM_TYPE
+        expr: ITEM_TYPE
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - STANDARD
+          - BULK
+      - name: LIFECYCLE_STATUS
+        expr: LIFECYCLE_STATUS
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - ACTIVE
+          - PHASE_OUT
+      - name: RANGE_CODE
+        expr: RANGE_CODE
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - HOT
+          - PANTRY
+          - SNACK
+      - name: RANGE_NAME
+        expr: RANGE_NAME
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - Coffee & Tea
+          - Pantry
+          - Beverages
+      - name: RAW_UNIT
+        expr: RAW_UNIT
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - PACK_1000
+          - PACK_500
+          - CASE_10
+      - name: SKU_CODE
+        expr: SKU_CODE
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - SKU-0001
+          - SKU-0003
+          - SKU-0004
+      - name: SKU_NAME
+        expr: SKU_NAME
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - Ground coffee 1
+          - Ground coffee 2
+          - Ground coffee 3
+    facts:
+      - name: COGS_EUR
+        expr: COGS_EUR
+        data_type: "NUMBER(12,4)"
+        access_modifier: public_access
+        sample_values:
+          - "11.9609"
+          - "18.4021"
+          - "96.2106"
+      - name: QTY_EQ_FACTOR
+        expr: QTY_EQ_FACTOR
+        data_type: "NUMBER(10,4)"
+        access_modifier: public_access
+        sample_values:
+          - "1.0000"
+          - "0.5000"
+          - "10.0000"
+      - name: STD_COST_EUR
+        expr: STD_COST_EUR
+        data_type: "NUMBER(12,4)"
+        access_modifier: public_access
+        sample_values:
+          - "10.5373"
+          - "17.0669"
+          - "93.2102"
+  - name: DIM_WAREHOUSE
+    description: "The table contains records of warehouses, each identified by a unique code and type. Each record includes details about the warehouse classification and its associated country."
+    base_table:
+      database: LINKML_METRICS
+      schema: RAW
+      table: DIM_WAREHOUSE
+    primary_key:
+      columns:
+        - WAREHOUSE_ID
+    dimensions:
+      - name: COUNTRY_ID
+        expr: COUNTRY_ID
+        data_type: "NUMBER(6,0)"
+        access_modifier: public_access
+        sample_values:
+          - "1"
+          - "2"
+          - "3"
+      - name: WAREHOUSE_CODE
+        expr: WAREHOUSE_CODE
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - DC-FR-1
+          - DC-BE-1
+          - DC-NL-1
+      - name: WAREHOUSE_ID
+        expr: WAREHOUSE_ID
+        data_type: "NUMBER(6,0)"
+        access_modifier: public_access
+        sample_values:
+          - "1"
+          - "3"
+          - "2"
+      - name: WAREHOUSE_TYPE
+        expr: WAREHOUSE_TYPE
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - 3PL
+          - OWN
+  - name: FCT_FORECAST
+    description: "The table contains records of forecasted demand metrics at the item and country level. Each record represents a monthly forecast for a specific item-country combination, including projected quantities and estimated values in euros."
+    base_table:
+      database: LINKML_METRICS
+      schema: RAW
+      table: FCT_FORECAST
+    dimensions:
+      - name: COUNTRY_ID
+        expr: COUNTRY_ID
+        data_type: "NUMBER(6,0)"
+        access_modifier: public_access
+        sample_values:
+          - "2"
+          - "8"
+          - "9"
+      - name: ITEM_ID
+        expr: ITEM_ID
+        data_type: "NUMBER(6,0)"
+        access_modifier: public_access
+        sample_values:
+          - "1"
+          - "3"
+          - "6"
+    facts:
+      - name: FORECAST_QTY_EQ
+        expr: FORECAST_QTY_EQ
+        data_type: "NUMBER(18,4)"
+        access_modifier: public_access
+        sample_values:
+          - "3639.0000"
+          - "321.0000"
+          - "430.0000"
+      - name: FORECAST_QTY_RAW
+        expr: FORECAST_QTY_RAW
+        data_type: "NUMBER(18,4)"
+        access_modifier: public_access
+        sample_values:
+          - "3639.0000"
+          - "321.0000"
+          - "430.0000"
+      - name: FORECAST_VALUE_EUR
+        expr: FORECAST_VALUE_EUR
+        data_type: "NUMBER(18,4)"
+        access_modifier: public_access
+        sample_values:
+          - "43525.7151"
+          - "3839.4489"
+          - "5143.1870"
+    time_dimensions:
+      - name: FORECAST_MONTH
+        expr: FORECAST_MONTH
+        data_type: DATE
+        access_modifier: public_access
+        sample_values:
+          - "19539"
+          - "19570"
+          - "19601"
+  - name: FCT_STOCK_SNAPSHOT
+    description: "The table contains records of inventory stock snapshots across warehouses and countries. Each record captures stock levels and valuations at a monthly point in time, categorized by item, warehouse, and expiry bucket, with quantities expressed in both raw and equivalent units alongside Euro-denominated values."
+    base_table:
+      database: LINKML_METRICS
+      schema: RAW
+      table: FCT_STOCK_SNAPSHOT
+    dimensions:
+      - name: BATCH_ID
+        expr: BATCH_ID
+        data_type: "NUMBER(8,0)"
+        access_modifier: public_access
+        sample_values:
+          - "2"
+          - "3"
+          - "5"
+      - name: COUNTRY_ID
+        expr: COUNTRY_ID
+        data_type: "NUMBER(6,0)"
+        access_modifier: public_access
+        sample_values:
+          - "2"
+          - "8"
+          - "9"
+      - name: EXPIRY_BUCKET
+        expr: EXPIRY_BUCKET
+        data_type: VARCHAR(16777216)
+        access_modifier: public_access
+        sample_values:
+          - <6M
+          - 6-12M
+          - 12-24M
+      - name: ITEM_ID
+        expr: ITEM_ID
+        data_type: "NUMBER(6,0)"
+        access_modifier: public_access
+        sample_values:
+          - "1"
+          - "2"
+          - "3"
+      - name: WAREHOUSE_ID
+        expr: WAREHOUSE_ID
+        data_type: "NUMBER(6,0)"
+        access_modifier: public_access
+        sample_values:
+          - "2"
+          - "11"
+          - "12"
+    facts:
+      - name: STOCK_QTY_EQ
+        expr: STOCK_QTY_EQ
+        data_type: "NUMBER(18,4)"
+        access_modifier: public_access
+        sample_values:
+          - "2340.0000"
+          - "1665.0000"
+          - "3157.0000"
+      - name: STOCK_QTY_RAW
+        expr: STOCK_QTY_RAW
+        data_type: "NUMBER(18,4)"
+        access_modifier: public_access
+        sample_values:
+          - "2340.0000"
+          - "1665.0000"
+          - "3157.0000"
+      - name: STOCK_VALUE_EUR
+        expr: STOCK_VALUE_EUR
+        data_type: "NUMBER(18,4)"
+        access_modifier: public_access
+        sample_values:
+          - "24657.2820"
+          - "17544.6045"
+          - "33266.2561"
+    time_dimensions:
+      - name: SNAPSHOT_MONTH
+        expr: SNAPSHOT_MONTH
+        data_type: DATE
+        access_modifier: public_access
+        sample_values:
+          - "19539"
+          - "19570"
+          - "19601"

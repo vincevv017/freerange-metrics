@@ -1,0 +1,9 @@
+# linkml-lint configuration for the contract. Codes (refusals, flags, enum values) are UPPER_CASE on purpose: they
+# travel verbatim to the procedure's JSON answer and the agent's tool description.
+extends: recommended
+rules:
+  standard_naming:
+    level: error
+    permissible_values_upper_case: true
+  recommended:
+    level: disabled

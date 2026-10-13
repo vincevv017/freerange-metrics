@@ -1,0 +1,940 @@
+name: LINKML_B2_SV
+description: 'Configuration B2, generated from contract stock_coverage 0.5.1: stock coverage, closing stock and demand forecast
+  of the grocery dataset.'
+tables:
+- name: item
+  description: 'Items: SKU, family, range, item type and lifecycle status. One row per distinct combination of the item
+    key and its attributes; an item recorded twice with different attributes keeps two rows.'
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: B2_ITEM
+  primary_key:
+    columns:
+    - item_id
+  dimensions:
+  - name: sku_code
+    expr: sku_code
+    description: 'sku_code (conformed: applies to stock and forecast alike).'
+    is_enum: false
+    sample_values:
+    - SKU-0001
+    - SKU-0002
+    - SKU-0003
+  - name: sku_name
+    expr: sku_name
+    description: Name of sku_code.
+    is_enum: false
+    sample_values:
+    - Arabica beans 1 kg
+    - Bread flour 1 kg
+    - Breakfast cereals 1
+  - name: family_code
+    expr: family_code
+    description: 'family_code (conformed: applies to stock and forecast alike).'
+    is_enum: true
+    sample_values:
+    - BEV_ICED
+    - BEV_JUICE
+    - BREAKFAST_CEREAL
+    - BREAKFAST_SPREAD
+    - HOT_BEANS
+    - HOT_GROUND
+    - HOT_TEA
+    - PANTRY_FLOUR
+    - PANTRY_OIL
+    - PANTRY_PASTA
+    - PANTRY_RICE
+    - SNACK_BARS
+    - SNACK_CRISPS
+    - SNACK_NUTS
+  - name: family_name
+    expr: family_name
+    description: Name of family_code.
+    is_enum: true
+    sample_values:
+    - Breakfast cereals
+    - Cereal bars
+    - Cooking oils
+    - Crisps
+    - Dry pasta
+    - Flour and baking
+    - Fruit juice
+    - Ground coffee
+    - Iced tea
+    - Jams and spreads
+    - Loose-leaf tea
+    - Nuts and dried fruit
+    - Rice and grains
+    - Whole bean coffee
+  - name: range_code
+    expr: range_code
+    description: 'range_code (conformed: applies to stock and forecast alike).'
+    is_enum: true
+    sample_values:
+    - BEV
+    - BREAKFAST
+    - HOT
+    - PANTRY
+    - SNACK
+  - name: range_name
+    expr: range_name
+    description: Name of range_code.
+    is_enum: true
+    sample_values:
+    - Beverages
+    - Breakfast
+    - Coffee & Tea
+    - Pantry
+    - Snacks
+  - name: lifecycle_status
+    expr: lifecycle_status
+    description: 'An item attribute, so the forecast carries it too (decision 6, session 4). Trap T7 duplicates exactly
+      this column: QE_ITEM_GRAIN refuses a query that uses it while an item has two values. (conformed: applies to stock
+      and forecast alike). Known values: ACTIVE, PHASE_OUT.'
+    is_enum: true
+    sample_values:
+    - ACTIVE
+    - PHASE_OUT
+  - name: dimension
+    expr: dimension
+    description: 'The physical dimension in which the item is counted, with its base unit: MASS (kg) or VOLUME (L). Grouping
+      or filtering by it keeps quantity-equivalent rows within one dimension. (conformed: applies to stock and forecast
+      alike). Known values: MASS, VOLUME.'
+  - name: base_unit
+    expr: base_unit
+    description: Name of dimension.
+  - name: item_type
+    expr: item_type
+    description: 'Snapshot-only by decision: BULK items carry stock but never a forecast. Default scope STANDARD for stock
+      coverage only; closing stock counts every item type. (stock-only: restricts the stock, never the forecast). Known
+      values: STANDARD, BULK.'
+    is_enum: true
+    sample_values:
+    - BULK
+    - STANDARD
+- name: geo
+  description: Countries and regions.
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: DIM_GEO
+  primary_key:
+    columns:
+    - country_id
+  dimensions:
+  - name: country_code
+    expr: country_code
+    description: 'ISO 3166-1 alpha-2 code. (conformed: applies to stock and forecast alike).'
+    is_enum: true
+    sample_values:
+    - BE
+    - CH
+    - DE
+    - ES
+    - FR
+    - GB
+    - IT
+    - NL
+    - PL
+    - SE
+  - name: country_name
+    expr: country_name
+    description: Name of country_code.
+    is_enum: true
+    sample_values:
+    - Belgium
+    - France
+    - Germany
+    - Italy
+    - Netherlands
+    - Poland
+    - Spain
+    - Sweden
+    - Switzerland
+    - United Kingdom
+  - name: region_code
+    expr: region_code
+    description: 'region_code (conformed: applies to stock and forecast alike). Known values: CENTRAL, NORDIC, SOUTH, WEST.'
+    is_enum: true
+    sample_values:
+    - CENTRAL
+    - NORDIC
+    - SOUTH
+    - WEST
+  - name: region_name
+    expr: region_name
+    description: Name of region_code.
+    is_enum: true
+    sample_values:
+    - Central Europe
+    - Nordics
+    - Southern Europe
+    - Western Europe
+- name: calendar
+  description: 'Calendar months. For stock coverage, month_start is the analysis month: filter it on exactly one month.
+    For closing stock over a period, filter or group by year_quarter, year or a range of month_start.'
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: DIM_CALENDAR
+  primary_key:
+    columns:
+    - month_start
+  dimensions:
+  - name: month_start
+    expr: month_start
+    description: First day of the month (the analysis month for coverage).
+    data_type: DATE
+  - name: year_quarter
+    expr: year || '-Q' || quarter
+    description: Calendar quarter, for example 2026-Q2.
+    is_enum: true
+    sample_values:
+    - 2023-Q3
+    - 2023-Q4
+    - 2024-Q1
+    - 2024-Q2
+    - 2024-Q3
+    - 2024-Q4
+    - 2025-Q1
+    - 2025-Q2
+    - 2025-Q3
+    - 2025-Q4
+    - 2026-Q1
+    - 2026-Q2
+    - 2026-Q3
+    - 2026-Q4
+    - 2027-Q1
+    - 2027-Q2
+    - 2027-Q3
+    - 2027-Q4
+    - 2028-Q1
+    - 2028-Q2
+    - 2028-Q3
+    - 2028-Q4
+    - 2029-Q1
+    - 2029-Q2
+  - name: year
+    expr: year
+    description: Calendar year.
+    is_enum: true
+    sample_values:
+    - '2023'
+    - '2024'
+    - '2025'
+    - '2026'
+    - '2027'
+    - '2028'
+    - '2029'
+- name: batch
+  description: Supplier lots (batches) of the stock.
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: DIM_BATCH
+  primary_key:
+    columns:
+    - batch_id
+- name: status
+  description: 'Values of batch_status, reached by the stock through its lot and by the forward forecast through its per-status
+    replicas: a filter on it restricts the stock only.'
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: B2_STATUS
+  primary_key:
+    columns:
+    - batch_status
+  dimensions:
+  - name: batch_status
+    expr: batch_status
+    description: 'batch_status (stock-only: restricts the stock, never the forecast). Known values: RELEASED, QUALITY_HOLD,
+      BLOCKED.'
+    is_enum: true
+    sample_values:
+    - BLOCKED
+    - QUALITY_HOLD
+    - RELEASED
+- name: warehouse
+  description: Warehouses holding the stock (stock-only attributes).
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: DIM_WAREHOUSE
+  primary_key:
+    columns:
+    - warehouse_id
+  dimensions:
+  - name: warehouse_code
+    expr: warehouse_code
+    description: 'warehouse_code (stock-only: restricts the stock, never the forecast).'
+    is_enum: true
+    sample_values:
+    - DC-BE-1
+    - DC-CH-1
+    - DC-CH-2
+    - DC-DE-1
+    - DC-DE-2
+    - DC-ES-1
+    - DC-FR-1
+    - DC-GB-1
+    - DC-IT-1
+    - DC-IT-2
+    - DC-NL-1
+    - DC-PL-1
+    - DC-PL-2
+    - DC-SE-1
+    - DC-SE-2
+  - name: warehouse_type
+    expr: warehouse_type
+    description: 'warehouse_type (stock-only: restricts the stock, never the forecast). Known values: OWN, 3PL.'
+    is_enum: true
+    sample_values:
+    - 3PL
+    - OWN
+- name: stock
+  description: 'Closing stock of the month. A level, never summed over months. Gap-filled: a lot and warehouse with no snapshot
+    in a month of its span counts 0 that month.'
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: FCT_STOCK_SNAPSHOT_GAPFILLED
+  primary_key:
+    columns:
+    - snapshot_month
+    - batch_id
+    - warehouse_id
+  dimensions:
+  - name: expiry_bucket
+    expr: expiry_bucket
+    description: 'expiry_bucket (stock-only: restricts the stock, never the forecast). Known values: <6M, 6-12M, 12-24M,
+      >24M.'
+    is_enum: true
+    sample_values:
+    - 12-24M
+    - 6-12M
+    - <6M
+    - '>24M'
+  - name: snapshot_month
+    expr: snapshot_month
+    description: Snapshot month of the stock.
+    data_type: DATE
+  - name: gap_filled
+    expr: gap_filled
+    description: TRUE on a row added by the gap fill (stock 0).
+    data_type: BOOLEAN
+  metrics:
+  - name: closing_stock_qty_eq
+    description: 'Stock on hand in kg or L equivalent; kg and L never add up: group or filter by dimension when items of
+      both dimensions are combined, or use the value metric: the snapshot of the latest month in the query, summed over
+      items, countries, lots and warehouses. Closing stock over a period: the snapshot of the period''s last month, for
+      every member of the period. A member with a snapshot in any month of the period and none in its last month closes
+      at 0 and keeps its row. Never summed, averaged or carried forward over time (step 1 of the article; data/traps.yaml
+      closing_stock). Never sum, average, last_non_empty over time. For coverage it is the stock at the analysis month.'
+    expr: SUM(stock_qty_eq)
+    non_additive_dimensions:
+    - table: stock
+      dimension: snapshot_month
+      sort_direction: ascending
+      null_order: last
+  - name: closing_stock_value
+    description: 'Stock on hand in EUR, comparable across every item: the snapshot of the latest month in the query, summed
+      over items, countries, lots and warehouses. Closing stock over a period: the snapshot of the period''s last month,
+      for every member of the period. A member with a snapshot in any month of the period and none in its last month closes
+      at 0 and keeps its row. Never summed, averaged or carried forward over time (step 1 of the article; data/traps.yaml
+      closing_stock). Never sum, average, last_non_empty over time. For coverage it is the stock at the analysis month.'
+    expr: SUM(stock_value_eur)
+    non_additive_dimensions:
+    - table: stock
+      dimension: snapshot_month
+      sort_direction: ascending
+      null_order: last
+- name: forecast
+  description: Monthly demand forecast per item and country. A flow, summed over the forward window.
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: FCT_FORECAST
+  primary_key:
+    columns:
+    - forecast_month
+    - item_id
+    - country_id
+  dimensions:
+  - name: forecast_month
+    expr: forecast_month
+    description: Forecast month.
+    data_type: DATE
+  metrics:
+  - name: forecast_qty_eq
+    description: 'Monthly demand forecast per item and country. A flow, summed over the forward window. Summed over the
+      months, items and countries of the query, in kg or L equivalent; kg and L never add up: group or filter by dimension
+      when items of both dimensions are combined, or use the value metric.'
+    expr: SUM(forecast_qty_eq)
+  - name: forecast_value
+    description: Monthly demand forecast per item and country. A flow, summed over the forward window. Summed over the months,
+      items and countries of the query, in EUR, comparable across every item.
+    expr: SUM(forecast_value_eur)
+- name: fwd
+  description: 'Forward forecast spine: for each valid analysis month, the forecast of the 24 following months by item and
+    country, missing months 0, replicated once per batch_status value (every metric divides the replication back out). Used
+    by the coverage metrics only.'
+  base_table:
+    database: LINKML_METRICS
+    schema: RAW
+    table: B2_FORECAST_SPINE
+  primary_key:
+    columns:
+    - as_of_month
+    - item_id
+    - country_id
+    - batch_status
+  metrics:
+  - name: cum_qty_eq_01
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_02
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_03
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_04
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_05
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_06
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_07
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq) / COUNT(DISTINCT
+      batch_status)
+  - name: cum_qty_eq_08
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq) / COUNT(DISTINCT
+      batch_status)
+  - name: cum_qty_eq_09
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq)
+      / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_10
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq
+      + f10_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_11
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq
+      + f10_qty_eq + f11_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_12
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq
+      + f10_qty_eq + f11_qty_eq + f12_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_13
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq
+      + f10_qty_eq + f11_qty_eq + f12_qty_eq + f13_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_14
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq
+      + f10_qty_eq + f11_qty_eq + f12_qty_eq + f13_qty_eq + f14_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_15
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq
+      + f10_qty_eq + f11_qty_eq + f12_qty_eq + f13_qty_eq + f14_qty_eq + f15_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_16
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq
+      + f10_qty_eq + f11_qty_eq + f12_qty_eq + f13_qty_eq + f14_qty_eq + f15_qty_eq + f16_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_17
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq
+      + f10_qty_eq + f11_qty_eq + f12_qty_eq + f13_qty_eq + f14_qty_eq + f15_qty_eq + f16_qty_eq + f17_qty_eq) / COUNT(DISTINCT
+      batch_status)
+  - name: cum_qty_eq_18
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq
+      + f10_qty_eq + f11_qty_eq + f12_qty_eq + f13_qty_eq + f14_qty_eq + f15_qty_eq + f16_qty_eq + f17_qty_eq + f18_qty_eq)
+      / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_19
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq
+      + f10_qty_eq + f11_qty_eq + f12_qty_eq + f13_qty_eq + f14_qty_eq + f15_qty_eq + f16_qty_eq + f17_qty_eq + f18_qty_eq
+      + f19_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_20
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq
+      + f10_qty_eq + f11_qty_eq + f12_qty_eq + f13_qty_eq + f14_qty_eq + f15_qty_eq + f16_qty_eq + f17_qty_eq + f18_qty_eq
+      + f19_qty_eq + f20_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_21
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq
+      + f10_qty_eq + f11_qty_eq + f12_qty_eq + f13_qty_eq + f14_qty_eq + f15_qty_eq + f16_qty_eq + f17_qty_eq + f18_qty_eq
+      + f19_qty_eq + f20_qty_eq + f21_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_22
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq
+      + f10_qty_eq + f11_qty_eq + f12_qty_eq + f13_qty_eq + f14_qty_eq + f15_qty_eq + f16_qty_eq + f17_qty_eq + f18_qty_eq
+      + f19_qty_eq + f20_qty_eq + f21_qty_eq + f22_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_23
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq
+      + f10_qty_eq + f11_qty_eq + f12_qty_eq + f13_qty_eq + f14_qty_eq + f15_qty_eq + f16_qty_eq + f17_qty_eq + f18_qty_eq
+      + f19_qty_eq + f20_qty_eq + f21_qty_eq + f22_qty_eq + f23_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_qty_eq_24
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq + f02_qty_eq + f03_qty_eq + f04_qty_eq + f05_qty_eq + f06_qty_eq + f07_qty_eq + f08_qty_eq + f09_qty_eq
+      + f10_qty_eq + f11_qty_eq + f12_qty_eq + f13_qty_eq + f14_qty_eq + f15_qty_eq + f16_qty_eq + f17_qty_eq + f18_qty_eq
+      + f19_qty_eq + f20_qty_eq + f21_qty_eq + f22_qty_eq + f23_qty_eq + f24_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_01
+    access_modifier: private_access
+    expr: SUM(f01_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_02
+    access_modifier: private_access
+    expr: SUM(f02_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_03
+    access_modifier: private_access
+    expr: SUM(f03_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_04
+    access_modifier: private_access
+    expr: SUM(f04_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_05
+    access_modifier: private_access
+    expr: SUM(f05_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_06
+    access_modifier: private_access
+    expr: SUM(f06_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_07
+    access_modifier: private_access
+    expr: SUM(f07_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_08
+    access_modifier: private_access
+    expr: SUM(f08_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_09
+    access_modifier: private_access
+    expr: SUM(f09_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_10
+    access_modifier: private_access
+    expr: SUM(f10_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_11
+    access_modifier: private_access
+    expr: SUM(f11_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_12
+    access_modifier: private_access
+    expr: SUM(f12_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_13
+    access_modifier: private_access
+    expr: SUM(f13_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_14
+    access_modifier: private_access
+    expr: SUM(f14_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_15
+    access_modifier: private_access
+    expr: SUM(f15_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_16
+    access_modifier: private_access
+    expr: SUM(f16_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_17
+    access_modifier: private_access
+    expr: SUM(f17_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_18
+    access_modifier: private_access
+    expr: SUM(f18_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_19
+    access_modifier: private_access
+    expr: SUM(f19_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_20
+    access_modifier: private_access
+    expr: SUM(f20_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_21
+    access_modifier: private_access
+    expr: SUM(f21_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_22
+    access_modifier: private_access
+    expr: SUM(f22_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_23
+    access_modifier: private_access
+    expr: SUM(f23_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: month_qty_eq_24
+    access_modifier: private_access
+    expr: SUM(f24_qty_eq) / COUNT(DISTINCT batch_status)
+  - name: cum_value_01
+    access_modifier: private_access
+    expr: SUM(f01_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_02
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_03
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_04
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_05
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_06
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_07
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_08
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value) / COUNT(DISTINCT
+      batch_status)
+  - name: cum_value_09
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value)
+      / COUNT(DISTINCT batch_status)
+  - name: cum_value_10
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value
+      + f10_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_11
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value
+      + f10_value + f11_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_12
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value
+      + f10_value + f11_value + f12_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_13
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value
+      + f10_value + f11_value + f12_value + f13_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_14
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value
+      + f10_value + f11_value + f12_value + f13_value + f14_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_15
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value
+      + f10_value + f11_value + f12_value + f13_value + f14_value + f15_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_16
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value
+      + f10_value + f11_value + f12_value + f13_value + f14_value + f15_value + f16_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_17
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value
+      + f10_value + f11_value + f12_value + f13_value + f14_value + f15_value + f16_value + f17_value) / COUNT(DISTINCT
+      batch_status)
+  - name: cum_value_18
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value
+      + f10_value + f11_value + f12_value + f13_value + f14_value + f15_value + f16_value + f17_value + f18_value) / COUNT(DISTINCT
+      batch_status)
+  - name: cum_value_19
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value
+      + f10_value + f11_value + f12_value + f13_value + f14_value + f15_value + f16_value + f17_value + f18_value + f19_value)
+      / COUNT(DISTINCT batch_status)
+  - name: cum_value_20
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value
+      + f10_value + f11_value + f12_value + f13_value + f14_value + f15_value + f16_value + f17_value + f18_value + f19_value
+      + f20_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_21
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value
+      + f10_value + f11_value + f12_value + f13_value + f14_value + f15_value + f16_value + f17_value + f18_value + f19_value
+      + f20_value + f21_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_22
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value
+      + f10_value + f11_value + f12_value + f13_value + f14_value + f15_value + f16_value + f17_value + f18_value + f19_value
+      + f20_value + f21_value + f22_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_23
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value
+      + f10_value + f11_value + f12_value + f13_value + f14_value + f15_value + f16_value + f17_value + f18_value + f19_value
+      + f20_value + f21_value + f22_value + f23_value) / COUNT(DISTINCT batch_status)
+  - name: cum_value_24
+    access_modifier: private_access
+    expr: SUM(f01_value + f02_value + f03_value + f04_value + f05_value + f06_value + f07_value + f08_value + f09_value
+      + f10_value + f11_value + f12_value + f13_value + f14_value + f15_value + f16_value + f17_value + f18_value + f19_value
+      + f20_value + f21_value + f22_value + f23_value + f24_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_01
+    access_modifier: private_access
+    expr: SUM(f01_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_02
+    access_modifier: private_access
+    expr: SUM(f02_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_03
+    access_modifier: private_access
+    expr: SUM(f03_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_04
+    access_modifier: private_access
+    expr: SUM(f04_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_05
+    access_modifier: private_access
+    expr: SUM(f05_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_06
+    access_modifier: private_access
+    expr: SUM(f06_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_07
+    access_modifier: private_access
+    expr: SUM(f07_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_08
+    access_modifier: private_access
+    expr: SUM(f08_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_09
+    access_modifier: private_access
+    expr: SUM(f09_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_10
+    access_modifier: private_access
+    expr: SUM(f10_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_11
+    access_modifier: private_access
+    expr: SUM(f11_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_12
+    access_modifier: private_access
+    expr: SUM(f12_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_13
+    access_modifier: private_access
+    expr: SUM(f13_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_14
+    access_modifier: private_access
+    expr: SUM(f14_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_15
+    access_modifier: private_access
+    expr: SUM(f15_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_16
+    access_modifier: private_access
+    expr: SUM(f16_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_17
+    access_modifier: private_access
+    expr: SUM(f17_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_18
+    access_modifier: private_access
+    expr: SUM(f18_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_19
+    access_modifier: private_access
+    expr: SUM(f19_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_20
+    access_modifier: private_access
+    expr: SUM(f20_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_21
+    access_modifier: private_access
+    expr: SUM(f21_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_22
+    access_modifier: private_access
+    expr: SUM(f22_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_23
+    access_modifier: private_access
+    expr: SUM(f23_value) / COUNT(DISTINCT batch_status)
+  - name: month_value_24
+    access_modifier: private_access
+    expr: SUM(f24_value) / COUNT(DISTINCT batch_status)
+relationships:
+- name: stock_item
+  left_table: stock
+  right_table: item
+  relationship_columns:
+  - left_column: item_id
+    right_column: item_id
+- name: stock_geo
+  left_table: stock
+  right_table: geo
+  relationship_columns:
+  - left_column: country_id
+    right_column: country_id
+- name: stock_calendar
+  left_table: stock
+  right_table: calendar
+  relationship_columns:
+  - left_column: snapshot_month
+    right_column: month_start
+- name: stock_batch
+  left_table: stock
+  right_table: batch
+  relationship_columns:
+  - left_column: batch_id
+    right_column: batch_id
+- name: stock_warehouse
+  left_table: stock
+  right_table: warehouse
+  relationship_columns:
+  - left_column: warehouse_id
+    right_column: warehouse_id
+- name: batch_status
+  left_table: batch
+  right_table: status
+  relationship_columns:
+  - left_column: batch_status
+    right_column: batch_status
+- name: forecast_item
+  left_table: forecast
+  right_table: item
+  relationship_columns:
+  - left_column: item_id
+    right_column: item_id
+- name: forecast_geo
+  left_table: forecast
+  right_table: geo
+  relationship_columns:
+  - left_column: country_id
+    right_column: country_id
+- name: forecast_calendar
+  left_table: forecast
+  right_table: calendar
+  relationship_columns:
+  - left_column: forecast_month
+    right_column: month_start
+- name: fwd_item
+  left_table: fwd
+  right_table: item
+  relationship_columns:
+  - left_column: item_id
+    right_column: item_id
+- name: fwd_geo
+  left_table: fwd
+  right_table: geo
+  relationship_columns:
+  - left_column: country_id
+    right_column: country_id
+- name: fwd_calendar
+  left_table: fwd
+  right_table: calendar
+  relationship_columns:
+  - left_column: as_of_month
+    right_column: month_start
+- name: fwd_status
+  left_table: fwd
+  right_table: status
+  relationship_columns:
+  - left_column: batch_status
+    right_column: batch_status
+metrics:
+- name: coverage_months_qty_eq
+  synonyms:
+  - months of cover
+  - coverage
+  - stock cover
+  - months of stock
+  description: 'Stock coverage, always in months; stock and forecast measured in kg or L equivalent; kg and L never add
+    up: group or filter by dimension when items of both dimensions are combined, or use the value metric: forward depletion
+    of the stock at the analysis month t against the forecast of t+1 to t+H. Recomputed from the stock and the forward forecast
+    aggregated at the queried grain; never add or average it across rows. Filter calendar.month_start on exactly one analysis
+    month. Outcomes: NO_STOCK: Forecast but no stock at the analysis month, coverage 0; the row is kept.; NO_DEMAND: No
+    forecast in the window t+1 to t+H, coverage null: undefined without demand.; BEYOND_HORIZON: Stock outlasts the 24-month
+    horizon, extrapolated: stock over the mean non-zero monthly forecast of the horizon.'
+  expr: "CASE\n  WHEN stock.closing_stock_qty_eq IS NULL OR stock.closing_stock_qty_eq = 0 THEN 0\n  WHEN fwd.cum_qty_eq_24\
+    \ IS NULL OR fwd.cum_qty_eq_24 = 0 THEN NULL\n  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_01 THEN stock.closing_stock_qty_eq\
+    \ / fwd.cum_qty_eq_01\n  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_02 THEN 1 + (stock.closing_stock_qty_eq -\
+    \ fwd.cum_qty_eq_01) / (fwd.cum_qty_eq_02 - fwd.cum_qty_eq_01)\n  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_03\
+    \ THEN 2 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_02) / (fwd.cum_qty_eq_03 - fwd.cum_qty_eq_02)\n  WHEN stock.closing_stock_qty_eq\
+    \ <= fwd.cum_qty_eq_04 THEN 3 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_03) / (fwd.cum_qty_eq_04 - fwd.cum_qty_eq_03)\n\
+    \  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_05 THEN 4 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_04) /\
+    \ (fwd.cum_qty_eq_05 - fwd.cum_qty_eq_04)\n  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_06 THEN 5 + (stock.closing_stock_qty_eq\
+    \ - fwd.cum_qty_eq_05) / (fwd.cum_qty_eq_06 - fwd.cum_qty_eq_05)\n  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_07\
+    \ THEN 6 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_06) / (fwd.cum_qty_eq_07 - fwd.cum_qty_eq_06)\n  WHEN stock.closing_stock_qty_eq\
+    \ <= fwd.cum_qty_eq_08 THEN 7 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_07) / (fwd.cum_qty_eq_08 - fwd.cum_qty_eq_07)\n\
+    \  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_09 THEN 8 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_08) /\
+    \ (fwd.cum_qty_eq_09 - fwd.cum_qty_eq_08)\n  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_10 THEN 9 + (stock.closing_stock_qty_eq\
+    \ - fwd.cum_qty_eq_09) / (fwd.cum_qty_eq_10 - fwd.cum_qty_eq_09)\n  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_11\
+    \ THEN 10 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_10) / (fwd.cum_qty_eq_11 - fwd.cum_qty_eq_10)\n  WHEN stock.closing_stock_qty_eq\
+    \ <= fwd.cum_qty_eq_12 THEN 11 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_11) / (fwd.cum_qty_eq_12 - fwd.cum_qty_eq_11)\n\
+    \  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_13 THEN 12 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_12) /\
+    \ (fwd.cum_qty_eq_13 - fwd.cum_qty_eq_12)\n  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_14 THEN 13 + (stock.closing_stock_qty_eq\
+    \ - fwd.cum_qty_eq_13) / (fwd.cum_qty_eq_14 - fwd.cum_qty_eq_13)\n  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_15\
+    \ THEN 14 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_14) / (fwd.cum_qty_eq_15 - fwd.cum_qty_eq_14)\n  WHEN stock.closing_stock_qty_eq\
+    \ <= fwd.cum_qty_eq_16 THEN 15 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_15) / (fwd.cum_qty_eq_16 - fwd.cum_qty_eq_15)\n\
+    \  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_17 THEN 16 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_16) /\
+    \ (fwd.cum_qty_eq_17 - fwd.cum_qty_eq_16)\n  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_18 THEN 17 + (stock.closing_stock_qty_eq\
+    \ - fwd.cum_qty_eq_17) / (fwd.cum_qty_eq_18 - fwd.cum_qty_eq_17)\n  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_19\
+    \ THEN 18 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_18) / (fwd.cum_qty_eq_19 - fwd.cum_qty_eq_18)\n  WHEN stock.closing_stock_qty_eq\
+    \ <= fwd.cum_qty_eq_20 THEN 19 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_19) / (fwd.cum_qty_eq_20 - fwd.cum_qty_eq_19)\n\
+    \  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_21 THEN 20 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_20) /\
+    \ (fwd.cum_qty_eq_21 - fwd.cum_qty_eq_20)\n  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_22 THEN 21 + (stock.closing_stock_qty_eq\
+    \ - fwd.cum_qty_eq_21) / (fwd.cum_qty_eq_22 - fwd.cum_qty_eq_21)\n  WHEN stock.closing_stock_qty_eq <= fwd.cum_qty_eq_23\
+    \ THEN 22 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_22) / (fwd.cum_qty_eq_23 - fwd.cum_qty_eq_22)\n  WHEN stock.closing_stock_qty_eq\
+    \ <= fwd.cum_qty_eq_24 THEN 23 + (stock.closing_stock_qty_eq - fwd.cum_qty_eq_23) / (fwd.cum_qty_eq_24 - fwd.cum_qty_eq_23)\n\
+    \  ELSE stock.closing_stock_qty_eq / (fwd.cum_qty_eq_24 / (IFF(fwd.month_qty_eq_01 > 0, 1, 0) + IFF(fwd.month_qty_eq_02\
+    \ > 0, 1, 0) + IFF(fwd.month_qty_eq_03 > 0, 1, 0) + IFF(fwd.month_qty_eq_04 > 0, 1, 0) + IFF(fwd.month_qty_eq_05 > 0,\
+    \ 1, 0) + IFF(fwd.month_qty_eq_06 > 0, 1, 0) + IFF(fwd.month_qty_eq_07 > 0, 1, 0) + IFF(fwd.month_qty_eq_08 > 0, 1,\
+    \ 0) + IFF(fwd.month_qty_eq_09 > 0, 1, 0) + IFF(fwd.month_qty_eq_10 > 0, 1, 0) + IFF(fwd.month_qty_eq_11 > 0, 1, 0)\
+    \ + IFF(fwd.month_qty_eq_12 > 0, 1, 0) + IFF(fwd.month_qty_eq_13 > 0, 1, 0) + IFF(fwd.month_qty_eq_14 > 0, 1, 0) + IFF(fwd.month_qty_eq_15\
+    \ > 0, 1, 0) + IFF(fwd.month_qty_eq_16 > 0, 1, 0) + IFF(fwd.month_qty_eq_17 > 0, 1, 0) + IFF(fwd.month_qty_eq_18 > 0,\
+    \ 1, 0) + IFF(fwd.month_qty_eq_19 > 0, 1, 0) + IFF(fwd.month_qty_eq_20 > 0, 1, 0) + IFF(fwd.month_qty_eq_21 > 0, 1,\
+    \ 0) + IFF(fwd.month_qty_eq_22 > 0, 1, 0) + IFF(fwd.month_qty_eq_23 > 0, 1, 0) + IFF(fwd.month_qty_eq_24 > 0, 1, 0)))\n\
+    END"
+- name: coverage_months_value
+  synonyms: []
+  description: 'Stock coverage, always in months; stock and forecast measured in EUR, comparable across every item: forward
+    depletion of the stock at the analysis month t against the forecast of t+1 to t+H. Recomputed from the stock and the
+    forward forecast aggregated at the queried grain; never add or average it across rows. Filter calendar.month_start on
+    exactly one analysis month. Outcomes: NO_STOCK: Forecast but no stock at the analysis month, coverage 0; the row is
+    kept.; NO_DEMAND: No forecast in the window t+1 to t+H, coverage null: undefined without demand.; BEYOND_HORIZON: Stock
+    outlasts the 24-month horizon, extrapolated: stock over the mean non-zero monthly forecast of the horizon.'
+  expr: "CASE\n  WHEN stock.closing_stock_value IS NULL OR stock.closing_stock_value = 0 THEN 0\n  WHEN fwd.cum_value_24\
+    \ IS NULL OR fwd.cum_value_24 = 0 THEN NULL\n  WHEN stock.closing_stock_value <= fwd.cum_value_01 THEN stock.closing_stock_value\
+    \ / fwd.cum_value_01\n  WHEN stock.closing_stock_value <= fwd.cum_value_02 THEN 1 + (stock.closing_stock_value - fwd.cum_value_01)\
+    \ / (fwd.cum_value_02 - fwd.cum_value_01)\n  WHEN stock.closing_stock_value <= fwd.cum_value_03 THEN 2 + (stock.closing_stock_value\
+    \ - fwd.cum_value_02) / (fwd.cum_value_03 - fwd.cum_value_02)\n  WHEN stock.closing_stock_value <= fwd.cum_value_04\
+    \ THEN 3 + (stock.closing_stock_value - fwd.cum_value_03) / (fwd.cum_value_04 - fwd.cum_value_03)\n  WHEN stock.closing_stock_value\
+    \ <= fwd.cum_value_05 THEN 4 + (stock.closing_stock_value - fwd.cum_value_04) / (fwd.cum_value_05 - fwd.cum_value_04)\n\
+    \  WHEN stock.closing_stock_value <= fwd.cum_value_06 THEN 5 + (stock.closing_stock_value - fwd.cum_value_05) / (fwd.cum_value_06\
+    \ - fwd.cum_value_05)\n  WHEN stock.closing_stock_value <= fwd.cum_value_07 THEN 6 + (stock.closing_stock_value - fwd.cum_value_06)\
+    \ / (fwd.cum_value_07 - fwd.cum_value_06)\n  WHEN stock.closing_stock_value <= fwd.cum_value_08 THEN 7 + (stock.closing_stock_value\
+    \ - fwd.cum_value_07) / (fwd.cum_value_08 - fwd.cum_value_07)\n  WHEN stock.closing_stock_value <= fwd.cum_value_09\
+    \ THEN 8 + (stock.closing_stock_value - fwd.cum_value_08) / (fwd.cum_value_09 - fwd.cum_value_08)\n  WHEN stock.closing_stock_value\
+    \ <= fwd.cum_value_10 THEN 9 + (stock.closing_stock_value - fwd.cum_value_09) / (fwd.cum_value_10 - fwd.cum_value_09)\n\
+    \  WHEN stock.closing_stock_value <= fwd.cum_value_11 THEN 10 + (stock.closing_stock_value - fwd.cum_value_10) / (fwd.cum_value_11\
+    \ - fwd.cum_value_10)\n  WHEN stock.closing_stock_value <= fwd.cum_value_12 THEN 11 + (stock.closing_stock_value - fwd.cum_value_11)\
+    \ / (fwd.cum_value_12 - fwd.cum_value_11)\n  WHEN stock.closing_stock_value <= fwd.cum_value_13 THEN 12 + (stock.closing_stock_value\
+    \ - fwd.cum_value_12) / (fwd.cum_value_13 - fwd.cum_value_12)\n  WHEN stock.closing_stock_value <= fwd.cum_value_14\
+    \ THEN 13 + (stock.closing_stock_value - fwd.cum_value_13) / (fwd.cum_value_14 - fwd.cum_value_13)\n  WHEN stock.closing_stock_value\
+    \ <= fwd.cum_value_15 THEN 14 + (stock.closing_stock_value - fwd.cum_value_14) / (fwd.cum_value_15 - fwd.cum_value_14)\n\
+    \  WHEN stock.closing_stock_value <= fwd.cum_value_16 THEN 15 + (stock.closing_stock_value - fwd.cum_value_15) / (fwd.cum_value_16\
+    \ - fwd.cum_value_15)\n  WHEN stock.closing_stock_value <= fwd.cum_value_17 THEN 16 + (stock.closing_stock_value - fwd.cum_value_16)\
+    \ / (fwd.cum_value_17 - fwd.cum_value_16)\n  WHEN stock.closing_stock_value <= fwd.cum_value_18 THEN 17 + (stock.closing_stock_value\
+    \ - fwd.cum_value_17) / (fwd.cum_value_18 - fwd.cum_value_17)\n  WHEN stock.closing_stock_value <= fwd.cum_value_19\
+    \ THEN 18 + (stock.closing_stock_value - fwd.cum_value_18) / (fwd.cum_value_19 - fwd.cum_value_18)\n  WHEN stock.closing_stock_value\
+    \ <= fwd.cum_value_20 THEN 19 + (stock.closing_stock_value - fwd.cum_value_19) / (fwd.cum_value_20 - fwd.cum_value_19)\n\
+    \  WHEN stock.closing_stock_value <= fwd.cum_value_21 THEN 20 + (stock.closing_stock_value - fwd.cum_value_20) / (fwd.cum_value_21\
+    \ - fwd.cum_value_20)\n  WHEN stock.closing_stock_value <= fwd.cum_value_22 THEN 21 + (stock.closing_stock_value - fwd.cum_value_21)\
+    \ / (fwd.cum_value_22 - fwd.cum_value_21)\n  WHEN stock.closing_stock_value <= fwd.cum_value_23 THEN 22 + (stock.closing_stock_value\
+    \ - fwd.cum_value_22) / (fwd.cum_value_23 - fwd.cum_value_22)\n  WHEN stock.closing_stock_value <= fwd.cum_value_24\
+    \ THEN 23 + (stock.closing_stock_value - fwd.cum_value_23) / (fwd.cum_value_24 - fwd.cum_value_23)\n  ELSE stock.closing_stock_value\
+    \ / (fwd.cum_value_24 / (IFF(fwd.month_value_01 > 0, 1, 0) + IFF(fwd.month_value_02 > 0, 1, 0) + IFF(fwd.month_value_03\
+    \ > 0, 1, 0) + IFF(fwd.month_value_04 > 0, 1, 0) + IFF(fwd.month_value_05 > 0, 1, 0) + IFF(fwd.month_value_06 > 0, 1,\
+    \ 0) + IFF(fwd.month_value_07 > 0, 1, 0) + IFF(fwd.month_value_08 > 0, 1, 0) + IFF(fwd.month_value_09 > 0, 1, 0) + IFF(fwd.month_value_10\
+    \ > 0, 1, 0) + IFF(fwd.month_value_11 > 0, 1, 0) + IFF(fwd.month_value_12 > 0, 1, 0) + IFF(fwd.month_value_13 > 0, 1,\
+    \ 0) + IFF(fwd.month_value_14 > 0, 1, 0) + IFF(fwd.month_value_15 > 0, 1, 0) + IFF(fwd.month_value_16 > 0, 1, 0) + IFF(fwd.month_value_17\
+    \ > 0, 1, 0) + IFF(fwd.month_value_18 > 0, 1, 0) + IFF(fwd.month_value_19 > 0, 1, 0) + IFF(fwd.month_value_20 > 0, 1,\
+    \ 0) + IFF(fwd.month_value_21 > 0, 1, 0) + IFF(fwd.month_value_22 > 0, 1, 0) + IFF(fwd.month_value_23 > 0, 1, 0) + IFF(fwd.month_value_24\
+    \ > 0, 1, 0)))\nEND"
+verified_queries:
+- name: closing_stock_family_country_quarter
+  question: What was the closing stock of family SNACK_CRISPS in DE for 2026-Q1, in kg equivalent?
+  sql: '-- closing stock of a quarter = the snapshot of its last month (2026-03-01), absent = 0 (gap-filled)
+
+    SELECT i.family_code, g.country_code, SUM(s.stock_qty_eq) AS closing_stock_qty_eq
+
+    FROM __stock AS s
+
+    JOIN __item AS i ON s.item_id = i.item_id
+
+    JOIN __geo AS g ON s.country_id = g.country_id
+
+    WHERE i.family_code = ''SNACK_CRISPS'' AND g.country_code = ''DE'' AND s.snapshot_month = ''2026-03-01''
+
+    GROUP BY i.family_code, g.country_code'
+- name: forecast_family_country_month
+  question: What is the demand forecast of family PANTRY_RICE in IT for 2026-08, in kg equivalent?
+  sql: 'SELECT i.family_code, g.country_code, SUM(f.forecast_qty_eq) AS forecast_qty_eq
+
+    FROM __forecast AS f
+
+    JOIN __item AS i ON f.item_id = i.item_id
+
+    JOIN __geo AS g ON f.country_id = g.country_id
+
+    WHERE i.family_code = ''PANTRY_RICE'' AND g.country_code = ''IT'' AND f.forecast_month = ''2026-08-01''
+
+    GROUP BY i.family_code, g.country_code'

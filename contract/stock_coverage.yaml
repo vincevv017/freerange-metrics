@@ -1,0 +1,844 @@
+# Stock coverage contract: the single hand-written source for the metric. Validated against metamodel.yaml.
+# Sources: docs/DEFINITION.md, the hand-written schema v0 (replaced by generated/schema.py in Phase 2), the session 4 decisions
+# (plan, Decisions tab), probe C0 (snowflake/probe_c0/), docs/phase0_findings.md. docs/CONTRACT.md explains how to read it.
+id: stock_coverage
+name: Stock coverage
+description: >-
+  If nothing is replenished, how many months will the stock on hand at the analysis month last against the demand
+  forecast of the following months? The result is always in months, fractional, with linear interpolation in the
+  depletion month. Stock and forecast are measured on one basis before the ratio, where that basis is comparable.
+version: 0.5.1
+status: DRAFT
+effective_date: "2026-10-05"
+ownership:
+  business_owner: Supply planning lead (role)
+  technical_owner: Data platform engineer (role)
+  data_steward: Master data steward (role)
+  review_cadence: At every change of a rule, and before each release of the generated objects
+changes:
+  - {version: 0.1.0, date: "2026-10-03", summary: "First contract: DEFINITION.md, schema v0, decisions 1 to 8 of session 4, refusal codes of probe C0."}
+  - {version: 0.1.1, date: "2026-10-03", summary: "Phase 2: T5, T6 and BULK_SCOPE now sourced from data/traps.yaml (refusal traps and the HOT_GROUND hero); T5 reference question moved to a family with mixed pack sizes. No rule changed."}
+  - {version: 0.1.2, date: "2026-10-03", summary: "Phase 2: DMF names checked on the account (SHOW DATA METRIC FUNCTIONS IN SCHEMA SNOWFLAKE.CORE); the two non-negativity expectations use SNOWFLAKE.CORE.NEGATIVE_COUNT, and stock freshness SNOWFLAKE.CORE.FRESHNESS (a DMF body cannot call CURRENT_DATE), instead of CUSTOM. No rule changed."}
+  - {version: 0.2.0, date: "2026-10-03", summary: "Phase 3 (session 6): rule added, closing stock (period aggregation LAST_PERIOD of the stock snapshot, missing member = 0, failure modes CS_LAST_MONTH_GAP, CS_MIDDLE_MONTH_GAP, CS_FAMILY). In-call quality checks scoped to the request (call_scope). QE_FORECAST_REACH added: the forecast reaches LATEST + 24 (a DMF takes at most two tables, so QE_HORIZON_LOADED keeps the calendar). Refusal DATA_QUALITY_FAILED and warning DATA_QUALITY_ROWS added for expectations that had no code."}
+  - {version: 0.2.1, date: "2026-10-03", summary: "Session 7: failure mode T9 (stale stock in coverage) added, reusing the SKU-H11 hero; prevented by the NO_STOCK outcome (stock read at exactly the analysis month) and by the closing-stock period aggregation (gap-filled snapshot for native consumers). No rule changed."}
+  - {version: 0.3.0, date: "2026-10-03", summary: "Session 7: QE_FORECAST_DENSE as a data metric function counts the missing months of the horizon window of LATEST, for the pairs with a forecast row in that window, as the procedure does for a request (it counted every month of the union of the horizons of all valid analysis months, for every pair with a forecast anywhere: 377 on v0). The DMF and the in-call check now differ by scope only."}
+  - {version: 0.3.1, date: "2026-10-03", summary: "Session 8a: the MASTER_DATA_FANOUT reason names only the used attributes on which the duplicated item rows differ (it named every used attribute of the item dimension: family_code, lifecycle_status, item_type for T7_R1, where only lifecycle_status differs). No rule changed."}
+  - {version: 0.4.0, date: "2026-10-03", summary: "Session 8a: the procedure answer no longer carries the text of its SQL. It carries lineage.query_ids (context, quality, coverage: the statements the call ran, whose text is read back from query history) and available_months as first, last and LATEST instead of the full list (kept in the AS_OF_NO_SNAPSHOT reason). The tool description says so. No rule changed."}
+  - {version: 0.4.1, date: "2026-10-04", summary: "Session 8: SCOPE_ITEM_TYPE names the metric it applies to (applies_to_metrics: stock_coverage, metamodel 0.3.0); the default scope is a coverage rule and does not apply to closing stock (decision of 2026-10-03, phase 3 notes finding 42). The item_type description says so. No coverage rule changed."}
+  - {version: 0.5.1, date: "2026-10-05", summary: "Session 8c-0 step 7a (owner): member_selection.grain_rule (metamodel 0.4.1). A list question takes items as grain; a question for one figure for a scope takes that scope's grain, with no item rows and no grand total unless asked. It replaces the session 8c-0 rule that applied the item grain to every question (the DIM_MIX overreach of step 6). No computation changed."}
+  - {version: 0.5.0, date: "2026-10-05", summary: "Session 8c-0: coverage is a time measure on a governed basis (metamodel 0.4.0). unit_variants and forbidden_units replaced by measure_bases (NATIVE, QTY_EQ, VALUE) and basis_model: each item's dimension (MASS kg, VOLUME L) and units in DIM_ITEM; NATIVE valid for one item per row, QTY_EQ for one dimension per row, VALUE always, judged on the rows and totals the call returns; default QTY_EQ, refused (BASIS_NOT_COMPARABLE, naming the bases allowed) where not comparable, never switched. UNIT_RAW_NOT_ADDITIVE removed (raw units are the NATIVE basis), UNIT_UNKNOWN renamed BASIS_UNKNOWN, parameter unit_variant renamed basis. Member selection (coverage_below, coverage_above, rank_first, SELECTION_INVALID), the stockout month of each row, the summary of kept rows per comparable unit and the members set apart (NO_STOCK, NO_DEMAND). Attribute dimension (CONFORMED, label base_unit). Failure mode DIM_MIX, expectation QE_ITEM_DIMENSION. The DEFAULT_SCOPE_EXCLUDED amount is given per unit of the basis."}
+  - {version: 0.4.2, date: "2026-10-04", summary: "Session 8b: the MASTER_DATA_FANOUT reason follows each differing attribute with its conflicting values (distinct, sorted, NULL excluded, at most 5 then 'and <n> more'), attributes in declaration order; several faulty attributes are named in declaration order, never in JSON key order; a nested value in a reason is compact JSON. Same in the Python and the SQL Scripting procedure. No rule changed."}
+
+# ================================================================================================ physical model
+dimension_classes:
+  - {id: TIME, is_time: true, description: "Calendar month."}
+  - {id: PRODUCT, description: "Item, its family and range, its type and lifecycle."}
+  - {id: GEOGRAPHY, description: "Country and region where stock is held and demand is forecast."}
+  - {id: BATCH, description: "Production batch: status and expiry."}
+  - {id: LOCATION, description: "Warehouse holding the stock."}
+
+tables:
+  - id: DIM_CALENDAR
+    kind: DIMENSION
+    grain: [month_start]
+    columns:
+      - {name: "month_start", data_type: DATE}
+      - {name: "year", data_type: "NUMBER(4,0)"}
+      - {name: "quarter", data_type: "NUMBER(1,0)"}
+      - {name: "month_num", data_type: "NUMBER(2,0)"}
+      - {name: "month_label", data_type: VARCHAR}
+  - id: DIM_GEO
+    kind: DIMENSION
+    grain: [country_id]
+    columns:
+      - {name: "country_id", data_type: "NUMBER(6,0)"}
+      - {name: "country_code", data_type: VARCHAR}
+      - {name: "country_name", data_type: VARCHAR}
+      - {name: "region_code", data_type: VARCHAR}
+      - {name: "region_name", data_type: VARCHAR}
+  - id: DIM_ITEM
+    kind: DIMENSION
+    description: >-
+      Declared grain item_id. The v0 dataset violates it on purpose (trap T7): the uniqueness expectation
+      QE_ITEM_GRAIN detects it.
+    grain: [item_id]
+    columns:
+      - {name: "item_id", data_type: "NUMBER(6,0)"}
+      - {name: "sku_code", data_type: VARCHAR}
+      - {name: "sku_name", data_type: VARCHAR}
+      - {name: "family_code", data_type: VARCHAR}
+      - {name: "family_name", data_type: VARCHAR}
+      - {name: "range_code", data_type: VARCHAR}
+      - {name: "range_name", data_type: VARCHAR}
+      - {name: "item_type", data_type: VARCHAR}
+      - {name: "lifecycle_status", data_type: VARCHAR}
+      - {name: "raw_unit", data_type: VARCHAR}
+      - {name: "qty_eq_factor", data_type: "NUMBER(10,4)"}
+      - {name: "dimension", data_type: VARCHAR}
+      - {name: "base_unit", data_type: VARCHAR}
+      - {name: "std_cost_eur", data_type: "NUMBER(12,4)"}
+      - {name: "cogs_eur", data_type: "NUMBER(12,4)"}
+  - id: DIM_WAREHOUSE
+    kind: DIMENSION
+    grain: [warehouse_id]
+    columns:
+      - {name: "warehouse_id", data_type: "NUMBER(6,0)"}
+      - {name: "warehouse_code", data_type: VARCHAR}
+      - {name: "warehouse_type", data_type: VARCHAR}
+      - {name: "country_id", data_type: "NUMBER(6,0)"}
+  - id: DIM_BATCH
+    kind: DIMENSION
+    grain: [batch_id]
+    columns:
+      - {name: "batch_id", data_type: "NUMBER(8,0)"}
+      - {name: "batch_code", data_type: VARCHAR}
+      - {name: "item_id", data_type: "NUMBER(6,0)"}
+      - {name: "batch_status", data_type: VARCHAR}
+      - {name: "production_month", data_type: DATE}
+      - {name: "expiry_date", data_type: DATE}
+  - id: FCT_STOCK_SNAPSHOT
+    kind: FACT
+    description: Monthly closing stock per batch and warehouse. item_id and country_id are denormalised keys.
+    grain: [snapshot_month, batch_id, warehouse_id]
+    columns:
+      - {name: "snapshot_month", data_type: DATE}
+      - {name: "batch_id", data_type: "NUMBER(8,0)"}
+      - {name: "warehouse_id", data_type: "NUMBER(6,0)"}
+      - {name: "item_id", data_type: "NUMBER(6,0)"}
+      - {name: "country_id", data_type: "NUMBER(6,0)"}
+      - {name: "expiry_bucket", data_type: VARCHAR}
+      - {name: "stock_qty_raw", data_type: "NUMBER(18,4)"}
+      - {name: "stock_qty_eq", data_type: "NUMBER(18,4)"}
+      - {name: "stock_value_eur", data_type: "NUMBER(18,4)"}
+  - id: FCT_FORECAST
+    kind: FACT
+    description: Monthly demand forecast per item and country. One forecast version (versioning is out of v1 scope).
+    grain: [forecast_month, item_id, country_id]
+    columns:
+      - {name: "forecast_month", data_type: DATE}
+      - {name: "item_id", data_type: "NUMBER(6,0)"}
+      - {name: "country_id", data_type: "NUMBER(6,0)"}
+      - {name: "forecast_qty_raw", data_type: "NUMBER(18,4)"}
+      - {name: "forecast_qty_eq", data_type: "NUMBER(18,4)"}
+      - {name: "forecast_value_eur", data_type: "NUMBER(18,4)"}
+
+relationships:
+  - {id: REL_STOCK_ITEM, from_table: FCT_STOCK_SNAPSHOT, from_columns: [item_id], to_table: DIM_ITEM, to_columns: [item_id], cardinality: MANY_TO_ONE}
+  - {id: REL_STOCK_GEO, from_table: FCT_STOCK_SNAPSHOT, from_columns: [country_id], to_table: DIM_GEO, to_columns: [country_id], cardinality: MANY_TO_ONE}
+  - {id: REL_STOCK_BATCH, from_table: FCT_STOCK_SNAPSHOT, from_columns: [batch_id], to_table: DIM_BATCH, to_columns: [batch_id], cardinality: MANY_TO_ONE}
+  - {id: REL_STOCK_WAREHOUSE, from_table: FCT_STOCK_SNAPSHOT, from_columns: [warehouse_id], to_table: DIM_WAREHOUSE, to_columns: [warehouse_id], cardinality: MANY_TO_ONE}
+  - {id: REL_STOCK_CALENDAR, from_table: FCT_STOCK_SNAPSHOT, from_columns: [snapshot_month], to_table: DIM_CALENDAR, to_columns: [month_start], cardinality: MANY_TO_ONE}
+  - {id: REL_FORECAST_ITEM, from_table: FCT_FORECAST, from_columns: [item_id], to_table: DIM_ITEM, to_columns: [item_id], cardinality: MANY_TO_ONE}
+  - {id: REL_FORECAST_GEO, from_table: FCT_FORECAST, from_columns: [country_id], to_table: DIM_GEO, to_columns: [country_id], cardinality: MANY_TO_ONE}
+  - {id: REL_FORECAST_CALENDAR, from_table: FCT_FORECAST, from_columns: [forecast_month], to_table: DIM_CALENDAR, to_columns: [month_start], cardinality: MANY_TO_ONE}
+  - {id: REL_BATCH_ITEM, from_table: DIM_BATCH, from_columns: [item_id], to_table: DIM_ITEM, to_columns: [item_id], cardinality: MANY_TO_ONE}
+  - {id: REL_WAREHOUSE_GEO, from_table: DIM_WAREHOUSE, from_columns: [country_id], to_table: DIM_GEO, to_columns: [country_id], cardinality: MANY_TO_ONE}
+
+# ================================================================================================ semantics
+measures:
+  - id: stock_on_hand
+    name: Stock on hand
+    description: Closing stock of the month. A level, never summed over months.
+    measure_type: SNAPSHOT
+    table: FCT_STOCK_SNAPSHOT
+    time_column: snapshot_month
+    time_grain: MONTH
+    additivity:
+      - {dimension_class: TIME, aggregation: SELECT_PERIOD, note: "The analysis month selects the snapshot: read at exactly that month, absent = 0 (T9)."}
+      - {dimension_class: PRODUCT, aggregation: SUM}
+      - {dimension_class: GEOGRAPHY, aggregation: SUM}
+      - {dimension_class: BATCH, aggregation: SUM}
+      - {dimension_class: LOCATION, aggregation: SUM}
+    columns:
+      - {basis: QTY_EQ, column: stock_qty_eq}
+      - {basis: VALUE, column: stock_value_eur}
+      - {basis: NATIVE, column: stock_qty_raw}
+    period_aggregation:
+      id: CLOSING_STOCK
+      description: >-
+        Closing stock over a period: the snapshot of the period's last month, for every member of the period. A
+        member with a snapshot in any month of the period and none in its last month closes at 0 and keeps its row.
+        Never summed, averaged or carried forward over time (step 1 of the article; data/traps.yaml closing_stock).
+      method: LAST_PERIOD
+      periods: [PERIOD_RANGE, QUARTER, YEAR]
+      member_set: ANY_SNAPSHOT_IN_PERIOD
+      missing_value: "0"
+      forbidden_methods: [SUM, AVERAGE, LAST_NON_EMPTY]
+      prevents: [CS_LAST_MONTH_GAP, CS_MIDDLE_MONTH_GAP, CS_FAMILY, T9]
+  - id: demand_forecast
+    name: Demand forecast
+    description: Monthly demand forecast per item and country. A flow, summed over the forward window.
+    measure_type: FLOW
+    table: FCT_FORECAST
+    time_column: forecast_month
+    time_grain: MONTH
+    additivity:
+      - {dimension_class: TIME, aggregation: SUM_OVER_WINDOW, note: "Window t+1 to t+H, relative to the analysis month, never filtered by it."}
+      - {dimension_class: PRODUCT, aggregation: SUM}
+      - {dimension_class: GEOGRAPHY, aggregation: SUM}
+    columns:
+      - {basis: QTY_EQ, column: forecast_qty_eq}
+      - {basis: VALUE, column: forecast_value_eur}
+      - {basis: NATIVE, column: forecast_qty_raw}
+
+attributes:
+  # ---- conformed: group and filter stock and forecast alike
+  - id: sku_code
+    table: DIM_ITEM
+    column: sku_code
+    label_column: sku_name
+    dimension_class: PRODUCT
+    applicability_class: CONFORMED
+    applicability: &conformed
+      - {measure: stock_on_hand, effect: GROUP_AND_FILTER}
+      - {measure: demand_forecast, effect: GROUP_AND_FILTER}
+  - id: family_code
+    table: DIM_ITEM
+    column: family_code
+    label_column: family_name
+    dimension_class: PRODUCT
+    applicability_class: CONFORMED
+    applicability: *conformed
+  - id: range_code
+    table: DIM_ITEM
+    column: range_code
+    label_column: range_name
+    dimension_class: PRODUCT
+    applicability_class: CONFORMED
+    applicability: *conformed
+  - id: lifecycle_status
+    description: >-
+      An item attribute, so the forecast carries it too (decision 6, session 4). Trap T7 duplicates exactly this
+      column: QE_ITEM_GRAIN refuses a query that uses it while an item has two values.
+    table: DIM_ITEM
+    column: lifecycle_status
+    dimension_class: PRODUCT
+    applicability_class: CONFORMED
+    applicability: *conformed
+    known_values: [ACTIVE, PHASE_OUT]
+    prevents: [T7]
+  - id: dimension
+    description: >-
+      The physical dimension in which the item is counted, with its base unit: MASS (kg) or VOLUME (L). Grouping or
+      filtering by it keeps quantity-equivalent rows within one dimension.
+    table: DIM_ITEM
+    column: dimension
+    label_column: base_unit
+    dimension_class: PRODUCT
+    applicability_class: CONFORMED
+    applicability: *conformed
+    known_values: [MASS, VOLUME]
+    prevents: [DIM_MIX]
+  - id: country_code
+    description: ISO 3166-1 alpha-2 code.
+    table: DIM_GEO
+    column: country_code
+    label_column: country_name
+    dimension_class: GEOGRAPHY
+    applicability_class: CONFORMED
+    applicability: *conformed
+  - id: region_code
+    table: DIM_GEO
+    column: region_code
+    label_column: region_name
+    dimension_class: GEOGRAPHY
+    applicability_class: CONFORMED
+    applicability: *conformed
+    known_values: [CENTRAL, NORDIC, SOUTH, WEST]
+  # ---- snapshot-only (stock-only): group and filter the stock, ignored by the forecast
+  - id: batch_status
+    table: DIM_BATCH
+    column: batch_status
+    dimension_class: BATCH
+    applicability_class: SNAPSHOT_ONLY
+    applicability: &snapshot_only
+      - {measure: stock_on_hand, effect: GROUP_AND_FILTER}
+      - {measure: demand_forecast, effect: IGNORED}
+    known_values: [RELEASED, QUALITY_HOLD, BLOCKED]
+    prevents: [T3]
+  - id: expiry_bucket
+    table: FCT_STOCK_SNAPSHOT
+    column: expiry_bucket
+    dimension_class: BATCH
+    applicability_class: SNAPSHOT_ONLY
+    applicability: *snapshot_only
+    known_values: ["<6M", "6-12M", "12-24M", ">24M"]
+    prevents: [T3]
+  - id: warehouse_code
+    table: DIM_WAREHOUSE
+    column: warehouse_code
+    dimension_class: LOCATION
+    applicability_class: SNAPSHOT_ONLY
+    applicability: *snapshot_only
+    prevents: [T3]
+  - id: warehouse_type
+    table: DIM_WAREHOUSE
+    column: warehouse_type
+    dimension_class: LOCATION
+    applicability_class: SNAPSHOT_ONLY
+    applicability: *snapshot_only
+    known_values: [OWN, 3PL]
+    prevents: [T3]
+  - id: item_type
+    description: >-
+      Snapshot-only by decision: BULK items carry stock but never a forecast. Default scope STANDARD for stock
+      coverage only (SCOPE_ITEM_TYPE, decision 5); closing stock counts every item type.
+    table: DIM_ITEM
+    column: item_type
+    dimension_class: PRODUCT
+    applicability_class: SNAPSHOT_ONLY
+    applicability: *snapshot_only
+    known_values: [STANDARD, BULK]
+    prevents: [T3, BULK_SCOPE]
+
+# A basis is where stock and forecast are measured before the ratio; the result is always in months (decision 1 of
+# session 8c-0). Each basis is valid only where its sums stay comparable (decision 2).
+measure_bases:
+  - id: NATIVE
+    kind: NATIVE_UNIT
+    unit_source: ITEM_NATIVE_UNIT
+    valid_when: ONE_ITEM_PER_ROW
+    synonyms: [RAW, QTY_RAW, RAW_UNIT, RAW_UNITS, UNITS, PACKS, OWN_UNIT, ITEM_UNIT]
+    description: Each item in its own unit, as it is counted (CASE_10, PACK_1000, PACK_500). For one item the months equal those of any other consistent basis.
+    not_comparable_reason: at least one row or total adds several items, each counted in its own unit (packs of different sizes)
+    prevents: [T5]
+  - id: QTY_EQ
+    kind: BASE_UNIT_EQUIVALENT
+    unit_source: ITEM_BASE_UNIT
+    valid_when: ONE_DIMENSION_PER_ROW
+    synonyms: [quantity, volume, kilos, litres, kg, L, quantity equivalent]
+    description: Stock and forecast in the base unit of the items' dimension, kg or L equivalent (raw quantity times qty_eq_factor), for items of one dimension.
+    not_comparable_reason: at least one row or total adds kg and L (items of different dimensions)
+    prevents: [T5, DIM_MIX]
+  - id: VALUE
+    kind: MONETARY
+    unit_source: FIXED
+    unit_symbol: EUR
+    valid_when: ALWAYS
+    synonyms: [value, euros, money, EUR]
+    description: Stock at standard cost against forecast at cost of goods sold (DEFINITION.md section 1). Comparable across every item.
+    not_comparable_reason: never (a value adds up across every item)
+
+basis_model:
+  id: ITEM_BASIS
+  description: >-
+    Each item's dimension and units are master data of DIM_ITEM, derived from its family (session 8c-0, decision 3).
+    The validity of a basis is judged on the rows and totals the call returns; the default basis QTY_EQ is refused
+    like any other where a returned row or total mixes dimensions, never switched silently.
+  item_table: DIM_ITEM
+  item_key: item_id
+  dimension_column: dimension
+  base_unit_column: base_unit
+  native_unit_column: raw_unit
+  equivalence_factor_column: qty_eq_factor
+  dimensions:
+    - {id: MASS, base_unit: kg, description: "Counted by weight."}
+    - {id: VOLUME, base_unit: L, description: "Counted by volume."}
+  default_basis: QTY_EQ
+  validity_scope: RETURNED_ROWS
+  refusal: BASIS_NOT_COMPARABLE
+  result_unit: months
+  prevents: [T5, DIM_MIX]
+
+# ================================================================================================ metric
+metrics:
+  - id: stock_coverage
+    name: Stock coverage
+    synonyms: [months of cover, coverage, stock cover, months of stock]
+    description: Forward depletion of the stock at the analysis month t against the forecast of t+1 to t+H.
+    snapshot_measure: stock_on_hand
+    flow_measure: demand_forecast
+    anchor_parameter: as_of_months
+    time_grain: MONTH
+    output_unit: months
+    window_start_offset: 1
+    horizon_periods: 24
+    interpolation: LINEAR
+    densify_missing_periods: true
+    aggregate_before_compute: true
+    time_filter_on_flow: SELECTS_ANCHOR_ONLY
+    prevents: [T1, T2, T4]
+    outcomes:
+      - order: 1
+        condition: SNAPSHOT_NULL_OR_ZERO
+        result: "0"
+        flag: NO_STOCK
+        keeps_member: true
+        prevents: [T8, T9]
+      - order: 2
+        condition: DEPLETED_WITHIN_HORIZON
+        result: "(n - 1) + (S - C(n-1)) / f(n), n = first period in 1..H with S <= C(n)"
+      - order: 3
+        condition: NO_FLOW_IN_WINDOW
+        result: "null"
+        flag: NO_DEMAND
+        keeps_member: true
+        prevents: [NO_DEMAND]
+      - order: 4
+        condition: BEYOND_HORIZON
+        result: "S / mean(f(i) for i in 1..H if f(i) > 0)"
+        flag: BEYOND_HORIZON
+    beyond_horizon:
+      method: SNAPSHOT_OVER_MEAN_FLOW
+      average_window: HORIZON
+      exclude_zero_periods: true
+      flag: BEYOND_HORIZON
+      prevents: [BEYOND_H]
+    exhaustion_period:
+      id: STOCKOUT_MONTH
+      description: >-
+        The month in which the stock runs out. Coverage counts from the month after the analysis month (window t+1 to
+        t+H), so a coverage c in (n - 1, n] runs out in month t+n: 0.5 and 1.0 from June 2026 both give July 2026; a
+        coverage 0 gives the analysis month itself.
+      formula: "t + ceil(coverage_months) months"
+      none_for_flags: [NO_DEMAND, BEYOND_HORIZON]
+    member_selection:
+      id: SELECT_MEMBERS
+      description: >-
+        Keeps detail rows by coverage (decision 6 of session 8c-0). The procedure filters and ranks, never the
+        consumer. Total rows are not selected (TOTALS_RECOMPUTE). Members already out (NO_STOCK) and members with no
+        demand (NO_DEMAND) never mix with the kept rows: they come back apart, counted and named.
+      upper_bound_parameter: coverage_below
+      upper_bound_rule: "0 < coverage_months <= coverage_below (stock out from the next month up to that month included)"
+      lower_bound_parameter: coverage_above
+      lower_bound_rule: "coverage_months > coverage_above (with coverage_below, a window)"
+      rank_parameter: rank_first
+      rank_rule: "coverage_months ascending, ties broken by the grain codes in grain order; the first rank_first rows kept, per analysis month"
+      set_apart_flags: [NO_STOCK, NO_DEMAND]
+      grain_rule: >-
+        The grain follows the question. A question that asks for a list of products or items takes items as grain: with a country named, sku_code filtered on that country; worldwide or with no country, sku_code; for item and country pairs, sku_code and country_code. A question that asks for one figure for a scope (a country, a family, a region) takes that scope's grain and its filters, with no item rows and no grand total unless the question asks for them.
+      summary_rule: >-
+        Per analysis month: the count of kept rows and the sum of their stock on the basis asked, one sum per unit
+        (EUR on VALUE; kg and L apart on QTY_EQ); none on NATIVE when the kept rows hold several items. Coverage is
+        never summed or averaged.
+      prevents: [T1]
+    reference_sql: docs/DEFINITION.md#5-reference-sql-snowflake
+    reference_cases: docs/check_coverage_formula.py
+
+flags:
+  - {id: NO_STOCK, description: "Forecast but no stock at the analysis month.", value_semantics: "Coverage 0; the row is kept (decision 2)."}
+  - {id: NO_DEMAND, description: "No forecast in the window t+1 to t+H.", value_semantics: "Coverage null: undefined without demand (decision 2)."}
+  - {id: BEYOND_HORIZON, description: "Stock outlasts the 24-month horizon.", value_semantics: "Extrapolated: stock over the mean non-zero monthly forecast of the horizon (decision 1)."}
+
+# ================================================================================================ query rules
+totals_rules:
+  - id: TOTALS_RECOMPUTE
+    description: >-
+      A total is the metric recomputed at the coarser grain, never a sum or average of child coverages. The stock is
+      aggregated to the total's grain, the forecast to that grain projected onto its conformed attributes. Several
+      analysis months give a series with no total across months (decision 4).
+    method: RECOMPUTE
+    snapshot_aggregation: TOTAL_GRAIN
+    flow_aggregation: CONFORMED_PROJECTION
+    total_over_time: FORBIDDEN
+    parameter: totals
+    prevents: [T1, T6]
+
+member_set_rules:
+  - id: MEMBERS_SPINE
+    description: >-
+      Members are stock members union forecast members, then both measures are left-joined. On a grain that holds a
+      snapshot-only attribute, forecast alone creates no member (decision 3): a forecast-only item counts 0 in the
+      total but has no detail row per status.
+    method: SPINE
+    snapshot_members: ALWAYS
+    flow_members: ONLY_ON_CONFORMED_GRAIN
+    prevents: [T8]
+
+default_scopes:
+  - id: SCOPE_ITEM_TYPE
+    description: >-
+      BULK stock (never forecast) is excluded unless the caller filters item_type explicitly (decision 5). Grouping by
+      item_type without a filter keeps the default scope. The warning carries the excluded stock per unit of the basis asked.
+    attribute: item_type
+    included_values: [STANDARD]
+    applies_to_metrics: [stock_coverage]
+    applies_to_measures: [stock_on_hand]
+    lifted_by: EXPLICIT_FILTER
+    warning: DEFAULT_SCOPE_EXCLUDED
+    prevents: [BULK_SCOPE]
+
+analysis_periods:
+  - id: AS_OF_MONTHS
+    description: >-
+      Months with a stock snapshot whose 24-month forecast window is inside the loaded calendar (decision 8). The
+      tool description carries LATEST and the first and last valid month, compiled at generation; every procedure
+      answer and refusal carries the first and last valid month and LATEST, read at call time (the full list only in
+      the AS_OF_NO_SNAPSHOT reason).
+    source_table: FCT_STOCK_SNAPSHOT
+    source_column: snapshot_month
+    latest_token: LATEST
+    validity: "snapshot rows exist for the month AND MAX(DIM_CALENDAR.month_start) >= month + 24 months"
+    exposed_in: [TOOL_DESCRIPTION, PROCEDURE_RESPONSE, REGISTRY]
+    series_allowed: true
+    max_periods: 24
+    prevents: [T6]
+
+# ================================================================================================ tool surface
+parameters:
+  - id: as_of_months
+    description: >-
+      Analysis months, as first days of month (YYYY-MM-01), or LATEST. One month gives one answer; several give a
+      series with no total across months. If the user gives no month, or a period (a year, a quarter), ask which
+      month: never pick one. One invalid month refuses the whole call.
+    data_type: PERIOD_LIST
+    encoding: JSON_STRING
+    json_shape: array of string, each YYYY-MM-01 or LATEST
+    is_required: true
+    min_items: 1
+    max_items: 24
+    example: '["2026-06-01"]'
+    refusal_codes: [AS_OF_MISSING, AS_OF_INVALID, AS_OF_NOT_MONTH_START, AS_OF_NO_SNAPSHOT, AS_OF_TOO_MANY, HORIZON_NOT_LOADED]
+  - id: basis
+    description: >-
+      The basis on which stock and forecast are measured before the ratio; coverage is always in months. QTY_EQ (kg or
+      L equivalent, the default) for items of one dimension; VALUE (EUR) when the user asks for value or when items of
+      different dimensions are combined; NATIVE (the item's own unit) for one item. A basis the request cannot compare
+      is refused with the bases allowed, never switched.
+    data_type: ENUM
+    encoding: PLAIN
+    is_required: false
+    default_value: QTY_EQ
+    allowed_values: [NATIVE, QTY_EQ, VALUE]
+    example: QTY_EQ
+    refusal_codes: [BASIS_UNKNOWN, BASIS_NOT_COMPARABLE]
+  - id: grain
+    description: Attributes to break the coverage down by, at least one. Conformed or snapshot-only attributes.
+    data_type: ATTRIBUTE_LIST
+    encoding: JSON_STRING
+    json_shape: array of string
+    is_required: true
+    min_items: 1
+    example: '["family_code", "country_code"]'
+    refusal_codes: [GRAIN_MALFORMED, GRAIN_EMPTY, GRAIN_DUPLICATE, ATTRIBUTE_UNKNOWN, ATTRIBUTE_UNCLASSIFIED, ATTRIBUTE_NOT_APPLICABLE, MASTER_DATA_FANOUT]
+  - id: filters
+    description: >-
+      Attribute to list of values. "{}" for no filter. A filter on a snapshot-only attribute restricts the stock
+      only. A filter on item_type lifts the default scope.
+    data_type: FILTER_MAP
+    encoding: JSON_STRING
+    json_shape: object, attribute name to array of string
+    is_required: true
+    default_value: "{}"
+    example: '{"country_code": ["FR"], "batch_status": ["RELEASED"]}'
+    refusal_codes: [FILTERS_MALFORMED, FILTER_VALUES_INVALID, ATTRIBUTE_UNKNOWN, ATTRIBUTE_UNCLASSIFIED, ATTRIBUTE_NOT_APPLICABLE, MASTER_DATA_FANOUT]
+  - id: totals
+    description: >-
+      Coarser grains to add as total rows, each a subset of grain; [] for none, [[]] for a grand total. Each total is
+      recomputed, never summed.
+    data_type: GRAIN_LIST
+    encoding: JSON_STRING
+    json_shape: array of array of string
+    is_required: false
+    default_value: "[]"
+    example: '[["country_code"], []]'
+    refusal_codes: [TOTALS_MALFORMED, TOTALS_NOT_SUBSET]
+  - id: coverage_below
+    description: >-
+      Keep the members that stock out within this many months: 0 < coverage <= N, from the next month up to month N
+      included. Members already out (coverage 0) and members with no demand come back apart. A positive number.
+    data_type: NUMBER
+    encoding: PLAIN
+    is_required: false
+    exclusive_minimum: 0
+    example: "3"
+    refusal_codes: [SELECTION_INVALID]
+  - id: coverage_above
+    description: >-
+      Keep the members whose coverage is above this many months (stock that sleeps); with coverage_below, a window.
+      A positive number.
+    data_type: NUMBER
+    encoding: PLAIN
+    is_required: false
+    exclusive_minimum: 0
+    example: "12"
+    refusal_codes: [SELECTION_INVALID]
+  - id: rank_first
+    description: >-
+      Keep the first n members by coverage, lowest first, ties broken by the grain codes; with coverage_below or
+      coverage_above, the first n of the members they keep. Members already out and members with no demand are not
+      ranked: they come back apart. A positive integer.
+    data_type: INTEGER
+    encoding: PLAIN
+    is_required: false
+    exclusive_minimum: 0
+    example: "10"
+    refusal_codes: [SELECTION_INVALID]
+
+refusal_codes:
+  # ---- analysis month (check_order 10..)
+  - {id: AS_OF_MISSING, check_order: 10, category: PARAMETER, evidence: MEASURED, prevents: [T6],
+     reason_template: "An analysis month is required. Coverage is a point-in-time measure: give one or more months as YYYY-MM-01. It is never summed or averaged over several months.",
+     description: "NULL, empty string or empty list. Measured in C0 (direct call)."}
+  - {id: AS_OF_INVALID, check_order: 11, category: PARAMETER, evidence: MEASURED, prevents: [T6],
+     reason_template: "as_of_months value '{value}' is not a date in YYYY-MM-01 form, nor LATEST.",
+     description: "Measured in C0 on 'June 2026'. Also covers a malformed JSON list."}
+  - {id: AS_OF_NOT_MONTH_START, check_order: 12, category: PARAMETER, evidence: MEASURED, prevents: [T6],
+     reason_template: "'{value}' is not the first day of a month. Coverage is monthly: use {month_start} for that month.",
+     description: "Measured in C0 on 2026-06-15."}
+  - {id: AS_OF_TOO_MANY, check_order: 13, category: PARAMETER, evidence: DECIDED,
+     reason_template: "At most {max_periods} analysis months per call.",
+     description: "New with decision 4 (series). The cap is an open decision."}
+  - {id: AS_OF_NO_SNAPSHOT, check_order: 14, category: AVAILABILITY, evidence: MEASURED, prevents: [T6],
+     reason_template: "There is no stock snapshot for {value}. Available months: {available_months} (LATEST = {latest}).",
+     description: "Measured in C0 on 2026-07-01. The available months are added by decision 8."}
+  - {id: HORIZON_NOT_LOADED, check_order: 15, category: AVAILABILITY, evidence: IMPLEMENTED,
+     reason_template: "The {source} does not reach {horizon_end}, the end of the {horizon}-month horizon of {latest}.",
+     description: "Implemented in C0, not exercised."}
+  # ---- basis (20..)
+  - {id: BASIS_UNKNOWN, check_order: 21, category: PARAMETER, evidence: DECIDED,
+     reason_template: "basis '{value}' is not one of NATIVE, QTY_EQ, VALUE.",
+     description: "UNIT_UNKNOWN of C0 renamed (session 8c-0). Raw units are no longer refused here: they are the NATIVE basis, judged on the rows returned (BASIS_NOT_COMPARABLE)."}
+  # ---- grain and filters (30..)
+  - {id: GRAIN_MALFORMED, check_order: 30, category: PARAMETER, evidence: IMPLEMENTED,
+     reason_template: "grain must be a JSON array of attribute names.", description: "Implemented in C0, not exercised."}
+  - {id: GRAIN_EMPTY, check_order: 31, category: PARAMETER, evidence: MEASURED,
+     reason_template: "grain must name at least one attribute (for example sku_code, country_code).", description: "Measured in C0."}
+  - {id: GRAIN_DUPLICATE, check_order: 32, category: PARAMETER, evidence: IMPLEMENTED,
+     reason_template: "grain lists an attribute twice: {value}.", description: "Implemented in C0, not exercised."}
+  - {id: FILTERS_MALFORMED, check_order: 33, category: PARAMETER, evidence: IMPLEMENTED,
+     reason_template: "filters must be a JSON object: attribute -> list of values.", description: "Implemented in C0, not exercised."}
+  - {id: FILTER_VALUES_INVALID, check_order: 34, category: PARAMETER, evidence: IMPLEMENTED,
+     reason_template: "filter '{attribute}' needs a non-empty list of values.", description: "Implemented in C0, not exercised."}
+  - {id: ATTRIBUTE_UNKNOWN, check_order: 35, category: SEMANTIC, evidence: MEASURED, prevents: [T3],
+     reason_template: "'{attribute}' is not a coverage attribute. Conformed: {conformed}. Stock-only: {snapshot_only}.",
+     description: "Measured in C0 on a filter on brand."}
+  - {id: ATTRIBUTE_UNCLASSIFIED, check_order: 36, category: SEMANTIC, evidence: MEASURED, prevents: [T3],
+     reason_template: "'{attribute}' has no declared applicability class, so it cannot be used with coverage.",
+     description: "Measured in C0 on lifecycle_status, which this contract now declares CONFORMED. Kept for a registry row added without a class; the contract itself cannot express one (applicability_class is required)."}
+  - {id: ATTRIBUTE_NOT_APPLICABLE, check_order: 37, category: SEMANTIC, evidence: DECIDED, prevents: [T3],
+     reason_template: "'{attribute}' does not apply to stock coverage: {reason}.",
+     description: "For an attribute declared NOT_APPLICABLE. None in version 0.1.0."}
+  - {id: TOTALS_MALFORMED, check_order: 38, category: PARAMETER, evidence: DECIDED,
+     reason_template: "totals must be a JSON array of attribute arrays, for example [[\"country_code\"], []].",
+     description: "New with the totals parameter."}
+  - {id: TOTALS_NOT_SUBSET, check_order: 39, category: SEMANTIC, evidence: DECIDED, prevents: [T1],
+     reason_template: "Total {value} is not a subset of the grain {grain}: a total can only be coarser than the rows.",
+     description: "New with the totals parameter."}
+  - {id: SELECTION_INVALID, check_order: 40, category: PARAMETER, evidence: DECIDED,
+     reason_template: "{parameter} must be {expected}; got '{value}'.",
+     description: "coverage_below and coverage_above must be positive numbers, rank_first a positive integer, and coverage_above lower than coverage_below (session 8c-0)."}
+  # ---- data quality (50..)
+  - {id: MASTER_DATA_FANOUT, check_order: 50, category: DATA_QUALITY, evidence: IMPLEMENTED, prevents: [T7],
+     reason_template: "{count} item(s) have several rows in DIM_ITEM that differ on {attributes}; any number at this grain would be fanned out.",
+     description: "C0 checked a fixed attribute set. Here the check covers the item attributes the query uses (QE_ITEM_GRAIN, REFUSE_IF_USED), and the reason names only the used attributes on which the duplicated rows actually differ, each with its conflicting values (at most 5, then 'and <n> more')."}
+  - {id: DATA_QUALITY_FAILED, check_order: 51, category: DATA_QUALITY, evidence: DECIDED,
+     reason_template: "Quality expectation {expectation} fails ({count} violations): {condition}. No number is returned until it is fixed.",
+     description: "For a REFUSE expectation with no specific refusal code (dimension grains, hierarchies)."}
+  - {id: BASIS_NOT_COMPARABLE, check_order: 52, category: SEMANTIC, evidence: DECIDED, prevents: [T5, DIM_MIX],
+     reason_template: "Coverage is always in months, but on {basis} {why}, so stock and forecast cannot be summed for this request. Bases allowed for this request: {allowed}.",
+     description: "Judged on the rows and totals the call returns, after member selection (basis_model validity_scope RETURNED_ROWS). Replaces UNIT_RAW_NOT_ADDITIVE (session 8c-0)."}
+
+warning_codes:
+  - {id: DEFAULT_SCOPE_EXCLUDED, raised_by: SCOPE_ITEM_TYPE,
+     message_template: "{excluded_amount} {unit} of BULK stock excluded by default (no forecast). Filter item_type explicitly to include it.",
+     description: "Raised only when the excluded stock in the query's scope is non-zero. One warning per analysis month and unit: EUR on VALUE, the base unit (kg, L) otherwise, never one amount across units (session 8c-0)."}
+  - {id: FORECAST_GAPS_FILLED, raised_by: QE_FORECAST_DENSE,
+     message_template: "{count} member-months of the horizon have no forecast row and were counted as 0.",
+     description: "Densification is correct behaviour (T2); the warning says that data was missing."}
+  - {id: MASTER_DATA_DUPLICATES, raised_by: QE_ITEM_GRAIN,
+     message_template: "{count} items have several rows in DIM_ITEM; they agree on the attributes this query uses, so the answer is not affected.",
+     description: "The REFUSE_IF_USED counterpart of MASTER_DATA_FANOUT. Raised only when a duplicated item is in the query's scope."}
+  - {id: STALE_SNAPSHOT, raised_by: QE_STOCK_FRESHNESS,
+     message_template: "The latest stock snapshot is {latest}, {age} months before the current month.",
+     description: "Freshness warning. The age threshold is TBD."}
+  - {id: DATA_QUALITY_ROWS, raised_by: QE_STOCK_ITEM_REF,
+     message_template: "{expectation}: {count} rows read by this answer break the expectation ({condition}).",
+     description: "For a WARN expectation with no specific warning code (referential and consistency checks). Raised by each such expectation, the first one named here."}
+
+# ================================================================================================ trust
+quality_expectations:
+  # ---- grain uniqueness
+  - {id: QE_STOCK_GRAIN, kind: GRAIN_UNIQUENESS, table: FCT_STOCK_SNAPSHOT, columns: [snapshot_month, batch_id, warehouse_id],
+     condition: "one row per snapshot_month x batch_id x warehouse_id", threshold: "0", severity: ERROR, on_failure: MONITOR, dmf: CUSTOM}
+  - {id: QE_FORECAST_GRAIN, kind: GRAIN_UNIQUENESS, table: FCT_FORECAST, columns: [forecast_month, item_id, country_id],
+     condition: "one row per forecast_month x item_id x country_id", threshold: "0", severity: ERROR, on_failure: MONITOR, dmf: CUSTOM}
+  - {id: QE_ITEM_GRAIN, kind: GRAIN_UNIQUENESS, table: DIM_ITEM, columns: [item_id],
+     condition: "one row per item_id", threshold: "0", severity: ERROR, on_failure: REFUSE_IF_USED,
+     refusal: MASTER_DATA_FANOUT, warning: MASTER_DATA_DUPLICATES, call_scope: REQUEST_MEMBERS, dmf: SNOWFLAKE.CORE.DUPLICATE_COUNT, prevents: [T7],
+     description: "The v0 dataset violates it on purpose (T7: one item with a second lifecycle_status)."}
+  - {id: QE_GEO_GRAIN, kind: GRAIN_UNIQUENESS, table: DIM_GEO, columns: [country_id], condition: "one row per country_id",
+     threshold: "0", severity: ERROR, on_failure: REFUSE, refusal: DATA_QUALITY_FAILED, call_scope: TABLE, dmf: SNOWFLAKE.CORE.DUPLICATE_COUNT}
+  - {id: QE_BATCH_GRAIN, kind: GRAIN_UNIQUENESS, table: DIM_BATCH, columns: [batch_id], condition: "one row per batch_id",
+     threshold: "0", severity: ERROR, on_failure: REFUSE, refusal: DATA_QUALITY_FAILED, call_scope: TABLE, dmf: SNOWFLAKE.CORE.DUPLICATE_COUNT}
+  - {id: QE_WAREHOUSE_GRAIN, kind: GRAIN_UNIQUENESS, table: DIM_WAREHOUSE, columns: [warehouse_id], condition: "one row per warehouse_id",
+     threshold: "0", severity: ERROR, on_failure: REFUSE, refusal: DATA_QUALITY_FAILED, call_scope: TABLE, dmf: SNOWFLAKE.CORE.DUPLICATE_COUNT}
+  - {id: QE_CALENDAR_GRAIN, kind: GRAIN_UNIQUENESS, table: DIM_CALENDAR, columns: [month_start], condition: "one row per month_start",
+     threshold: "0", severity: ERROR, on_failure: REFUSE, refusal: DATA_QUALITY_FAILED, call_scope: TABLE, dmf: SNOWFLAKE.CORE.DUPLICATE_COUNT}
+  # ---- referential
+  - {id: QE_STOCK_ITEM_REF, kind: REFERENTIAL, table: FCT_STOCK_SNAPSHOT, columns: [item_id], references_table: DIM_ITEM, references_columns: [item_id],
+     condition: "every stock item_id exists in DIM_ITEM", threshold: "0", severity: ERROR, on_failure: WARN, warning: DATA_QUALITY_ROWS, call_scope: REQUEST_ROWS, dmf: CUSTOM, prevents: [T8],
+     description: "An orphan stock row would vanish from the inner join and lower the coverage silently."}
+  - {id: QE_STOCK_BATCH_REF, kind: REFERENTIAL, table: FCT_STOCK_SNAPSHOT, columns: [batch_id], references_table: DIM_BATCH, references_columns: [batch_id],
+     condition: "every stock batch_id exists in DIM_BATCH", threshold: "0", severity: ERROR, on_failure: WARN, warning: DATA_QUALITY_ROWS, call_scope: REQUEST_ROWS, dmf: CUSTOM}
+  - {id: QE_STOCK_WAREHOUSE_REF, kind: REFERENTIAL, table: FCT_STOCK_SNAPSHOT, columns: [warehouse_id], references_table: DIM_WAREHOUSE, references_columns: [warehouse_id],
+     condition: "every stock warehouse_id exists in DIM_WAREHOUSE", threshold: "0", severity: ERROR, on_failure: WARN, warning: DATA_QUALITY_ROWS, call_scope: REQUEST_ROWS, dmf: CUSTOM}
+  - {id: QE_STOCK_GEO_REF, kind: REFERENTIAL, table: FCT_STOCK_SNAPSHOT, columns: [country_id], references_table: DIM_GEO, references_columns: [country_id],
+     condition: "every stock country_id exists in DIM_GEO", threshold: "0", severity: ERROR, on_failure: WARN, warning: DATA_QUALITY_ROWS, call_scope: REQUEST_ROWS, dmf: CUSTOM}
+  - {id: QE_FORECAST_ITEM_REF, kind: REFERENTIAL, table: FCT_FORECAST, columns: [item_id], references_table: DIM_ITEM, references_columns: [item_id],
+     condition: "every forecast item_id exists in DIM_ITEM", threshold: "0", severity: ERROR, on_failure: WARN, warning: DATA_QUALITY_ROWS, call_scope: REQUEST_ROWS, dmf: CUSTOM}
+  - {id: QE_FORECAST_GEO_REF, kind: REFERENTIAL, table: FCT_FORECAST, columns: [country_id], references_table: DIM_GEO, references_columns: [country_id],
+     condition: "every forecast country_id exists in DIM_GEO", threshold: "0", severity: ERROR, on_failure: WARN, warning: DATA_QUALITY_ROWS, call_scope: REQUEST_ROWS, dmf: CUSTOM}
+  # ---- cardinality and consistency
+  - {id: QE_STOCK_BATCH_ITEM, kind: CARDINALITY, table: FCT_STOCK_SNAPSHOT, columns: [batch_id, item_id], references_table: DIM_BATCH, references_columns: [batch_id, item_id],
+     condition: "the denormalised item_id of a stock row equals the item_id of its batch", threshold: "0", severity: ERROR, on_failure: WARN, warning: DATA_QUALITY_ROWS, call_scope: REQUEST_ROWS, dmf: CUSTOM}
+  - {id: QE_SKU_FAMILY, kind: CARDINALITY, table: DIM_ITEM, columns: [sku_code, family_code, range_code],
+     condition: "each sku_code maps to one family_code and each family_code to one range_code", threshold: "0", severity: ERROR, on_failure: REFUSE, refusal: DATA_QUALITY_FAILED, call_scope: TABLE, dmf: CUSTOM, prevents: [T7]}
+  - {id: QE_COUNTRY_REGION, kind: CARDINALITY, table: DIM_GEO, columns: [country_code, region_code],
+     condition: "each country_code maps to one region_code", threshold: "0", severity: ERROR, on_failure: REFUSE, refusal: DATA_QUALITY_FAILED, call_scope: TABLE, dmf: CUSTOM}
+  # ---- completeness
+  - {id: QE_FORECAST_DENSE, kind: COMPLETENESS, table: FCT_FORECAST, columns: [forecast_month, item_id, country_id],
+     condition: "every item x country with a forecast row in the horizon of LATEST has a row for every month of that horizon",
+     threshold: "0", severity: WARNING, on_failure: WARN, warning: FORECAST_GAPS_FILLED, call_scope: REQUEST_MEMBERS, dmf: CUSTOM, prevents: [T2],
+     description: "The v0 dataset violates it on purpose (T2 and BEYOND_H heroes: absent rows). The engine densifies; the expectation reports. As a data metric function, it counts the missing months in the horizon window of LATEST (LATEST + 1 to LATEST + 24) for the pairs with a forecast row in that window; in a call, the same count restricted to the pairs of the request and the horizons of its analysis months (decision 3 of session 6, decision 3 of session 7): the two readings differ by scope only."}
+  - {id: QE_MEASURES_NOT_NULL, kind: COMPLETENESS, table: FCT_STOCK_SNAPSHOT, columns: [stock_qty_eq, stock_value_eur],
+     condition: "measure columns are not null", threshold: "0", severity: ERROR, on_failure: MONITOR, dmf: SNOWFLAKE.CORE.NULL_COUNT}
+  - {id: QE_FORECAST_NOT_NULL, kind: COMPLETENESS, table: FCT_FORECAST, columns: [forecast_qty_eq, forecast_value_eur],
+     condition: "measure columns are not null", threshold: "0", severity: ERROR, on_failure: MONITOR, dmf: SNOWFLAKE.CORE.NULL_COUNT}
+  - {id: QE_ATTRIBUTES_NOT_NULL, kind: COMPLETENESS, table: DIM_ITEM, columns: [sku_code, family_code, range_code, item_type, lifecycle_status],
+     condition: "conformed and snapshot-only item attributes are not null", threshold: "0", severity: WARNING, on_failure: MONITOR, dmf: SNOWFLAKE.CORE.NULL_COUNT}
+  # ---- freshness
+  - {id: QE_STOCK_FRESHNESS, kind: FRESHNESS, table: FCT_STOCK_SNAPSHOT, columns: [snapshot_month],
+     condition: "the latest snapshot month is at most TBD months before the current month", threshold: "TBD",
+     severity: WARNING, on_failure: WARN, warning: STALE_SNAPSHOT, call_scope: TABLE, dmf: SNOWFLAKE.CORE.FRESHNESS,
+     description: "The system DMF returns seconds since the latest snapshot month; the threshold is TBD (OD_THRESHOLDS)."}
+  - {id: QE_HORIZON_LOADED, kind: FRESHNESS, table: DIM_CALENDAR, columns: [month_start],
+     condition: "the calendar reaches LATEST + 24 months", threshold: "0", severity: ERROR, on_failure: REFUSE,
+     refusal: HORIZON_NOT_LOADED, call_scope: TABLE, dmf: CUSTOM, prevents: [T6],
+     description: "LATEST is the latest stock snapshot month. Months missing at the end of the calendar."}
+  - {id: QE_FORECAST_REACH, kind: FRESHNESS, table: FCT_FORECAST, columns: [forecast_month],
+     condition: "the forecast reaches LATEST + 24 months", threshold: "0", severity: ERROR, on_failure: REFUSE,
+     refusal: HORIZON_NOT_LOADED, call_scope: TABLE, dmf: CUSTOM, prevents: [T6],
+     description: "Decision 4 of session 6. Split from QE_HORIZON_LOADED because a data metric function takes at most two table arguments (510140, measured)."}
+  # ---- value ranges
+  - {id: QE_NON_NEGATIVE, kind: VALUE_RANGE, table: FCT_STOCK_SNAPSHOT, columns: [stock_qty_eq, stock_value_eur],
+     condition: "stock is >= 0", threshold: "0", severity: ERROR, on_failure: MONITOR, dmf: SNOWFLAKE.CORE.NEGATIVE_COUNT}
+  - {id: QE_FORECAST_NON_NEGATIVE, kind: VALUE_RANGE, table: FCT_FORECAST, columns: [forecast_qty_eq, forecast_value_eur],
+     condition: "forecast is >= 0", threshold: "0", severity: ERROR, on_failure: MONITOR, dmf: SNOWFLAKE.CORE.NEGATIVE_COUNT}
+  - {id: QE_ACCEPTED_VALUES, kind: VALUE_RANGE, table: DIM_BATCH, columns: [batch_status],
+     condition: "values are within the attribute's known_values", threshold: "0", severity: WARNING, on_failure: MONITOR, dmf: CUSTOM}
+  - {id: QE_EQ_FACTOR, kind: VALUE_RANGE, table: DIM_ITEM, columns: [qty_eq_factor],
+     condition: "qty_eq_factor > 0", threshold: "0", severity: ERROR, on_failure: MONITOR, dmf: CUSTOM, prevents: [T5]}
+  - {id: QE_ITEM_DIMENSION, kind: VALUE_RANGE, table: DIM_ITEM, columns: [dimension, base_unit],
+     condition: "dimension is a declared item dimension and base_unit is that dimension's base unit", threshold: "0",
+     severity: ERROR, on_failure: MONITOR, dmf: CUSTOM, prevents: [T5, DIM_MIX],
+     description: "Custom: ACCEPTED_VALUES cannot be called ad hoc, its lambda argument is refused (measured, snowflake/phase2_dmf/results.md). Session 8c-0."}
+
+invariants:
+  - {id: INV_NON_NEGATIVE, test_kind: PROPERTY, statement: "coverage_months >= 0 or null; null only with flag NO_DEMAND."}
+  - {id: INV_BOUNDED, test_kind: PROPERTY, statement: "Without the BEYOND_HORIZON flag, 0 <= coverage_months <= 24."}
+  - {id: INV_FLAG_CONSISTENT, test_kind: PROPERTY, prevents: [BEYOND_H, NO_DEMAND, T8],
+     statement: "NO_STOCK iff S = 0; NO_DEMAND iff S > 0 and C(H) = 0; BEYOND_HORIZON iff S > C(H) > 0."}
+  - {id: INV_RECOMPUTE_TOTAL, test_kind: METAMORPHIC, prevents: [T1],
+     statement: "A total row equals a separate call at the total's grain; it differs in general from the sum, mean and stock-weighted mean of its children."}
+  - {id: INV_SNAPSHOT_ONLY_FILTER_KEEPS_FLOW, test_kind: METAMORPHIC, prevents: [T3],
+     statement: "Adding a filter on a snapshot-only attribute never changes forecast_over_horizon of a member."}
+  - {id: INV_MONOTONE_IN_STOCK, test_kind: METAMORPHIC,
+     statement: "Increasing S for a member, the forecast unchanged, never lowers its coverage."}
+  - {id: INV_WINDOW_EXCLUDES_ANCHOR, test_kind: METAMORPHIC, prevents: [T4],
+     statement: "Changing the forecast of the analysis month itself (k = 0), or of any month after t+H, never changes the coverage inside the horizon."}
+  - {id: INV_DENSIFY, test_kind: METAMORPHIC, prevents: [T2],
+     statement: "Inserting explicit zero forecast rows for absent months never changes the coverage."}
+  - {id: INV_UNIT_SCALE, test_kind: METAMORPHIC, prevents: [T5],
+     statement: "Scaling stock and forecast of a member by the same positive factor never changes its coverage."}
+  - {id: INV_NATIVE_EQUALS_QTY_EQ, test_kind: METAMORPHIC, prevents: [T5],
+     statement: "For rows that hold one item each, coverage on NATIVE equals coverage on QTY_EQ; only the stock unit differs."}
+  - {id: INV_SELECTION_SUBSET, test_kind: METAMORPHIC,
+     statement: "A selection call returns a subset of the detail rows of the same call without selection, with the same values; the set-apart members are its NO_STOCK and NO_DEMAND rows; total rows are unchanged."}
+  - {id: INV_STOCKOUT_MONTH, test_kind: EXAMPLE,
+     statement: "stockout_month = analysis month + ceil(coverage_months) months: 0.5 and 1.0 from 2026-06-01 give 2026-07-01; none with NO_DEMAND or BEYOND_HORIZON."}
+  - {id: INV_SERIES_POINTWISE, test_kind: METAMORPHIC, prevents: [T6],
+     statement: "Each month of a series equals the single-month call for that month; no row aggregates months."}
+  - {id: INV_DEFAULT_SCOPE, test_kind: METAMORPHIC, prevents: [BULK_SCOPE],
+     statement: "The default call equals the call with filter item_type = [STANDARD], except for the DEFAULT_SCOPE_EXCLUDED warning."}
+  - {id: INV_CLOSING_LAST_PERIOD, test_kind: EXAMPLE, prevents: [CS_LAST_MONTH_GAP, CS_MIDDLE_MONTH_GAP, CS_FAMILY],
+     statement: "Closing stock over a period equals the stock of its last month for every member of the period, 0 for a member with no row that month; a total is the sum over members of that month only."}
+  - {id: INV_DETERMINISTIC, test_kind: PROPERTY, statement: "The same parameters on the same data return the same rows, values and flags."}
+  - {id: INV_MATCHES_REFERENCE, test_kind: EXAMPLE, prevents: [T1, T2, T3, T4, T7, T8, NO_DEMAND, BEYOND_H],
+     statement: "Every hero value of data/traps.yaml (and its Phase 2 successor) is returned exactly by the generated procedure."}
+
+alert_thresholds:
+  - id: ALERT_STOCKOUT
+    description: Coverage too short to bridge the replenishment lead time (article 2, restitution).
+    metric: stock_coverage
+    comparison: LT
+    compared_to: coverage_months
+    value: TBD
+    unit: months
+    raises_flag: STOCKOUT_RISK
+  - id: ALERT_EXPIRY
+    description: >-
+      Stock that will not be consumed before it expires: coverage of a member restricted to an expiry bucket exceeds
+      the months left before expiry (article 2, restitution).
+    metric: stock_coverage
+    comparison: GT
+    compared_to: coverage_months - months_to_expiry, at grain including expiry_bucket
+    value: TBD
+    unit: months
+    raises_flag: EXPIRY_RISK
+
+# ================================================================================================ traps
+failure_modes:
+  - {id: T1, name: "Ratio re-aggregation", source: "data/traps.yaml#T1",
+     wrong_behaviour: "Sum or average of child coverages", correct_behaviour: "Recompute from aggregated S and f at each grain",
+     reference_question: "Stock coverage of flour and baking in France at AS_OF"}
+  - {id: T2, name: "Sparse forecast months", source: "data/traps.yaml#T2",
+     wrong_behaviour: "A row-based window skips missing months", correct_behaviour: "Densify the calendar: a missing month is 0",
+     reference_question: "Stock coverage of SKU-H03 in Germany at AS_OF"}
+  - {id: T3, name: "Stock-only filter pushed to forecast", source: "data/traps.yaml#T3",
+     wrong_behaviour: "The filter removes forecast rows, so coverage goes to 0 or null", correct_behaviour: "The forecast ignores stock-only attributes",
+     reference_question: "Stock coverage of released lots of SKU-H04 in Italy at AS_OF"}
+  - {id: T4, name: "Time filter pushed to forecast", source: "data/traps.yaml#T4",
+     wrong_behaviour: "The month filter kills the future forecast rows", correct_behaviour: "The forecast window is relative to t, not filtered by it",
+     reference_question: "Stock coverage of SKU-H05 in Spain for the AS_OF month"}
+  - {id: T5, name: "Heterogeneous units", source: "data/traps.yaml#T5 (refusal trap; docs/DEFINITION.md#4)",
+     wrong_behaviour: "Packs of different sizes summed", correct_behaviour: "An item's own unit for one item only; across items, quantity equivalent or value; refuse the own unit across items (BASIS_NOT_COMPARABLE)",
+     reference_question: "Stock coverage of dry pasta in the United Kingdom in number of packs at AS_OF"}
+  - {id: T6, name: "Missing analysis month", source: "data/traps.yaml#T6 (refusal trap; docs/DEFINITION.md#4)",
+     wrong_behaviour: "Coverage over the year (meaningless)", correct_behaviour: "An explicit as-of month is required: ask or refuse",
+     reference_question: "Stock coverage of flour and baking in France over the whole year 2026"}
+  - {id: T7, name: "Master-data fan-out", source: "data/traps.yaml#T7",
+     wrong_behaviour: "Item with two statuses counted twice", correct_behaviour: "Enforce one row per item on the item dimension",
+     reference_question: "Stock coverage of cooking oils in Sweden at AS_OF"}
+  - {id: T8, name: "Forecast but no stock", source: "data/traps.yaml#T8",
+     wrong_behaviour: "Member disappears", correct_behaviour: "Coverage 0, row kept (decision 2)",
+     reference_question: "Stock coverage of SKU-H08 in the Netherlands at AS_OF"}
+  - {id: NO_DEMAND, name: "No forecast at all", source: "data/traps.yaml#NO_DEMAND",
+     wrong_behaviour: "A number (0 or a division error) where coverage is undefined", correct_behaviour: "Null with flag NO_DEMAND (decision 2)",
+     reference_question: "Stock coverage of SKU-H09 in Belgium at AS_OF"}
+  - {id: BEYOND_H, name: "Stock outlasts the horizon", source: "data/traps.yaml#BEYOND_H",
+     wrong_behaviour: "Average over the full loaded forecast range", correct_behaviour: "Average of non-zero months bounded to H, flag BEYOND_HORIZON (decision 1)",
+     reference_question: "Stock coverage of SKU-H10 in Poland at AS_OF"}
+  - {id: BULK_SCOPE, name: "Bulk stock without forecast", source: "data/traps.yaml#BULK_SCOPE (HOT_GROUND; docs/phase0_findings.md#8)",
+     wrong_behaviour: "BULK stock counted against STANDARD forecast inflates a family's coverage (17.4 against 8.7 on v0)",
+     correct_behaviour: "Excluded by default, included on an explicit item_type filter, excluded amount reported (decision 5)",
+     reference_question: "Stock coverage of ground coffee at AS_OF"}
+  - {id: DIM_MIX, name: "Mass and volume added", source: "data/traps.yaml#DIM_MIX (refusal trap; docs/DEFINITION.md#4)",
+     wrong_behaviour: "kg and L added in quantity equivalent for a group that holds both (a country, a range)",
+     correct_behaviour: "Refuse quantity equivalent where a returned row mixes dimensions (BASIS_NOT_COMPARABLE, VALUE allowed); value is comparable",
+     reference_question: "Stock coverage in France in AS_OF"}
+  - {id: T9, name: "Stale stock in coverage", source: "data/traps.yaml#T9",
+     wrong_behaviour: "The latest snapshot before the analysis month is used as its stock (NON ADDITIVE BY on a range or with no month): a stockout shows a positive coverage",
+     correct_behaviour: "Stock read at exactly the analysis month, absent = 0: coverage 0 with NO_STOCK; native consumers read the gap-filled snapshot",
+     reference_question: "Stock coverage of SKU-H11 in Switzerland at AS_OF"}
+  - {id: CS_LAST_MONTH_GAP, name: "No snapshot in the last month of the period", source: "data/traps.yaml#CS_LAST_MONTH_GAP",
+     wrong_behaviour: "The member's last known snapshot is carried to the period's close (or the months are summed or averaged)",
+     correct_behaviour: "Closing stock 0, the member keeps its row",
+     reference_question: "Closing stock of SKU-H11 in Switzerland for Q2 2026"}
+  - {id: CS_MIDDLE_MONTH_GAP, name: "Gap in a middle month of the period", source: "data/traps.yaml#CS_MIDDLE_MONTH_GAP",
+     wrong_behaviour: "The months of the period summed or averaged", correct_behaviour: "The snapshot of the last month",
+     reference_question: "Closing stock of SKU-H12 in Switzerland for Q2 2026"}
+  - {id: CS_FAMILY, name: "Family that holds both gaps", source: "data/traps.yaml#CS_FAMILY",
+     wrong_behaviour: "Months summed or averaged, or each member's last known value added up",
+     correct_behaviour: "Sum over the members of the last month's snapshot only",
+     reference_question: "Closing stock of cereal bars in Switzerland for Q2 2026"}
+
+open_decisions:
+  - {id: OD_AS_OF_CAP, current_choice: "max 24 analysis months per call", evidence: INFERRED, blocking: false,
+     description: "Decision 4 allows a series but sets no length."}
+  - {id: OD_SCOPE_ON_GROUPING, current_choice: "grouping by item_type without a filter keeps the default scope", evidence: INFERRED, blocking: false,
+     description: "Decision 5 names an explicit filter only."}
+  - {id: OD_T7_RESOLUTION, current_choice: "refuse only when the query uses an item attribute whose values disagree; warn otherwise", evidence: INFERRED, blocking: false,
+     description: "With lifecycle_status CONFORMED (decision 6), a global refusal would refuse every query on v0, T7 included."}
+  - {id: OD_THRESHOLDS, current_choice: "TBD", evidence: DECIDED, blocking: false,
+     description: "Alert thresholds (stockout, expiry) and snapshot freshness age, owned by the business owner, for article 2."}

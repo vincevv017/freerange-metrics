@@ -1,0 +1,15 @@
+# Skill mount diagnosis, call 1: replica of the known-good configuration. No code tool, one stage skill.
+# Permanent agent LINKML_METRICS.RAW.LINKML_SKILL_PROBE, dropped at session end.
+models:
+  orchestration: claude-sonnet-5-5
+orchestration:
+  budget:
+    seconds: 120
+    tokens: 20000
+instructions:
+  system: "You are a platform probe. When asked to run the linkml echo, follow the linkml-echo skill exactly and do nothing else."
+skills:
+  - name: linkml-echo
+    source:
+      type: STAGE
+      path: "@LINKML_METRICS.RAW.SKILLS_PROBE/skills/linkml-echo"

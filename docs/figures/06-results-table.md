@@ -1,0 +1,12 @@
+# Figure 6: Seven ways to give an agent the same metric
+
+**Caption.** The article's results table, stage 1: the same 24 questions, the same model. Per configuration: right figure, basis named; the score of record, which also forbids a unit on the coverage; the agent's billed AI Credits per turn (median); whether it refuses with a code. The two versions with generated tools are highlighted; the raw-table version replayed the same questions after the campaign. One run per question: counts, not rates. Stage 2, latency and the data each configuration needs prepared are in the README.
+
+**Alt text.** Table of seven rows and five columns. Generated tools, raw tables: 22 of 24, score of record 21 of 24, 0.020 credits, refuses with a code; Generated tools, gap-filled view: 24 of 24, score of record 24 of 24, 0.020 credits, refuses with a code; Generated semantic view: 19 of 24, score of record 15 of 24, 0.104 credits, refuses in prose; Skill, script computes: 20 of 24, score of record 17 of 24, 0.097 credits, refuses in prose; Skill, agent writes queries: 19 of 24, score of record 15 of 24, 0.081 credits, refuses in prose; Autopilot semantic view: 19 of 24, score of record 16 of 24, 0.069 credits, refuses in prose; Hand-written semantic view: 19 of 24, score of record 13 of 24, 0.055 credits, refuses in prose.
+
+## Sources
+
+- Scores and credits: README section 4, stage 1 table, columns Right figure, basis named, Right figure, basis named, no unit on the coverage (rubric 3.2, of record) and Agent AI Credits per graded turn, billed, median [measured]. Credits rounded half up to three decimals from the README's four.
+- Refuses with a code: `snowflake/phase5_campaign/stage1_results.md`, section 3 (only C returns coded refusals; every other configuration refuses in prose); C-raw: a refusal code of `contract/stock_coverage.yaml` in its recorded answers, `eval/fixtures/grades_craw-s1.json` (T7_R1, MASTER_DATA_FANOUT) [measured].
+- Replayed after the campaign: README section 4 (C-raw, built in session 13, played C's 24 questions in C's order; it is not in the 144).
+- Plain names: Generated tools, raw tables = README row C-raw; Generated tools, gap-filled view = README row C; Generated semantic view = README row B2; Skill, script computes = README row D; Skill, agent writes queries = README row D′; Autopilot semantic view = README row A; Hand-written semantic view = README row B1.

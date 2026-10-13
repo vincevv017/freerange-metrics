@@ -1,0 +1,24 @@
+# Reduced stage 2 (owner, 2026-10-07 08:39, session 9b). eval/stage2.yaml stays as the gate wrote it in session 9a, as
+# evidence; this file is the plan that runs. Stage 1 stays the article's table for the six configurations. Stage 2 plays
+# C and B2 only, on the same questions, reported by the route C is expected to take (procedure, view only, both, no
+# tool; eval/grade.py route_group). A, B1, D and D' are not played again. Frozen: contract 0.5.1, charter 11, rubric 3.2,
+# C on VERSION$6, B2 on VERSION$8.
+#
+# python eval/campaign.py plan --stage 2 --plan reduced         # the plan, counts, caps, route groups and the estimate
+# python eval/campaign.py run  --stage 2 --plan reduced --ceiling-usd 15
+#
+# One block per configuration in the seeded configuration order of stage 2 (C, then B2), each a warm-up call then its
+# turns; question order shuffled per repetition with the fixed seeds of eval/campaign.py (SEED + 1000 x the index of the
+# configuration in the stage 2 order + the repetition); BULK_SCOPE_DRILL right after BULK_SCOPE in its thread; labels
+# <CONFIG>_<QUESTION>_campaign-s2_r<n>; block cap (1 + turns) x 1.1; the stage pauses at 90 percent of the ceiling.
+configurations: [C, B2]
+ceiling_usd: 15
+repetitions:
+  1:
+    # Held out of stage 1 (Q1 to Q4) and added in stage 2 (N1 to N3): never seen by a frozen agent.
+    [H_LOCAL_STOCKOUT, H_LOWEST_COUNTRY, H_STOCKOUT_2027, H_STOCKOUT_ES, N1, N2, N3]
+  2:
+    # The 16 questions of the gate (eval/stage2.yaml discriminating, BULK_SCOPE_DRILL in BULK_SCOPE's thread), four
+    # stage 1 questions the gate left out (G2, CS_FAMILY, CS_MIDDLE_MONTH_GAP, T6), and N1 to N3 again.
+    [T1, T2, T7, T7_R1, T8, NO_DEMAND, BEYOND_H, BULK_SCOPE, BULK_SCOPE_DRILL, DIM_MIX, T9, CS_LAST_MONTH_GAP, G1,
+     S_STOCKOUT_COUNTRY, S_FIRST_WORLD, S_DORMANT_VALUE, G2, CS_FAMILY, CS_MIDDLE_MONTH_GAP, T6, N1, N2, N3]

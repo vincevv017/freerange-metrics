@@ -1,0 +1,583 @@
+# Trap scenarios ("heroes"): pinned members that force one behaviour each, with the value a correct
+# engine must return. The background portfolio of the published dataset (data/output/) surrounds them.
+#
+# Conventions
+# - k is the month offset from the analysis month AS_OF: k = 0 is AS_OF, k = 1 is the first forecast month counted.
+# - Quantities are in QTY_EQ. Every hero has qty_eq_factor 1 and std_cost = cogs inside its family, so the VALUE
+#   variant returns the same coverage as QTY_EQ for every hero query below (asserted by the check, not assumed).
+# - `expected` values of hero queries are computed by hand from the numbers in this file (arithmetic in the comments).
+#   T5 and BULK_SCOPE query BACKGROUND families: their values were read once from the dataset with
+#   data/coverage_ref.py (both implementations agree), then frozen here, per unit when VALUE differs.
+#   checks/check_dataset.py recomputes them from the PRODUCED dataset with two independent implementations.
+# - `wrong` values are what the named wrong behaviour returns; the check asserts them too, so each trap is
+#   proven to be detectable (correct != wrong).
+# - No name in code: SKU codes, family names and countries live only here.
+# - Refusal traps (T5, T6) carry `expected_refusal`, a code of contract/stock_coverage.yaml, and no `expected` value.
+# - Values are computed under the contract's default scope (item_type STANDARD unless item_type is filtered). No hero
+#   above BULK_SCOPE depends on it: they hold no BULK stock.
+# - `closing_stock` (step 1 of the article) is the semi-additive baseline: closing stock over a period, not coverage.
+# - Heroes are append-only: a new hero goes at the END of hero_items and never moves the facts of an earlier one.
+# - `expected_warnings` (code -> count, or excluded amount in QTY_EQ) lists every warning of the QTY_EQ answer; a trap
+#   without it expects none. The reference questions (generated/reference_questions.yaml) carry them. Every count and
+#   amount is recomputed in pandas by checks/check_dataset.py from the dataset alone; no expected value is read from
+#   the procedure or any other Snowflake object.
+# - `general_questions` (session 8) are not about coverage: they test that an agent serves other questions and routes
+#   them to its semantic view. Expected values computed in pandas by checks/check_dataset.py, then frozen here.
+
+hero_items:
+  - sku: SKU-H01
+    name: Plain wheat flour 1 kg
+    family: {code: PANTRY_FLOUR, name: Flour and baking, range: PANTRY, dimension: MASS}
+    country: FR
+    std_cost_eur: 12.0
+    stock_at_as_of: [{status: RELEASED, qty_eq: 1200}]
+    forecast: {flat: 100}
+
+  - sku: SKU-H02
+    name: Bread flour 1 kg
+    family: {code: PANTRY_FLOUR, name: Flour and baking, range: PANTRY, dimension: MASS}
+    country: FR
+    std_cost_eur: 12.0
+    stock_at_as_of: [{status: RELEASED, qty_eq: 200}]
+    forecast: {flat: 400}
+
+  - sku: SKU-H03
+    name: Salted almonds 1 kg
+    family: {code: SNACK_NUTS, name: Nuts and dried fruit, range: SNACK, dimension: MASS}
+    country: DE
+    std_cost_eur: 3.0
+    stock_at_as_of: [{status: RELEASED, qty_eq: 500}]
+    forecast: {flat: 100, missing_k: [2, 3]}       # rows ABSENT for k = 2, 3 (not zero)
+
+  - sku: SKU-H04
+    name: Green tea loose-leaf 1 kg
+    family: {code: HOT_TEA, name: Loose-leaf tea, range: HOT, dimension: MASS}
+    country: IT
+    std_cost_eur: 40.0
+    stock_at_as_of:
+      - {status: RELEASED, qty_eq: 600}
+      - {status: QUALITY_HOLD, qty_eq: 400}
+    forecast: {flat: 100}
+
+  - sku: SKU-H05
+    name: Strawberry jam 1 kg
+    family: {code: BREAKFAST_SPREAD, name: Jams and spreads, range: BREAKFAST, dimension: MASS}
+    country: ES
+    std_cost_eur: 150.0
+    stock_at_as_of: [{status: RELEASED, qty_eq: 1000}]
+    # DEFINITION.md worked example, then 100 to the horizon. k = 0 carries 200 so that a window
+    # starting AT the analysis month instead of after it gives a different number.
+    forecast:
+      k0: 200
+      series: [120, 90, 150, 110, 130, 100, 140, 80, 160]
+      then_flat: 100
+
+  - sku: SKU-H06
+    name: Sunflower oil 1 L
+    family: {code: PANTRY_OIL, name: Cooking oils, range: PANTRY, dimension: VOLUME}
+    country: SE
+    std_cost_eur: 8.0
+    stock_at_as_of: [{status: RELEASED, qty_eq: 600}]
+    forecast: {flat: 100}
+    duplicate_dim_row: {lifecycle_status: PHASE_OUT}   # T7: same item_id twice in DIM_ITEM
+
+  - sku: SKU-H07
+    name: Rapeseed oil 1 L
+    family: {code: PANTRY_OIL, name: Cooking oils, range: PANTRY, dimension: VOLUME}
+    country: SE
+    std_cost_eur: 8.0
+    stock_at_as_of: [{status: RELEASED, qty_eq: 300}]
+    forecast: {flat: 300}
+
+  - sku: SKU-H08
+    name: Cashew nuts 1 kg
+    family: {code: SNACK_NUTS, name: Nuts and dried fruit, range: SNACK, dimension: MASS}
+    country: NL
+    std_cost_eur: 6.0
+    stock_at_as_of: []                                # T8: forecast but no stock at AS_OF
+    forecast: {flat: 100}
+
+  - sku: SKU-H09
+    name: Iced tea summer edition 1 L (discontinued)
+    family: {code: BEV_ICED, name: Iced tea, range: BEV, dimension: VOLUME}
+    country: BE
+    std_cost_eur: 9.0
+    stock_at_as_of: [{status: RELEASED, qty_eq: 500}]
+    forecast: {none: true}                            # no forecast row at all, any month
+
+  - sku: SKU-H10
+    name: Arabica beans 1 kg
+    family: {code: HOT_BEANS, name: Whole bean coffee, range: HOT, dimension: MASS}
+    country: PL
+    std_cost_eur: 4.0
+    stock_at_as_of: [{status: RELEASED, qty_eq: 5000}]
+    forecast: {flat: 100, missing_k: [5, 6], beyond_h_flat: 1000}   # k = 25..36 at 1000
+
+  # Closing stock over a quarter (step 1). AS_OF 2026-06-01 closes calendar Q2 2026: k = -2, -1, 0 (April to June).
+  # stock_by_k pins every month and creates rows only for the listed k: a missing k is an ABSENT row (a gap).
+  - sku: SKU-H11
+    name: Oat cereal bar 1 kg
+    family: {code: SNACK_BARS, name: Cereal bars, range: SNACK, dimension: MASS}
+    country: CH
+    std_cost_eur: 7.0
+    stock_by_k: {-2: 400, -1: 350}                   # no snapshot in June, the last month of the quarter
+    forecast: {flat: 100}
+
+  - sku: SKU-H12
+    name: Nut cereal bar 1 kg
+    family: {code: SNACK_BARS, name: Cereal bars, range: SNACK, dimension: MASS}
+    country: CH
+    std_cost_eur: 7.0
+    stock_by_k: {-2: 500, 0: 450}                    # gap in May, the middle month
+    forecast: {flat: 100}
+
+traps:
+  - id: T1
+    name: Ratio re-aggregation
+    question: "Stock coverage of flour and baking in France at AS_OF"
+    query: {grain: [family_code, country_code], filters: {family_code: PANTRY_FLOUR, country_code: FR}}
+    # S = 1200 + 200 = 1400, f = 100 + 400 = 500/month. C(2) = 1000, C(3) = 1500 -> 2 + 400/500 = 2.8
+    expected: 2.8
+    children:          # per-SKU coverages: H01 1200/100 -> 11 + 100/100 = 12.0 ; H02 200/400 -> 0.5
+      SKU-H01: 12.0
+      SKU-H02: 0.5
+    wrong:
+      sum_of_children: 12.5
+      average_of_children: 6.25
+      stock_weighted_average_of_children: 10.357142857142858   # (12*1200 + 0.5*200) / 1400
+
+  - id: T2
+    name: Sparse forecast months
+    question: "Stock coverage of SKU-H03 in Germany at AS_OF"
+    query: {grain: [sku_code, country_code], filters: {sku_code: SKU-H03, country_code: DE}}
+    # Dense: k = 1..7 -> 100, 0, 0, 100, 100, 100, 100 ; C(7) = 500 = S -> 6 + 100/100 = 7.0
+    expected: 7.0
+    expected_warnings: {FORECAST_GAPS_FILLED: 2}   # k = 2, 3 absent in the horizon
+    wrong:
+      row_based_window: 5.0      # "next n rows" skips k = 2, 3: 5 rows of 100 reach 500 -> 5.0
+
+  - id: T3
+    name: Stock-only filter pushed to forecast
+    question: "Stock coverage of released lots of SKU-H04 in Italy at AS_OF"
+    query: {grain: [sku_code, country_code], filters: {sku_code: SKU-H04, country_code: IT, batch_status: RELEASED}}
+    # Released S = 600 against the TOTAL forecast 100/month -> 6.0
+    expected: 6.0
+    related:
+      all_statuses: 10.0         # S = 1000 -> 10.0
+      quality_hold_only: 4.0     # S = 400 -> 4.0
+    wrong:
+      filter_pushed_to_forecast: null   # forecast carries no batch status: no forecast row survives
+
+  - id: T4
+    name: Time filter pushed to forecast
+    question: "Stock coverage of SKU-H05 in Spain for the AS_OF month"
+    query: {grain: [sku_code, country_code], filters: {sku_code: SKU-H05, country_code: ES}}
+    # C(8) = 920, C(9) = 1080 -> 8 + 80/160 = 8.5
+    expected: 8.5
+    wrong:
+      filter_pushed_to_forecast: null      # only the k = 0 forecast row survives, and it is excluded
+      window_starts_at_as_of: 7.714285714285714   # 200,120,90,150,110,130,100 = 900 ; 7 + 100/140
+
+  - id: T5
+    name: Heterogeneous units
+    question: "Stock coverage of dry pasta in the United Kingdom in number of packs at AS_OF"
+    query: {grain: [family_code, country_code], filters: {family_code: PANTRY_PASTA, country_code: GB}, basis: NATIVE}
+    # Background family, three SKUs in packs of different sizes, no BULK stock. Refused: packs do not add up.
+    # Contract 0.5.0 (session 8c-0): "number of packs" is the NATIVE basis (each item in its own unit), valid for one
+    # item per row only; the family row holds several items, all of one dimension (kg), so QTY_EQ and VALUE are allowed.
+    expected_refusal: BASIS_NOT_COMPARABLE
+    expected_allowed_bases: [QTY_EQ, VALUE]
+    related:
+      qty_eq: 2.3650554566616457           # the same question in quantity-equivalent, the answer to offer instead
+    wrong:
+      raw_units_summed: 8.496629213483146  # pack counts summed across pack sizes
+
+  - id: DIM_MIX
+    name: Mass and volume added
+    question: "Stock coverage in France in AS_OF"
+    query: {grain: [country_code], filters: {country_code: FR}, basis: QTY_EQ}
+    # Session 8c-0, question (b). Every STANDARD item stocked or forecast in France: beverages counted in L, the rest in
+    # kg. On QTY_EQ (the default basis) the country row adds kg and L: refused, VALUE allowed. The answer to give is the
+    # coverage on VALUE, saying that the basis changed and why. Values from data/coverage_ref.py (py_rows and sql_rows
+    # agree), recomputed by checks/check_dataset.py.
+    expected_refusal: BASIS_NOT_COMPARABLE
+    expected_allowed_bases: [VALUE]
+    related:
+      value: 8.700920093442502             # the same question on VALUE, the answer to give instead
+    wrong:
+      kg_and_l_added: 10.207983145513934   # QTY_EQ computed anyway: kg and L summed
+
+  - id: T6
+    name: Missing analysis month
+    question: "Stock coverage of flour and baking in France over the whole year 2026"
+    query: {grain: [family_code, country_code], filters: {family_code: PANTRY_FLOUR, country_code: FR}, as_of_months: null}
+    # A year holds several snapshots: no single analysis month. Called with no month, the procedure refuses.
+    # Through an agent, asking which month is also correct (DEFINITION.md section 4: ask or refuse); a month the
+    # agent picks by itself is wrong.
+    expected_refusal: AS_OF_MISSING
+
+  - id: T7
+    name: Master-data fan-out
+    question: "Stock coverage of cooking oils in Sweden at AS_OF"
+    query: {grain: [family_code, country_code], filters: {family_code: PANTRY_OIL, country_code: SE}}
+    # S = 600 + 300 = 900, f = 100 + 300 = 400/month. C(2) = 800 -> 2 + 100/400 = 2.25
+    expected: 2.25
+    expected_stock_qty_eq: 900
+    expected_warnings: {MASTER_DATA_DUPLICATES: 1}   # SKU-H06 has two DIM_ITEM rows that agree on the used columns
+    wrong:
+      naive_join_on_duplicated_item: 3.0   # H06 counted twice: S = 1500, f = 500 -> 3.0
+      naive_join_stock_qty_eq: 1500
+    refusal_questions:
+      - question: "Stock coverage of cooking oils in Sweden by lifecycle status at AS_OF"
+        query: {grain: [family_code, country_code, lifecycle_status], filters: {family_code: PANTRY_OIL, country_code: SE}}
+        # The query uses the conflicting column: SKU-H06 is ACTIVE and PHASE_OUT at once (QE_ITEM_GRAIN, REFUSE_IF_USED).
+        expected_refusal: MASTER_DATA_FANOUT
+        wrong:
+          naive_join_rows: {ACTIVE: 2.25, PHASE_OUT: 6.0}   # H06 in both rows: 900/400 and 600/100
+          naive_join_stock_qty_eq: 1500                     # stock of the rows summed: H06 counted twice
+          first_row_wins: {ACTIVE: 2.25}                    # a silent dedupe drops the PHASE_OUT row
+
+  - id: T8
+    name: Forecast but no stock
+    question: "Stock coverage of SKU-H08 in the Netherlands at AS_OF"
+    query: {grain: [sku_code, country_code], filters: {sku_code: SKU-H08, country_code: NL}}
+    expected: 0.0
+    expected_flag: NO_STOCK
+    wrong:
+      member_disappears: missing   # an engine driven by the stock rows returns no row
+
+  - id: NO_DEMAND
+    name: No forecast at all
+    question: "Stock coverage of SKU-H09 in Belgium at AS_OF"
+    query: {grain: [sku_code, country_code], filters: {sku_code: SKU-H09, country_code: BE}}
+    expected: null
+    expected_flag: NO_DEMAND
+
+  - id: BEYOND_H
+    name: Stock outlasts the horizon
+    question: "Stock coverage of SKU-H10 in Poland at AS_OF"
+    query: {grain: [sku_code, country_code], filters: {sku_code: SKU-H10, country_code: PL}}
+    # C(24) = 22 * 100 = 2200 < 5000. Average of non-zero months bounded to H = 100 -> 50.0
+    expected: 50.0
+    expected_flag: BEYOND_HORIZON
+    expected_warnings: {FORECAST_GAPS_FILLED: 2}   # k = 5, 6 absent
+    wrong:
+      average_over_full_forecast_range: 11.971830985915492   # (22*100 + 12*1000) / 34 = 417.65 -> 5000 / 417.65
+
+  - id: BULK_SCOPE
+    name: Bulk stock without forecast
+    question: "Stock coverage of ground coffee at AS_OF"
+    query: {grain: [family_code], filters: {family_code: HOT_GROUND}}
+    # Background family, all countries: 2 STANDARD SKUs and 3 BULK SKUs (stock, never forecast). Decision 5 of
+    # session 4: BULK excluded by default, with a warning that carries the excluded stock.
+    expected: 8.67354124748491              # QTY_EQ, default scope: STANDARD stock only
+    expected_by_unit: {QTY_EQ: 8.67354124748491, VALUE: 8.282089597433155}
+    expected_warning: DEFAULT_SCOPE_EXCLUDED
+    expected_excluded_stock_qty_eq: 51475.5
+    # Every warning of the QTY_EQ answer. FORECAST_GAPS_FILLED: the background family has 2 absent forecast months in
+    # the horizon t+1..t+24 of AS_OF, counted over the item x country pairs of the query that have a forecast row in
+    # that window; recomputed in pandas by checks/check_dataset.py (section 6), independent of any Snowflake object.
+    # DEFAULT_SCOPE_EXCLUDED: the BULK stock of the family at AS_OF, same check. Also asserted against the procedure
+    # by tests/test_procedure.py.
+    expected_warnings: {FORECAST_GAPS_FILLED: 2, DEFAULT_SCOPE_EXCLUDED: 51475.5}
+    related:
+      explicit_filter:
+        filters: {family_code: HOT_GROUND, item_type: [STANDARD, BULK]}
+        expected_by_unit: {QTY_EQ: 17.44238782051282, VALUE: 22.119951616014077}
+    wrong:
+      bulk_counted_by_default: 17.44238782051282   # QTY_EQ; no default scope (the C0 procedure)
+
+  - id: T9
+    name: Stale stock in coverage
+    question: "Stock coverage of SKU-H11 in Switzerland at AS_OF"
+    query: {grain: [sku_code, country_code], filters: {sku_code: SKU-H11, country_code: CH}}
+    # Reuses the closing-stock hero SKU-H11 (stock 400 in April, 350 in May, no snapshot in June = AS_OF; forecast
+    # flat 100). The stock is read at exactly the analysis month: none, so coverage 0 with NO_STOCK. An engine that
+    # lets NON ADDITIVE BY pick the snapshot (a time filter on a range, or no month) reads May's 350 instead and
+    # hides the stockout behind a positive coverage. No new facts.
+    expected: 0.0
+    expected_flag: NO_STOCK
+    wrong:
+      last_known_stock_over_forecast: 3.5   # 350 (May) against 100/month -> 3 + 50/100
+
+# Step 1 of the article: closing stock, the classic semi-additive measure. The closing stock of a period is the
+# snapshot of its LAST month, never the sum or the average of its months. A member with no snapshot in the last
+# month closes at 0, not at its last known value. Quantities in QTY_EQ (qty_eq_factor 1).
+closing_stock:
+  - id: CS_LAST_MONTH_GAP
+    name: No snapshot in the last month of the period
+    question: "Closing stock of SKU-H11 in Switzerland for Q2 2026"
+    query: {grain: [sku_code, country_code], filters: {sku_code: SKU-H11, country_code: CH}, period_k: [-2, 0]}
+    expected: 0.0
+    wrong:
+      sum_over_period: 750.0          # 400 + 350
+      last_known_value: 350.0         # May carried forward into June
+      average_over_period: 250.0      # 750 / 3 months
+
+  - id: CS_MIDDLE_MONTH_GAP
+    name: Gap in a middle month of the period
+    question: "Closing stock of SKU-H12 in Switzerland for Q2 2026"
+    query: {grain: [sku_code, country_code], filters: {sku_code: SKU-H12, country_code: CH}, period_k: [-2, 0]}
+    expected: 450.0                   # June snapshot
+    wrong:
+      sum_over_period: 950.0          # 500 + 450
+      average_over_period: 316.6666666666667   # 950 / 3 months
+
+  - id: CS_FAMILY
+    name: Family that holds both gaps
+    question: "Closing stock of cereal bars in Switzerland for Q2 2026"
+    query: {grain: [family_code, country_code], filters: {family_code: SNACK_BARS, country_code: CH}, period_k: [-2, 0]}
+    expected: 450.0                   # sum of the June snapshots of its SKUs: 0 (H11) + 450 (H12)
+    wrong:
+      sum_over_period: 1700.0         # 400 + 350 + 500 + 450
+      last_known_value_per_sku: 800.0 # 350 (H11, May) + 450 (H12)
+      average_over_period: 566.6666666666666   # 1700 / 3 months
+
+# Session 8: two general questions, not about coverage (routing: the semantic view tool, never a coverage mechanism).
+general_questions:
+  - id: G1
+    name: Forecast quantity of one family, one country, one month after AS_OF
+    question: "What is the demand forecast of fruit juice in France for September 2026, in kg or L equivalent?"
+    query: {measure: demand_forecast, basis: QTY_EQ, filters: {family_code: BEV_JUICE, country_code: FR}, month_k: 3}
+    # Background family (no hero), five SKUs in three pack sizes: forecast_qty_eq summed over the family's items in
+    # FR for AS_OF + 3 months (items read once per item_id).
+    expected: 6416.0
+    wrong:
+      raw_units_summed: 764.0           # forecast_qty_raw: pack counts of different sizes added up
+      month_of_as_of: 5899.0            # the AS_OF month instead of September
+      cumulative_to_month: 20721.0      # July + August + September
+  - id: G2
+    name: Closing stock value by country at AS_OF
+    question: "What was the closing stock value in EUR by country as of June 2026?"
+    query: {measure: stock_on_hand, basis: VALUE, grain: [country_code], period_k: [0, 0]}
+    # Every item type and batch status (the default scope is a coverage rule, contract 0.4.1): stock_value_eur of
+    # FCT_STOCK_SNAPSHOT at AS_OF summed by its own country_id, with no join to DIM_ITEM. A join to DIM_ITEM counts
+    # SKU-H06 twice (trap T7): SE gains 4,800 EUR.
+    expected_rows: {FR: 43879032.9288, BE: 14764495.404, NL: 20232037.4658, GB: 24672306.0572, DE: 24697602.4328,
+                    CH: 28912589.5002, PL: 15096357.3398, IT: 14978427.8516, ES: 48525033.1342, SE: 14476855.4803}
+    wrong:                              # only the rows that differ from expected_rows
+      item_join_fanout: {SE: 14481655.4803}
+      default_scope_applied: {FR: 28426712.276, BE: 13468899.0378, NL: 19040588.8503, ES: 44923005.4946,
+                              SE: 14403093.2275}
+
+# Session 8c-0: the questions of a stock manager and a finance controller: what runs out, what first, what sleeps and
+# what it costs, and on which basis the figure is comparable. Question (b) is the trap DIM_MIX above. Values computed
+# by the two references of data/coverage_ref.py (py_rows + select, sql_rows + sql_select, which agree), never by the
+# procedure, then frozen here; checks/check_dataset.py recomputes them. Default scope (STANDARD stock) as usual.
+# expected_rows: [grain codes..., coverage_months, stock_unit, stockout_month (YYYY-MM-01 or null)], in the order the
+# procedure returns them (coverage ascending, ties by the grain codes).
+showcase_questions:
+  - id: S_OWN_UNIT
+    label: "(a)"
+    question: "What is the stock coverage of SKU-0046 in its own unit (cases) in June 2026?"
+    query: {grain: [sku_code], filters: {sku_code: SKU-0046}, basis: NATIVE}
+    # Background item, jams and spreads, counted in cases of 10 (CASE_10, qty_eq_factor 10). One item per row: its own
+    # unit is valid, and the months are those of any consistent basis.
+    expected: 3.0626363353069492
+    expected_stock_unit: CASE_10
+    expected_stockout_month: "2026-10-01"
+    related:
+      qty_eq: 3.0626363353069492           # the same item on QTY_EQ (kg): equal months
+  - id: S_STOCKOUT_COUNTRY
+    label: "(c)"
+    question: "Which products will stock out within the next 3 months in France, from June 2026?"
+    query: {grain: [sku_code], filters: {country_code: FR}, basis: QTY_EQ, coverage_below: 3}
+    expected_rows:
+      - [SKU-H02, 0.5, kg, "2026-07-01"]
+      - [SKU-0039, 1.0124223602484472, kg, "2026-08-01"]
+      - [SKU-0031, 1.8432835820895521, L, "2026-08-01"]
+      - [SKU-0010, 2.2094972067039107, kg, "2026-09-01"]
+    expected_summary: {count: 4, stock: [{unit: L, amount: 11030.0}, {unit: kg, amount: 1030.0}]}
+    expected_apart: {NO_STOCK: [], NO_DEMAND: []}
+  - id: S_FIRST_WORLD
+    label: "(d)"
+    question: "Worldwide, which 10 products will stock out first from June 2026, not counting those already out?"
+    query: {grain: [sku_code], filters: {}, basis: QTY_EQ, rank_first: 10}
+    expected_rows:
+      - [SKU-H02, 0.5, kg, "2026-07-01"]
+      - [SKU-H07, 1.0, L, "2026-07-01"]
+      - [SKU-0046, 3.0626363353069492, kg, "2026-10-01"]
+      - [SKU-0043, 3.7488202488202487, kg, "2026-10-01"]
+      - [SKU-0036, 4.483697478991597, kg, "2026-11-01"]
+      - [SKU-H12, 4.5, kg, "2026-11-01"]
+      - [SKU-0025, 5.256016742239274, L, "2026-12-01"]
+      - [SKU-0009, 5.3992914979757085, kg, "2026-12-01"]
+      - [SKU-0041, 5.405078597339783, kg, "2026-12-01"]
+      - [SKU-0017, 5.684008276677505, kg, "2026-12-01"]
+    expected_summary: {count: 10, stock: [{unit: L, amount: 95030.0}, {unit: kg, amount: 829667.0}]}
+    expected_apart: {NO_STOCK: [[SKU-H08], [SKU-H11]], NO_DEMAND: [[SKU-H09]]}
+  - id: S_DORMANT_VALUE
+    label: "(e)"
+    question: "Across all countries, which item and country pairs have more than 12 months of coverage in June 2026, and how much stock value does that tie up?"
+    query: {grain: [sku_code, country_code], filters: {}, basis: VALUE, coverage_above: 12}
+    # VALUE: a quantity sum would add kg and L. Stock adds up, coverage never: the summary is a count and a stock sum.
+    # 28 of 220 rows (12.7 %) hold 31.05 % of the STANDARD stock value at June 2026 (228,619,582.0678 EUR).
+    expected_summary: {count: 28, stock: [{unit: EUR, amount: 70987982.9948}]}
+    expected_apart: {NO_STOCK: [[SKU-H08, NL], [SKU-H11, CH]], NO_DEMAND: [[SKU-H09, BE]]}
+    total_stock_value: 228619582.0678
+    related:
+      worldwide:                            # the same question at grain sku_code: the country mix hides the dormant stock
+        query: {grain: [sku_code], filters: {}, basis: VALUE, coverage_above: 12}
+        expected_rows: [[SKU-H10, 50.0, EUR, null]]
+        expected_summary: {count: 1, stock: [{unit: EUR, amount: 20000.0}]}
+
+# Session 8c, step 2: the held-out hard questions (owner's three, plus one where a model that computes the cascade itself
+# is likely to go wrong). Not asked in stage 1 of the campaign; asked in stage 2 only (held_out: true in the generated
+# file). Existing data, no new fact, analysis month June 2026, default scope (STANDARD stock). Values computed by the two
+# references of data/coverage_ref.py (py_rows + select, sql_rows + sql_select, which agree; tests/test_reference_oracle.py
+# recomputes every one), never by the procedure, then frozen here.
+# expected_rows: [grain codes..., coverage in months, the unit stock and forecast are measured in on the QTY_EQ basis
+# (kg or L; the coverage itself is always in months), stockout month]. graded_on: item_set (the exact set of products
+# the answer gives), lowest_member (the member and its coverage).
+held_out_questions:
+  - id: H_LOCAL_STOCKOUT
+    question: "As of June 2026, which items will stock out in at least one country within 3 months, while their stock across all countries covers more than 6 months?"
+    # Two calls, then an intersection of the codes they return (never a computation on figures): item x country with
+    # coverage_below 3, and items worldwide with coverage_above 6.
+    queries:
+      - {grain: [sku_code, country_code], filters: {}, basis: QTY_EQ, coverage_below: 3}
+      - {grain: [sku_code], filters: {}, basis: QTY_EQ, coverage_above: 6}
+    graded_on: item_set
+    expected_items: [SKU-0001, SKU-0003, SKU-0008, SKU-0010, SKU-0011, SKU-0013, SKU-0014, SKU-0018, SKU-0021, SKU-0024, SKU-0031, SKU-0037, SKU-0038, SKU-0042]
+    expected_calls:
+      - {count: 32, stock: [{unit: L, amount: 73338.0}, {unit: kg, amount: 401131.0}], apart: {NO_STOCK: [[SKU-H08, NL], [SKU-H11, CH]], NO_DEMAND: [[SKU-H09, BE]]}}
+      - {count: 36, stock: [{unit: L, amount: 731389.0}, {unit: kg, amount: 3281581.0}], apart: {NO_STOCK: [[SKU-H08], [SKU-H11]], NO_DEMAND: [[SKU-H09]]}}
+    wrong:
+      two_lists_without_intersection: 48   # products named when both lists are given
+  - id: H_LOWEST_COUNTRY
+    question: "Which country has the lowest stock coverage of breakfast cereals as of June 2026?"
+    query: {grain: [country_code], filters: {family_code: BREAKFAST_CEREAL}, basis: QTY_EQ, rank_first: 1}
+    graded_on: lowest_member
+    expected_rows:
+      - [PL, 2.1618732501908884, kg, "2026-09-01"]
+    expected_apart: {NO_STOCK: [], NO_DEMAND: []}
+    wrong:
+      naive_mean_ratio_lowest: CH          # stock over the mean monthly forecast of the horizon puts CH lowest (1.83)
+  - id: H_STOCKOUT_2027
+    question: "As of June 2026, which items will stock out during 2027?"
+    # Stockout month = analysis month + ceil(coverage): January to December 2027 is ceil in 7..18, coverage above 6
+    # and at most 18. SKU-H06 at exactly 6.0 stocks out in December 2026 (out); SKU-H03 at exactly 7.0 in January 2027 (in).
+    query: {grain: [sku_code], filters: {}, basis: QTY_EQ, coverage_above: 6, coverage_below: 18}
+    graded_on: item_set
+    expected_rows:
+      - [SKU-0032, 6.020332258864369, kg, "2027-01-01"]
+      - [SKU-0011, 6.091607943625881, kg, "2027-01-01"]
+      - [SKU-0021, 6.178234582829504, kg, "2027-01-01"]
+      - [SKU-0010, 6.3931818181818185, kg, "2027-01-01"]
+      - [SKU-0007, 6.610013780431787, kg, "2027-01-01"]
+      - [SKU-0042, 6.62020202020202, kg, "2027-01-01"]
+      - [SKU-0014, 6.686158192090396, kg, "2027-01-01"]
+      - [SKU-0013, 6.923710904480135, kg, "2027-01-01"]
+      - [SKU-0016, 6.969369369369369, kg, "2027-01-01"]
+      - [SKU-H03, 7.0, kg, "2027-01-01"]
+      - [SKU-0027, 7.122062663185378, L, "2027-02-01"]
+      - [SKU-0008, 7.323052464228935, kg, "2027-02-01"]
+      - [SKU-0031, 7.480759620189905, L, "2027-02-01"]
+      - [SKU-0038, 7.62475884244373, kg, "2027-02-01"]
+      - [SKU-0022, 7.8108228980322005, kg, "2027-02-01"]
+      - [SKU-0019, 8.235066609368285, kg, "2027-03-01"]
+      - [SKU-0048, 8.359049479166666, kg, "2027-03-01"]
+      - [SKU-0024, 8.419703872437358, L, "2027-03-01"]
+      - [SKU-H05, 8.5, kg, "2027-03-01"]
+      - [SKU-0037, 8.51174469463794, kg, "2027-03-01"]
+      - [SKU-0047, 8.584278768233387, kg, "2027-03-01"]
+      - [SKU-0001, 8.643559096945552, kg, "2027-03-01"]
+      - [SKU-0003, 8.72487494315598, kg, "2027-03-01"]
+      - [SKU-0029, 9.182938388625592, L, "2027-04-01"]
+      - [SKU-0020, 9.203993055555555, kg, "2027-04-01"]
+      - [SKU-0023, 9.322535863026376, L, "2027-04-01"]
+      - [SKU-0045, 9.471403038427168, kg, "2027-04-01"]
+      - [SKU-0034, 9.805236728837876, kg, "2027-04-01"]
+      - [SKU-0018, 9.81381714466804, kg, "2027-04-01"]
+      - [SKU-0044, 9.976313841598817, kg, "2027-04-01"]
+      - [SKU-H04, 10.0, kg, "2027-04-01"]
+      - [SKU-0006, 10.369774919614148, kg, "2027-05-01"]
+      - [SKU-0030, 10.582027168234065, L, "2027-05-01"]
+      - [SKU-0040, 10.622938184060429, kg, "2027-05-01"]
+      - [SKU-H01, 12.0, kg, "2027-06-01"]
+    expected_summary: {count: 35, stock: [{unit: L, amount: 731389.0}, {unit: kg, amount: 3276581.0}]}
+    expected_apart: {NO_STOCK: [[SKU-H08], [SKU-H11]], NO_DEMAND: [[SKU-H09]]}
+    wrong:
+      coverage_above_7: 25       # window read as 7 to 18: products named
+      no_upper_bound: 36          # SKU-H10 (beyond the horizon) added
+  - id: H_STOCKOUT_ES
+    question: "Which products will stock out within the next 3 months in Spain, from June 2026?"
+    query: {grain: [sku_code], filters: {country_code: ES}, basis: QTY_EQ, coverage_below: 3}
+    graded_on: item_set
+    expected_rows:
+      - [SKU-0001, 1.9329073482428116, kg, "2026-08-01"]
+      - [SKU-0028, 2.7317073170731705, L, "2026-09-01"]
+      - [SKU-0024, 2.9198473282442747, L, "2026-09-01"]
+    expected_summary: {count: 3, stock: [{unit: L, amount: 25515.0}, {unit: kg, amount: 1063.0}]}
+    expected_apart: {NO_STOCK: [], NO_DEMAND: []}
+    wrong:
+      naive_mean_ratio: [SKU-0001, SKU-0025]   # stock over the mean monthly forecast: one of three right, one extra
+
+# Session 9b (owner, 2026-10-07): three questions added in stage 2, asked of C and B2 only (added_in_stage: 2 in the
+# generated file). Never asked in stage 1, never seen by a frozen agent. Existing data, no new fact, analysis month June
+# 2026, default scope (STANDARD stock) for coverage, every item type for closing stock (DEFINITION.md sections 1, 7 and
+# 8). Wording verbatim from the owner. N2 was reworded by the owner to the months of Q2 2026 (2026-10-07): the SNACK_BARS
+# family holds no stock in Switzerland before April 2026, so for Q3 2025, Q4 2025 and Q1 2026 both references return no
+# row and section 7 defines no closing stock. Values computed by the two references of data/coverage_ref.py (closing
+# stock: closing_stock and sql_closing_stock; coverage: py_rows + select and sql_rows + sql_select, which agree;
+# tests/test_reference_oracle.py recomputes every one and every wrong value), never by the procedure (D040).
+# expected_route: the route agent C is expected to take. both: the procedure and the closing-stock view, each called at
+# least once in the turn; B2 answers both halves from its view.
+stage2_questions:
+  - id: N1
+    question: "What was the closing stock of SKU-H11 in Switzerland at the end of Q2 2026, and how many months of stock coverage does it have as of June 2026?"
+    expected_route: both
+    closing_stock:                                    # as CS_LAST_MONTH_GAP: no snapshot in June, the last month
+      query: {grain: [sku_code, country_code], filters: {sku_code: SKU-H11, country_code: CH}, period_k: [-2, 0]}
+      expected: 0.0
+      wrong: {sum_over_period: 750.0, last_known_value: 350.0, average_over_period: 250.0}
+    coverage:                                         # as T9: no stock at the analysis month
+      query: {grain: [sku_code, country_code], filters: {sku_code: SKU-H11, country_code: CH}}
+      expected: 0.0
+      expected_flag: NO_STOCK
+      wrong: {last_known_stock_over_forecast: 3.5}
+  - id: N2
+    question: "For the SNACK_BARS family in Switzerland, what was the closing stock at the end of each month of Q2 2026, and how many months of coverage does the June 2026 stock give?"
+    expected_route: both
+    closing_stock:
+      # Each month is its own period. April: H11 400 + H12 500. May: H11 350, H12 has no snapshot (gap). June: H12 450,
+      # H11 has none. Carried at the last known value per item: May 350 + 500, June 350 + 450.
+      query: {grain: [family_code, country_code], filters: {family_code: SNACK_BARS, country_code: CH}, months_k: [-2, -1, 0]}
+      expected_by_month: {"2026-04-01": 900.0, "2026-05-01": 350.0, "2026-06-01": 450.0}
+      wrong_by_month:
+        last_known_value_per_sku: {"2026-05-01": 850.0, "2026-06-01": 800.0}
+      wrong_over_months: {sum_over_period: 1700.0, average_over_period: 566.6666666666666}   # the months added or averaged
+    coverage:
+      # S = 450 (H12), f = 100 + 100 = 200/month. C(2) = 400, C(3) = 600 -> 2 + 50/200 = 2.25.
+      # June carried at the last known value: 800 against 200/month -> 4.0.
+      # No re-aggregation trap is declared: the children are H11 0 (no stock) and H12 450/100 -> 4.5; their mean is
+      # 2.25, the expected value, and their sum and stock-weighted mean are 4.5, H12's own coverage, which an answer may
+      # cite. Each would grade a correct answer, or a cited child, as a wrong value.
+      query: {grain: [family_code, country_code], filters: {family_code: SNACK_BARS, country_code: CH}}
+      expected: 2.25
+      wrong: {last_known_stock_over_forecast: 4.0}
+  - id: N3
+    question: "Which products will run out of stock first in France, as of June 2026?"
+    expected_route: coverage
+    # D051: the 10 lowest coverages above 0 at item grain within France, lowest first, ties by the product codes; items
+    # already out of stock and items with no demand are set apart and counted, not ranked (none in France under the
+    # default scope). Graded on the exact item set (rubric 3.2, item_set). No tie at the tenth place (6.217 against 6.741).
+    query: {grain: [sku_code], filters: {country_code: FR}, basis: QTY_EQ, rank_first: 10}
+    graded_on: item_set
+    expected_rows:
+      - [SKU-H02, 0.5, kg, "2026-07-01"]
+      - [SKU-0039, 1.0124223602484472, kg, "2026-08-01"]
+      - [SKU-0031, 1.8432835820895521, L, "2026-08-01"]
+      - [SKU-0010, 2.2094972067039107, kg, "2026-09-01"]
+      - [SKU-0008, 3.1333333333333333, kg, "2026-10-01"]
+      - [SKU-0033, 3.3575851393188856, kg, "2026-10-01"]
+      - [SKU-0027, 4.428571428571429, L, "2026-11-01"]
+      - [SKU-0016, 4.462603878116344, kg, "2026-11-01"]
+      - [SKU-0024, 5.962962962962963, L, "2026-12-01"]
+      - [SKU-0021, 6.217054263565892, kg, "2027-01-01"]
+    expected_summary: {count: 10, stock: [{unit: L, amount: 44302.0}, {unit: kg, amount: 59757.5}]}
+    expected_apart: {NO_STOCK: [], NO_DEMAND: []}
+    wrong:
+      naive_mean_ratio: [SKU-H02, SKU-0039, SKU-0010, SKU-0031, SKU-0027, SKU-0008, SKU-0033, SKU-0016, SKU-0045, SKU-0021]
+      stockout_within_3_months: [SKU-H02, SKU-0039, SKU-0031, SKU-0010]   # the S_STOCKOUT_COUNTRY list
+      bulk_counted_apart: SKU-0015          # the default scope not applied: a BULK item set apart as NO_DEMAND

@@ -1,0 +1,35 @@
+{
+  "as_of": "2026-06-01",
+  "seed": null,
+  "schema_version": "0.5.0",
+  "tables": {
+    "DIM_CALENDAR": {
+      "rows": 72,
+      "sha256": "f76cec1091ec3b273e9168c7ff1f7809fbdc54c744a6a6e34af223507d1b673b"
+    },
+    "DIM_GEO": {
+      "rows": 10,
+      "sha256": "18b9d94b4427ec0cc45cead4618fa5ce57beecdd57da6ec6f3eb7f7ff450d124"
+    },
+    "DIM_ITEM": {
+      "rows": 61,
+      "sha256": "366ce5ee4af0cb6c6fb47e55c2483b78f1a053bbab2a11ef8b97efdab112755a"
+    },
+    "DIM_WAREHOUSE": {
+      "rows": 15,
+      "sha256": "aec1ff8005f127bc4a806ad504767c3f1797cc016bc3b5f507a032df6c7bb886"
+    },
+    "DIM_BATCH": {
+      "rows": 4786,
+      "sha256": "d5b9322d5c00823d6971b17273d9adcc5289135d1d593fa8accc65ed9f43e895"
+    },
+    "FCT_STOCK_SNAPSHOT": {
+      "rows": 60915,
+      "sha256": "b951eba10e8a09222bb9aa448caf02386360b728db64996ff397c8240d119aa3"
+    },
+    "FCT_FORECAST": {
+      "rows": 15306,
+      "sha256": "8f41375fdd3b745bcfc7514165535a3fbac5a137772c0585b7db16caf120c3b4"
+    }
+  }
+}

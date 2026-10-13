@@ -1,0 +1,25 @@
+# Probe D (session 4): session 3 spec_4 with code_execution instead of code_toolset_all. Skill linkml-probe-py alone (written for code_execution), on a
+# fresh stage SKILLS_D_PROBE that holds only this skill. Permanent agent LINKML_METRICS.RAW.LINKML_D_PROBE, called as
+# LINKML_SVC, dropped at the end of the probe. Question: does the skill's script run under code_execution, and can it
+# reach data?
+models:
+  orchestration: claude-sonnet-5-5
+orchestration:
+  budget:
+    seconds: 120
+    tokens: 20000
+instructions:
+  system: "You are a platform probe. When asked to run the linkml probe, follow the linkml-probe-py skill exactly and do nothing else."
+skills:
+  - name: linkml-probe-py
+    source:
+      type: STAGE
+      path: "@LINKML_METRICS.RAW.SKILLS_D_PROBE/skills/linkml-probe-py"
+tools:
+  - tool_spec:
+      type: code_execution
+      name: code_execution
+tool_resources:
+  code_execution:
+    permission_policy:
+      type: always_ask
